@@ -17,7 +17,7 @@ const pdfDatabase = [
         description: "Unit 2",
         uploadDate: "2025-09-22",
 
-        author: "Dr. Smith"
+        author: "Jayanta Kumar Sharma"
     },
     {
         id: 3,
@@ -37,7 +37,7 @@ const pdfDatabase = [
         description: "Unit 1 and Unit 2(Not complete)",
         uploadDate: "2025-09-22",
 
-        author: "Ms. Davis"
+        author: "Shilpi Mital"
     },
     {
         id: 5,
