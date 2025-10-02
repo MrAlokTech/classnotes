@@ -48,6 +48,16 @@ const pdfDatabase = [
         uploadDate: "2025-09-22",
 
         author: "Sujit Ranjan Acharjee"
+    },
+    {
+        id: 6,
+        title: "SK Sir",
+        filename: "SK.pdf",
+        category: "Physical",
+        description: "Compiled Notes from Official WhatsApp Group upto page 65 - Unit 1",
+        uploadDate: "2025-10-02",
+
+        author: "Satyajit Kumar"
     }
 ];
 
