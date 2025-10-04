@@ -54,9 +54,8 @@ const pdfDatabase = [
         title: "SK Sir",
         filename: "SK.pdf",
         category: "Physical",
-        description: "Compiled Notes from Official WhatsApp Group upto page 65 - Unit 1",
-        uploadDate: "2025-10-02",
-
+        description: "Compiled Notes from Official WhatsApp Group upto page 75 - Unit 1(Completed)",
+        uploadDate: "2025-10-04",
         author: "Satyajit Kumar"
     }
 ];
