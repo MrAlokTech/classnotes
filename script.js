@@ -111,7 +111,7 @@ function setupEventListeners() {
 
     document.getElementById('closeModal').addEventListener('click', closePDFModal);
     document.getElementById('closeShareModal').addEventListener('click', closeShareModal);
-    document.getElementById('shareBtn').addEventListener('click', showShareModal);
+    document.getElementById('shareBtn').addEventListener('click', () => showShareModal());
     document.getElementById('downloadBtn').addEventListener('click', downloadCurrentPDF);
     document.getElementById('copyLinkBtn').addEventListener('click', copyShareLink);
 
@@ -164,9 +164,9 @@ function renderPDFs() {
         const matchesSemester = pdf.semester === currentSemester;
         const matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
         const matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
-                            pdf.description.toLowerCase().includes(searchTerm) ||
-                            pdf.category.toLowerCase().includes(searchTerm) ||
-                            pdf.author.toLowerCase().includes(searchTerm);
+            pdf.description.toLowerCase().includes(searchTerm) ||
+            pdf.category.toLowerCase().includes(searchTerm) ||
+            pdf.author.toLowerCase().includes(searchTerm);
 
         return matchesSemester && matchesCategory && matchesSearch;
     });
@@ -268,12 +268,27 @@ function sharePDF(pdfId) {
     showShareModal(pdf);
 }
 
-function showShareModal(pdf) {
-    if (!pdf && pdfModal.dataset.currentPdf) {
+
+// NEW Function (more robust)
+function showShareModal(pdfFromCard) {
+    let pdf;
+
+    // Case 1: Called from the grid card (pdfFromCard is the PDF object from the home screen)
+    if (pdfFromCard && pdfFromCard.id) {
+        pdf = pdfFromCard;
+    }
+    // Case 2: Called from the modal's share button (no argument passed, so look in the dataset)
+    else if (pdfModal.dataset.currentPdf) {
+        // Ensure we handle the case where the JSON string is passed by the 'sharePDF' function
+        // which may pass an ID and not the object. Let's make sure the sharePDF(pdfId) function
+        // calls this with the actual PDF object.
         pdf = JSON.parse(pdfModal.dataset.currentPdf);
     }
 
-    if (!pdf) return;
+    if (!pdf) {
+        console.error("Could not find PDF data for sharing.");
+        return;
+    }
 
     const shareUrl = `${window.location.origin}${window.location.pathname}?pdf=${pdf.id}`;
     shareLink.value = shareUrl;
@@ -337,4 +352,31 @@ function showToast(message, type = 'success') {
     setTimeout(() => {
         toast.classList.remove('show');
     }, 3000);
+}
+
+// CopyRight
+// Set the initial year your project was first copyrighted
+const START_YEAR = 2025;
+
+// Get the current year
+const CURRENT_YEAR = new Date().getFullYear();
+
+// Find the paragraph element by its ID
+const copyrightElement = document.getElementById('copyright-year');
+
+// Check if the element exists to prevent errors
+if (copyrightElement) {
+    // Build the year string dynamically
+    let yearText = `© ${START_YEAR}`;
+
+    // If the current year is later than the start year, append the range
+    if (CURRENT_YEAR > START_YEAR) {
+        yearText += ` - ${CURRENT_YEAR}`;
+    }
+
+    // Append the rest of your copyright text
+    yearText += ` ClassNotes. All rights reserved.`;
+
+    // Update the HTML content
+    copyrightElement.innerHTML = yearText;
 }
