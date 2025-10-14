@@ -1,179 +1,228 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ClassNotes</title>
-    <link
-      rel="shortcut icon"
-      href="https://play-lh.googleusercontent.com/vzkH7wVzacIAjphQOSSzdSk2GmCUSL1mIE1jxoD808OiLAjtXmfDiAJ3DJuuhbeEI08"
-      type="image/x-icon"
-    />
-    <link rel="stylesheet" href="style.css" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-  </head>
-  <body>
-    <header class="header">
-      <div class="container">
-        <div class="header-content">
-          <div class="logo">
-            <i class="fas fa-graduation-cap"></i>
-            <h1>ClassNotes</h1>
-          </div>
-        </div>
-      </div>
-    </header>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>System Offline | alokdasofficial.in</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' fill='%230f0' viewBox='0 0 16 16'><text y='14'>💀</text></svg>">
+<meta name="description" content="This system has been taken offline. Contact: alokdasofficial.in">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
-    <div class="semester-tabs">
-      <div class="container">
-        <div class="tabs-wrapper">
-          <button class="tab-btn active" data-semester="1">
-            <span class="tab-number">1</span>
-            <span class="tab-label">Semester</span>
-          </button>
-          <button class="tab-btn" data-semester="2">
-            <span class="tab-number">2</span>
-            <span class="tab-label">Semester</span>
-          </button>
-          <button class="tab-btn" data-semester="3">
-            <span class="tab-number">3</span>
-            <span class="tab-label">Semester</span>
-          </button>
-          <button class="tab-btn" data-semester="4">
-            <span class="tab-number">4</span>
-            <span class="tab-label">Semester</span>
-          </button>
-        </div>
-      </div>
-    </div>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    <main class="main">
-      <div class="container">
-        <div class="controls-section">
-          <div class="search-box">
-            <i class="fas fa-search"></i>
-            <input
-              type="text"
-              id="searchInput"
-              placeholder="Search notes by title, teacher, or subject..."
-            />
-          </div>
-          <div class="filter-section">
-            <button class="filter-btn active" data-category="all">
-              <i class="fas fa-th"></i>
-              All
-            </button>
-            <button class="filter-btn" data-category="Organic">
-              <i class="fas fa-flask"></i>
-              Organic
-            </button>
-            <button class="filter-btn" data-category="Inorganic">
-              <i class="fas fa-atom"></i>
-              Inorganic
-            </button>
-            <button class="filter-btn" data-category="Physical">
-              <i class="fas fa-calculator"></i>
-              Physical
-            </button>
-          </div>
-        </div>
+  body {
+    background: #000;
+    color: #0f0;
+    font-family: 'Share Tech Mono', monospace;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    overflow: hidden;
+    flex-direction: column;
+    text-align: center;
+    padding: 1rem;
+  }
 
-        <div class="stats-bar">
-          <span id="pdfCount">0</span> notes available
-        </div>
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: repeating-linear-gradient(to bottom,
+      rgba(0, 0, 0, 0) 0px,
+      rgba(0, 255, 0, 0.05) 2px
+    );
+    pointer-events: none;
+    animation: scan 6s linear infinite;
+    z-index: 10;
+  }
 
-        <div class="pdf-grid" id="pdfGrid">
-          <!-- PDF cards will be dynamically generated here -->
-        </div>
+  @keyframes scan {
+    0% { background-position: 0 0; }
+    100% { background-position: 0 100vh; }
+  }
 
-        <div class="empty-state" id="emptyState" style="display: none">
-          <i class="fas fa-folder-open"></i>
-          <h3>No notes found</h3>
-          <p>Try adjusting your search or filter</p>
-        </div>
-      </div>
-    </main>
+  .terminal {
+    border: 1px solid #0f0;
+    padding: 1.5rem;
+    width: 100%;
+    max-width: 600px;
+    margin: 1rem auto;
+    box-shadow: 0 0 20px #020;
+    opacity: 0;
+    transform: scale(0.98);
+    animation: fadeIn 2s ease forwards 1.5s;
+    background: rgba(0, 0, 0, 0.6);
+  }
 
-    <!-- PDF Viewer Modal -->
-    <div class="modal" id="pdfModal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3 id="modalTitle">PDF Viewer</h3>
-          <div class="modal-actions">
-            <button class="btn-icon" id="shareBtn" title="Share PDF">
-              <i class="fas fa-share-alt"></i>
-            </button>
-            <button class="btn-icon" id="downloadBtn" title="Download PDF">
-              <i class="fas fa-download"></i>
-            </button>
-            <button class="btn-icon" id="closeModal" title="Close">
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
-        </div>
-        <div class="modal-body">
-          <iframe id="pdfViewer" src="" width="100%" height="100%"></iframe>
-        </div>
-      </div>
-    </div>
+  @keyframes fadeIn {
+    to { opacity: 1; transform: scale(1); }
+  }
 
-    <!-- Share Modal -->
-    <div class="modal" id="shareModal">
-      <div class="modal-content share-modal">
-        <div class="modal-header">
-          <h3>Share this PDF</h3>
-          <button class="btn-icon" id="closeShareModal">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-        <div class="modal-body">
-          <p>Share this link with your classmates:</p>
-          <div class="share-link-container">
-            <input type="text" id="shareLink" readonly />
-            <button class="btn-primary" id="copyLinkBtn">
-              <i class="fas fa-copy"></i>
-              Copy
-            </button>
-          </div>
-          <div class="share-success" id="shareSuccess" style="display: none">
-            <i class="fas fa-check"></i>
-            Link copied to clipboard!
-          </div>
-        </div>
-      </div>
-    </div>
+  h1 {
+    font-size: clamp(1.8rem, 6vw, 3rem);
+    text-shadow: 0 0 20px #0f0;
+    letter-spacing: 0.1em;
+    animation: flicker 2s infinite;
+    word-wrap: break-word;
+  }
 
-    <!-- Toast Notification -->
-    <div class="toast" id="toast">
-      <i class="fas fa-check"></i>
-      <span id="toastMessage">Action completed!</span>
-    </div>
+  @keyframes flicker {
+    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
+    20%, 24%, 55% { opacity: 0.2; }
+  }
 
-    <footer>
-      <div class="footer-content">
-        <p class="thanks-message">
-          ✨ Thank you to every friend who shared their notes ✨
-        </p>
-        <p class="contact-info">
-          For any queries:
-          <a href="mailto:notes@alokdasofficial.in">notes@alokdasofficial.in</a>
-        </p>
-        <p class="credits">
-          Made with <span class="heart">❤️</span> by
-          <a href="http://alokdasofficial.in" target="_blank">Alok Das</a>
-        </p>
-        <p class="copyright-text" id="copyright-year">
-          © 2025 ClassNotes. All rights reserved.
-        </p>
-      </div>
-    </footer>
-    <script src="script.js"></script>
-  </body>
+  .glitch {
+    position: relative;
+    display: inline-block;
+  }
+
+  .glitch::before,
+  .glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    left: 0;
+    width: 100%;
+    overflow: hidden;
+    color: #0f0;
+    clip: rect(0, 900px, 0, 0);
+  }
+
+  .glitch::before {
+    animation: glitchTop 2s infinite linear alternate-reverse;
+    color: #f00;
+  }
+
+  .glitch::after {
+    animation: glitchBottom 2s infinite linear alternate-reverse;
+    color: #0ff;
+  }
+
+  @keyframes glitchTop {
+    0% { clip: rect(0, 9999px, 0, 0); transform: translate(-3px, -3px); }
+    20% { clip: rect(0, 9999px, 5px, 0); transform: translate(3px, 3px); }
+    40% { clip: rect(0, 9999px, 15px, 0); transform: translate(-3px, 1px); }
+    60% { clip: rect(0, 9999px, 3px, 0); transform: translate(3px, -2px); }
+    80% { clip: rect(0, 9999px, 10px, 0); transform: translate(-2px, 2px); }
+    100% { clip: rect(0, 9999px, 8px, 0); transform: translate(0); }
+  }
+
+  @keyframes glitchBottom {
+    0% { clip: rect(0, 9999px, 0, 0); transform: translate(3px, 3px); }
+    20% { clip: rect(10px, 9999px, 20px, 0); transform: translate(-3px, -1px); }
+    40% { clip: rect(5px, 9999px, 15px, 0); transform: translate(2px, -3px); }
+    60% { clip: rect(3px, 9999px, 25px, 0); transform: translate(-2px, 3px); }
+    80% { clip: rect(7px, 9999px, 10px, 0); transform: translate(3px, -2px); }
+    100% { clip: rect(5px, 9999px, 20px, 0); transform: translate(0); }
+  }
+
+  p {
+    font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+    color: #0a0;
+    opacity: 0.8;
+    margin-top: 1rem;
+    line-height: 1.4;
+    word-break: break-word;
+  }
+
+  .cursor {
+    display: inline-block;
+    width: 8px;
+    height: 18px;
+    background: #0f0;
+    animation: blink 1s infinite;
+    margin-left: 5px;
+  }
+
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+
+  .contact {
+    position: fixed;
+    bottom: 1rem;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 0.85rem;
+    color: #060;
+    opacity: 0.7;
+    animation: flicker 4s infinite;
+  }
+
+  .contact a {
+    color: #0f0;
+    text-decoration: none;
+  }
+
+  .contact a:hover {
+    text-shadow: 0 0 8px #0f0;
+  }
+
+  .fade-out { animation: fadeToBlack 1s forwards; }
+  @keyframes fadeToBlack { to { opacity: 0; background: black; } }
+
+  @media (max-height: 500px) {
+    body { padding: 0.5rem; }
+    .terminal { padding: 1rem; }
+    h1 { font-size: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+  <div class="terminal">
+    <h1 class="glitch" data-text="SITE OFFLINE">SITE OFFLINE</h1>
+    <p id="boot">Initializing sequence...</p>
+    <p id="status"></p>
+    <span class="cursor"></span>
+  </div>
+
+  <div class="contact">
+    Contact: <a href="mailto:notes@alokdasofficial.in">notes@alokdasofficial.in</a>
+  </div>
+
+  <script>
+    const boot = document.getElementById("boot");
+    const status = document.getElementById("status");
+    const cursor = document.querySelector(".cursor");
+
+    const messages = [
+      "Verifying system integrity...",
+      "Warning: checksum mismatch detected.",
+      "Reboot attempt failed...",
+      "Server connection lost.",
+      "Status: irreversible shutdown."
+    ];
+
+    function typeMessage(text, element, delay = 80, next = null) {
+      let i = 0;
+      const interval = setInterval(() => {
+        element.textContent = text.slice(0, i++);
+        if (i > text.length) {
+          clearInterval(interval);
+          if (next) setTimeout(next, 800);
+        }
+      }, delay);
+    }
+
+    typeMessage("Initializing sequence...", boot, 60, () => {
+      let index = 0;
+      function nextMessage() {
+        if (index < messages.length) {
+          typeMessage(messages[index++], status, 80, nextMessage);
+        } else {
+          cursor.style.display = "inline-block";
+        }
+      }
+      nextMessage();
+    });
+
+    window.addEventListener("beforeunload", () => {
+      document.body.classList.add("fade-out");
+    });
+  </script>
+</body>
 </html>
