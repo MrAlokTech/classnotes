@@ -18,8 +18,11 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6067845249311724"
-     crossorigin="anonymous"></script>
+    <script
+      async
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6067845249311724"
+      crossorigin="anonymous"
+    ></script>
   </head>
   <body>
     <header class="header">
@@ -105,6 +108,57 @@
 
     <!-- PDF Viewer Modal -->
     <div class="modal" id="pdfModal">
+      <div class="modal-content pdf-viewer-layout">
+        <div class="modal-main-content">
+          <!-- Mobile Comments Button -->
+          <button id="openCommentsBtn">
+            <i class="fas fa-comment-dots"></i> Comments
+          </button>
+
+          <div class="modal-header">
+            <h3 id="modalTitle">PDF Viewer</h3>
+            <div class="modal-actions">
+              <button class="btn-icon" id="shareBtn" title="Share PDF">
+                <i class="fas fa-share-alt"></i>
+              </button>
+              <button class="btn-icon" id="downloadBtn" title="Download PDF">
+                <i class="fas fa-download"></i>
+              </button>
+              <button class="btn-icon" id="closeModal" title="Close">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+          <div class="modal-body">
+            <iframe id="pdfViewer" src="" width="100%" height="100%"></iframe>
+          </div>
+        </div>
+
+        <div class="modal-sidebar" id="commentSidebar">
+          <h4>Comments (<span id="commentCount">0</span>)</h4>
+          <div class="comments-list" id="commentsList"></div>
+          <form class="comment-form" id="commentForm">
+            <textarea
+              id="commentInput"
+              placeholder="Add a comment... (Max 200 chars)"
+              maxlength="200"
+              required
+            ></textarea>
+            <input
+              type="text"
+              id="commentAuthor"
+              placeholder="Your Name (Optional)"
+              maxlength="50"
+            />
+            <button type="submit" class="btn btn-primary" id="submitCommentBtn">
+              <i class="fas fa-paper-plane"></i>
+              Send
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <!-- <div class="modal" id="pdfModal">
       <div class="modal-content">
         <div class="modal-header">
           <h3 id="modalTitle">PDF Viewer</h3>
@@ -124,7 +178,7 @@
           <iframe id="pdfViewer" src="" width="100%" height="100%"></iframe>
         </div>
       </div>
-    </div>
+    </div> -->
 
     <!-- Share Modal -->
     <div class="modal" id="shareModal">
@@ -176,6 +230,23 @@
         </p>
       </div>
     </footer>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyAf9MEc8495GUwWHZsE4HcvJvbtptkBfQc",
+        authDomain: "alokdasofficial-69f96.firebaseapp.com",
+        projectId: "alokdasofficial",
+        storageBucket: "alokdasofficial.firebasestorage.app",
+        messagingSenderId: "315463239297",
+        appId: "1:315463239297:web:c374126286d9b33f3f2f80",
+        measurementId: "G-QPXHCK0R2E",
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+    </script>
     <script src="script.js"></script>
   </body>
 </html>

@@ -1,65 +1,14 @@
-const pdfDatabase = [
-    {
-        id: 1,
-        title: "BN Sir - Till 22-09-2025",
-        filename: "BN.pdf",
-        category: "Organic",
-        description: "Unit 3",
-        uploadDate: "2025-09-22",
-        author: "Bhaskar Nath",
-        semester: 1
-    },
-    {
-        id: 2,
-        title: "JKS Sir - Till 22-09-2025",
-        filename: "JKS.pdf",
-        category: "Physical",
-        description: "Unit 2",
-        uploadDate: "2025-09-22",
-        author: "Jayanta Kumar Sharma",
-        semester: 1
-    },
-    {
-        id: 3,
-        title: "KC Sir - Till 22-09-2025",
-        filename: "KC.pdf",
-        category: "Organic",
-        description: "Unit 2",
-        uploadDate: "2025-09-22",
-        author: "Kaushik Chanda",
-        semester: 1
-    },
-    {
-        id: 4,
-        title: "SM Ma'am - Till 22-09-2025",
-        filename: "SM.pdf",
-        category: "Inorganic",
-        description: "Unit 1 and Unit 2 (Not complete)",
-        uploadDate: "2025-09-22",
-        author: "Shilpi Mital",
-        semester: 1
-    },
-    {
-        id: 5,
-        title: "SRA Sir - Till 22-09-2025",
-        filename: "SRA.pdf",
-        category: "Organic",
-        description: "Unit 1",
-        uploadDate: "2025-09-22",
-        author: "Sujit Ranjan Acharjee",
-        semester: 1
-    },
-    {
-        id: 6,
-        title: "SK Sir",
-        filename: "SK.pdf",
-        category: "Physical",
-        description: "Compiled Notes from Official WhatsApp Group upto page 75 - Unit 1 (Completed)",
-        uploadDate: "2025-10-04",
-        author: "Satyajit Kumar",
-        semester: 1
+let pdfDatabase = [];
+
+async function loadPDFDatabase() {
+    try {
+        const response = await fetch('notes.json');
+        pdfDatabase = await response.json();
+        renderPDFs();
+    } catch (error) {
+        console.error('Error loading notes:', error);
     }
-];
+}
 
 let currentSemester = 1;
 let currentCategory = 'all';
@@ -78,8 +27,17 @@ const shareLink = document.getElementById('shareLink');
 const toast = document.getElementById('toast');
 const toastMessage = document.getElementById('toastMessage');
 
-document.addEventListener('DOMContentLoaded', function () {
+// NEW Comment Variables
+const commentSidebar = document.getElementById('commentSidebar');
+const commentsList = document.getElementById('commentsList');
+const commentCount = document.getElementById('commentCount');
+const commentForm = document.getElementById('commentForm');
+const commentInput = document.getElementById('commentInput');
+const commentAuthor = document.getElementById('commentAuthor');
+
+document.addEventListener('DOMContentLoaded', async function () {
     initializeApp();
+    await loadPDFDatabase();
     setupEventListeners();
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -98,6 +56,43 @@ function initializeApp() {
     renderPDFs();
 }
 
+// function setupEventListeners() {
+//     searchInput.addEventListener('input', renderPDFs);
+
+//     tabBtns.forEach(btn => {
+//         btn.addEventListener('click', handleSemesterChange);
+//     });
+
+//     filterBtns.forEach(btn => {
+//         btn.addEventListener('click', handleCategoryChange);
+//     });
+
+//     document.getElementById('closeModal').addEventListener('click', closePDFModal);
+//     document.getElementById('closeShareModal').addEventListener('click', closeShareModal);
+//     document.getElementById('shareBtn').addEventListener('click', () => showShareModal());
+//     document.getElementById('downloadBtn').addEventListener('click', downloadCurrentPDF);
+//     document.getElementById('copyLinkBtn').addEventListener('click', copyShareLink);
+
+//     pdfModal.addEventListener('click', function (e) {
+//         if (e.target === pdfModal) closePDFModal();
+//     });
+
+//     shareModal.addEventListener('click', function (e) {
+//         if (e.target === shareModal) closeShareModal();
+//     });
+
+//     document.addEventListener('keydown', function (e) {
+//         if (e.key === 'Escape') {
+//             if (shareModal.classList.contains('active')) {
+//                 closeShareModal();
+//             } else if (pdfModal.classList.contains('active')) {
+//                 closePDFModal();
+//             }
+//         }
+//     });
+// }
+
+// script.js (REPLACE the existing setupEventListeners function)
 function setupEventListeners() {
     searchInput.addEventListener('input', renderPDFs);
 
@@ -114,6 +109,9 @@ function setupEventListeners() {
     document.getElementById('shareBtn').addEventListener('click', () => showShareModal());
     document.getElementById('downloadBtn').addEventListener('click', downloadCurrentPDF);
     document.getElementById('copyLinkBtn').addEventListener('click', copyShareLink);
+
+    // NEW: Comment form submission
+    commentForm.addEventListener('submit', handleCommentSubmit);
 
     pdfModal.addEventListener('click', function (e) {
         if (e.target === pdfModal) closePDFModal();
@@ -132,6 +130,22 @@ function setupEventListeners() {
             }
         }
     });
+}
+
+
+// script.js (REPLACE the existing viewPDF function)
+async function viewPDF(pdf) {
+    const pdfPath = `./pdf/${pdf.filename}`;
+
+    modalTitle.textContent = pdf.title;
+    pdfViewer.src = pdfPath;
+    pdfModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    pdfModal.dataset.currentPdf = JSON.stringify(pdf);
+
+    // NEW: Load comments when opening the modal
+    await loadComments(pdf.id);
 }
 
 function handleSemesterChange(e) {
@@ -240,16 +254,16 @@ function updatePDFCount(count) {
     pdfCount.textContent = count;
 }
 
-function viewPDF(pdf) {
-    const pdfPath = `./pdf/${pdf.filename}`;
+// function viewPDF(pdf) {
+//     const pdfPath = `./pdf/${pdf.filename}`;
 
-    modalTitle.textContent = pdf.title;
-    pdfViewer.src = pdfPath;
-    pdfModal.classList.add('active');
-    document.body.style.overflow = 'hidden';
+//     modalTitle.textContent = pdf.title;
+//     pdfViewer.src = pdfPath;
+//     pdfModal.classList.add('active');
+//     document.body.style.overflow = 'hidden';
 
-    pdfModal.dataset.currentPdf = JSON.stringify(pdf);
-}
+//     pdfModal.dataset.currentPdf = JSON.stringify(pdf);
+// }
 
 function closePDFModal() {
     pdfModal.classList.remove('active');
@@ -380,3 +394,150 @@ if (copyrightElement) {
     // Update the HTML content
     copyrightElement.innerHTML = yearText;
 }
+
+// --- Firebase Comment Functions ---
+
+/**
+ * Loads and displays comments for a given PDF ID.
+ * @param {number} pdfId 
+ */
+
+async function loadComments(pdfId) {
+    commentsList.innerHTML = '';
+    commentCount.textContent = '...';
+
+    try {
+        const commentsRef = db.collection('comments');
+
+        // PERMANENT FIX: The efficient, indexed query
+        const snapshot = await commentsRef
+            .where('pdfId', '==', pdfId)
+            .orderBy('timestamp', 'desc') // This is the line that requires the index
+            .get();
+
+        const comments = [];
+        snapshot.forEach(doc => {
+            comments.push(doc.data());
+        });
+
+        commentCount.textContent = comments.length;
+
+        // ... rest of the function for rendering comments ...
+        // Use 'comments' directly here, no need for the JS sort.
+
+        if (comments.length === 0) {
+            commentsList.innerHTML = '<p class="comment-text" style="text-align: center; color: var(--gray-400);">Be the first to comment!</p>';
+            return;
+        }
+
+        comments.forEach(comment => {
+            commentsList.appendChild(createCommentElement(comment));
+        });
+
+    } catch (error) {
+        console.error("Error loading comments:", error);
+        commentCount.textContent = 'Error';
+        showToast('Error loading comments', 'error');
+    }
+}
+
+
+/**
+ * Creates the HTML element for a single comment.
+ * @param {object} comment 
+ * @returns {HTMLElement}
+ */
+function createCommentElement(comment) {
+    const item = document.createElement('div');
+    item.className = 'comment-item';
+
+    const author = comment.author || 'Anonymous';
+    const date = new Date(comment.timestamp.toDate()).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+    });
+
+    item.innerHTML = `
+        <div class="comment-header">
+            <span class="comment-author">${author}</span>
+            <span class="comment-date">${date}</span>
+        </div>
+        <p class="comment-text">${comment.text}</p>
+    `;
+
+    return item;
+}
+
+/**
+ * Handles the comment form submission.
+ * @param {Event} e 
+ */
+async function handleCommentSubmit(e) {
+    e.preventDefault();
+
+    const currentPdfData = pdfModal.dataset.currentPdf;
+    if (!currentPdfData) {
+        showToast('Could not find PDF context', 'error');
+        return;
+    }
+
+    const pdf = JSON.parse(currentPdfData);
+    const text = commentInput.value.trim();
+    let author = commentAuthor.value.trim();
+
+    // Use a placeholder if author field is left empty
+    if (!author) {
+        author = "Anonymous";
+    }
+
+    if (text.length === 0) {
+        return; // Basic validation
+    }
+
+    const submitBtn = document.getElementById('submitCommentBtn');
+    submitBtn.disabled = true;
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+    try {
+        await db.collection('comments').add({
+            pdfId: pdf.id,
+            text: text,
+            author: author,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp() // Use server timestamp
+        });
+
+        // Clear the form and reload comments
+        commentInput.value = '';
+        commentAuthor.value = '';
+        await loadComments(pdf.id);
+
+        showToast('Comment posted successfully!');
+
+    } catch (error) {
+        console.error("Error adding comment: ", error);
+        showToast('Failed to post comment', 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    }
+}
+
+const openCommentsBtn = document.getElementById("openCommentsBtn");
+
+// Add close button dynamically inside header
+const header = commentSidebar.querySelector("h4");
+const closeBtn = document.createElement("button");
+closeBtn.classList.add("drawer-close");
+closeBtn.innerHTML = '<i class="fas fa-times"></i>';
+header.appendChild(closeBtn);
+
+// Open/Close functionality
+openCommentsBtn.addEventListener("click", () => {
+    commentSidebar.classList.add("active");
+});
+
+closeBtn.addEventListener("click", () => {
+    commentSidebar.classList.remove("active");
+});
