@@ -432,7 +432,7 @@ function showToast(message, type = 'success') {
 const START_YEAR = 2025;
 
 // Get the current year
-// const CURRENT_YEAR = new Date().getFullYear();
+const CURRENT_YEAR = new Date().getFullYear();
 
 // Find the paragraph element by its ID
 const copyrightElement = document.getElementById('copyright-year');
