@@ -1,4 +1,43 @@
 let pdfDatabase = [];
+let currentSemester = 1;
+let currentCategory = 'all';
+
+const pdfGrid = document.getElementById('pdfGrid');
+const searchInput = document.getElementById('searchInput');
+const pdfCount = document.getElementById('pdfCount');
+const emptyState = document.getElementById('emptyState');
+const tabBtns = document.querySelectorAll('.tab-btn');
+const filterBtns = document.querySelectorAll('.filter-btn');
+const pdfModal = document.getElementById('pdfModal');
+const shareModal = document.getElementById('shareModal');
+const modalShareBtn = document.getElementById('modalShareBtn');
+const pdfViewer = document.getElementById('pdfViewer');
+const modalTitle = document.getElementById('modalTitle');
+const shareLink = document.getElementById('shareLink');
+const toast = document.getElementById('toast');
+const toastMessage = document.getElementById('toastMessage');
+
+// NEW Comment Variables
+const commentSidebar = document.getElementById('commentSidebar');
+const commentsList = document.getElementById('commentsList');
+const commentCount = document.getElementById('commentCount');
+const commentForm = document.getElementById('commentForm');
+const commentInput = document.getElementById('commentInput');
+const commentAuthor = document.getElementById('commentAuthor');
+
+// Preloader
+const preloader = document.getElementById('preloader');
+
+const goToTopBtn = document.getElementById('goToTopBtn');
+
+function handleGoToTopVisibility() {
+    // Show button if scrolled down more than 400 pixels
+    if (window.scrollY > 400) {
+        goToTopBtn.classList.add('show');
+    } else {
+        goToTopBtn.classList.remove('show');
+    }
+}
 
 async function loadPDFDatabase() {
     try {
@@ -50,38 +89,11 @@ function hidePreloader() {
     }
 }
 
-let currentSemester = 1;
-let currentCategory = 'all';
 
-const pdfGrid = document.getElementById('pdfGrid');
-const searchInput = document.getElementById('searchInput');
-const pdfCount = document.getElementById('pdfCount');
-const emptyState = document.getElementById('emptyState');
-const tabBtns = document.querySelectorAll('.tab-btn');
-const filterBtns = document.querySelectorAll('.filter-btn');
-const pdfModal = document.getElementById('pdfModal');
-const shareModal = document.getElementById('shareModal');
-const pdfViewer = document.getElementById('pdfViewer');
-const modalTitle = document.getElementById('modalTitle');
-const shareLink = document.getElementById('shareLink');
-const toast = document.getElementById('toast');
-const toastMessage = document.getElementById('toastMessage');
-
-// NEW Comment Variables
-const commentSidebar = document.getElementById('commentSidebar');
-const commentsList = document.getElementById('commentsList');
-const commentCount = document.getElementById('commentCount');
-const commentForm = document.getElementById('commentForm');
-const commentInput = document.getElementById('commentInput');
-const commentAuthor = document.getElementById('commentAuthor');
-
-// Preloader
-const preloader = document.getElementById('preloader');
 
 document.addEventListener('DOMContentLoaded', async function () {
 
-    await loadPDFDatabase(); // Wait for data load and initial render
-    generateBubbles();
+    await loadPDFDatabase();
     setupEventListeners();
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -111,7 +123,10 @@ function setupEventListeners() {
 
     document.getElementById('closeModal').addEventListener('click', closePDFModal);
     document.getElementById('closeShareModal').addEventListener('click', closeShareModal);
-    document.getElementById('shareBtn').addEventListener('click', () => showShareModal());
+    // CHANGE: Listen to the new modalShareBtn
+    if (modalShareBtn) {
+        modalShareBtn.addEventListener('click', () => showShareModal());
+    }
     document.getElementById('downloadBtn').addEventListener('click', downloadCurrentPDF);
     document.getElementById('copyLinkBtn').addEventListener('click', copyShareLink);
 
@@ -135,38 +150,32 @@ function setupEventListeners() {
             }
         }
     });
-}
 
+    window.addEventListener('scroll', handleScroll);
+    handleScroll();
 
-function generateBubbles() {
-    const bubblesContainer = document.getElementById('footer-bubbles');
-    if (!bubblesContainer) return;
-
-    const numberOfBubbles = 128; // As per your requirement
-
-    for (let i = 0; i < numberOfBubbles; i++) {
-        const bubble = document.createElement('div');
-        bubble.classList.add('bubble');
-
-        // Apply random CSS variables
-        const size = (2 + Math.random() * 4).toFixed(2);
-        const distance = (6 + Math.random() * 4).toFixed(2);
-        const position = (-5 + Math.random() * 100).toFixed(2);
-        const time = (2 + Math.random() * 2).toFixed(2);
-        const delay = (-1 * (2 + Math.random() * 2)).toFixed(2);
-
-        bubble.style.cssText = `
-            --size: ${size}rem; 
-            --distance: ${distance}rem; 
-            --position: ${position}%; 
-            --time: ${time}s; 
-            --delay: ${delay}s;
-        `;
-
-        bubblesContainer.appendChild(bubble);
+    // NEW: Go to Top Button Logic
+    if (goToTopBtn) {
+        window.addEventListener('scroll', handleGoToTopVisibility);
+        goToTopBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
     }
 }
 
+function handleScroll() {
+    const header = document.querySelector('.header');
+    if (window.scrollY > 0) {
+        header.classList.add('scrolled');
+    } else {
+        header.classList.remove('scrolled');
+    }
+
+    // NEW: Call the Go to Top handler here as well
+    if (goToTopBtn) {
+        handleGoToTopVisibility();
+    }
+}
 
 async function viewPDF(pdf) {
     // pdf.pdfUrl is expected to be the shared link/URL now
@@ -326,14 +335,18 @@ function showShareModal(pdfFromCard) {
     }
     // Case 2: Called from the modal's share button (no argument passed, so look in the dataset)
     else if (pdfModal.dataset.currentPdf) {
-        // Ensure we handle the case where the JSON string is passed by the 'sharePDF' function
-        // which may pass an ID and not the object. Let's make sure the sharePDF(pdfId) function
-        // calls this with the actual PDF object.
-        pdf = JSON.parse(pdfModal.dataset.currentPdf);
+        // Parse the stored JSON string from the modal's dataset
+        try {
+            pdf = JSON.parse(pdfModal.dataset.currentPdf);
+        } catch (e) {
+            console.error("Error parsing current PDF data from modal dataset:", e);
+            return; // Stop if parsing fails
+        }
     }
 
-    if (!pdf) {
+    if (!pdf || !pdf.id) {
         console.error("Could not find PDF data for sharing.");
+        showToast('Could not find PDF data for sharing.', 'error'); // <--- Added toast for user feedback
         return;
     }
 
@@ -444,7 +457,8 @@ if (copyrightElement) {
 
     // If the current year is later than the start year, append the range
     if (CURRENT_YEAR > START_YEAR) {
-        yearText += ` - ${CURRENT_YEAR}`;
+        const twoDigitCurrentYear = CURRENT_YEAR.toString().slice(-2);
+        yearText += ` - ${twoDigitCurrentYear}`;
     }
 
     // Append the rest of your copyright text

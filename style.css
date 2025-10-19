@@ -589,9 +589,10 @@ body {
 }
 
 footer {
-  background: var(--gray-800);
+  /* Kept background, color, and margin-top as they are good */
+  background: var(--gray-900);
   color: var(--gray-300);
-  padding: calc(var(--spacing) * 4) calc(var(--spacing) * 2);
+  padding: calc(var(--spacing) * 3) calc(var(--spacing) * 2); /* Reduced vertical padding */
   text-align: center;
   margin-top: auto;
 }
@@ -601,16 +602,20 @@ footer {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: calc(var(--spacing) * 1.5);
+  /* Reduced gap between elements */
+  gap: calc(var(--spacing) * 1);
 }
 
 .thanks-message {
-  font-size: 0.875rem;
+  font-size: 0.875rem; /* Standard body size */
   color: var(--gray-400);
+  margin-bottom: calc(
+    var(--spacing) * 1
+  ); /* Add a bit more separation to the top group */
 }
 
 .contact-info {
-  font-size: 0.875rem;
+  font-size: 0.875rem; /* Consistent size */
   color: var(--gray-400);
   word-break: break-word;
 }
@@ -627,7 +632,8 @@ footer {
 }
 
 .credits {
-  font-size: 0.875rem;
+  font-size: 0.8125rem; /* Slightly smaller for a minimal, secondary feel */
+  font-weight: 400; /* Reduced weight */
 }
 
 .credits a {
@@ -661,6 +667,7 @@ footer {
 .copyright-text {
   font-size: 0.75rem;
   color: var(--gray-500);
+  margin-top: calc(var(--spacing) * 1); /* Small separation from the credits */
 }
 
 @media (max-width: 1024px) {
@@ -891,17 +898,25 @@ footer {
   }
 
   .footer-content {
-    gap: calc(var(--spacing) * 1);
+    gap: calc(var(--spacing) * 0.75); /* Further reduce mobile gap */
   }
 
-  .thanks-message,
-  .contact-info,
-  .credits {
+  .thanks-message {
     font-size: 0.8125rem;
+    margin-bottom: calc(var(--spacing) * 0.75);
+  }
+
+  .contact-info {
+    font-size: 0.8125rem;
+  }
+
+  .credits {
+    font-size: 0.75rem;
   }
 
   .copyright-text {
     font-size: 0.6875rem;
+    margin-top: calc(var(--spacing) * 0.75);
   }
 }
 
@@ -1685,134 +1700,36 @@ input:focus-visible {
     opacity: 1;
   }
 }
-/* ===============================
-   🌊 Animated Blob Footer Styles
-   =============================== */
+/* style.css (Add to style.css, e.g., near the bottom of the file) */
 
-/* Ensure main content is separated from the wave footer */
-.main {
-  flex: 1;
-  padding: calc(var(--spacing) * 4) 0;
-  /* Add padding bottom to prevent content from touching the wave */
-  padding-bottom: calc(var(--spacing) * 8);
-}
-
-.wave-footer-placeholder {
-  /* Create a gap above the footer to accommodate the wave effect */
-  height: 6rem;
-}
-
-.wave-footer {
-  z-index: 1;
-  --footer-background: var(
-    --primary-color
-  ); /* Using primary-dark for the base color */
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  background: var(--footer-background);
+.go-to-top {
+  position: fixed;
+  bottom: calc(var(--spacing) * 4);
+  right: calc(var(--spacing) * 4);
+  z-index: 900;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  background: var(--primary-color);
   color: var(--white);
-  padding-top: 1rem; /* Space for the wave to animate */
+  box-shadow: var(--shadow-md);
 }
 
-/* Bubbles Container for the Blob Effect */
-.wave-footer .bubbles {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1rem;
-  background: var(--footer-background);
-  /* Apply the SVG filter for the liquid/blob effect */
-  filter: url("#blob");
-}
-
-/* Individual Bubble Style */
-.wave-footer .bubble {
-  position: absolute;
-  left: var(--position, 50%);
-  background: var(--footer-background);
-  border-radius: 100%;
-  transform: translate(-50%, 100%);
-  /* Set up the two animations */
-  animation: bubble-size var(--time, 4s) ease-in infinite var(--delay, 0s),
-    bubble-move var(--time, 4s) ease-in infinite var(--delay, 0s);
-}
-
-/* Footer Content Styling */
-.wave-content {
-  z-index: 2;
-  padding: calc(var(--spacing) * 4) calc(var(--spacing) * 2);
-  display: flex;
-  flex-direction: column;
-  align-items: center; /* Center all content */
-  gap: calc(var(--spacing) * 3);
-  background: var(--footer-background);
-  text-align: center;
-}
-
-.footer-simple-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: calc(var(--spacing) * 1.5);
-  padding-bottom: calc(var(--spacing) * 3);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  width: 100%;
-  max-width: 600px;
-}
-
-.wave-content a,
-.wave-content p {
-  color: var(--white);
-  text-decoration: none;
-  font-size: 0.9375rem;
-  transition: var(--transition);
-}
-
-.wave-content a:hover {
-  color: var(--accent-color);
-  text-decoration: underline;
-}
-
-.footer-bottom {
-  display: flex;
-  flex-direction: column; /* Stacked at the bottom */
-  align-items: center;
-  gap: calc(var(--spacing) * 1);
-  padding-top: calc(var(--spacing) * 1);
-}
-
-.footer-bottom .credits,
-.footer-bottom .copyright-text {
-  font-size: 0.8125rem;
+.go-to-top:hover {
+  background: var(--primary-dark);
   color: var(--white);
 }
 
-/* Override existing heart color for contrast on dark background */
-.wave-footer .heart {
-  color: var(--error-color); /* Bright red */
+.go-to-top.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }
 
-/* --- Keyframe Animations (Keep these unchanged) --- */
-
-@keyframes bubble-size {
-  0%,
-  75% {
-    width: var(--size, 4rem);
-    height: var(--size, 4rem);
-  }
-  100% {
-    width: 0rem;
-    height: 0rem;
-  }
-}
-
-@keyframes bubble-move {
-  0% {
-    bottom: -4rem;
-  }
-  100% {
-    bottom: var(--distance, 10rem);
+/* Adjust position on smaller screens so it doesn't conflict with the toast/comment button */
+@media (max-width: 768px) {
+  .go-to-top {
+    bottom: calc(var(--spacing) * 7); /* Higher than the toast */
+    right: calc(var(--spacing) * 2);
   }
 }

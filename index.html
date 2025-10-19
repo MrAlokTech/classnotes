@@ -50,7 +50,7 @@
           <li></li>
         </ul>
       </div>
-      <p class="loader-text">Loading <span>ClassNotes</span>...</p>
+      <p class="loader-text">Loading <span>ClassNotes</span></p>
     </div>
 
     <!-- Loader End -->
@@ -148,7 +148,7 @@
           <div class="modal-header">
             <h3 id="modalTitle">PDF Viewer</h3>
             <div class="modal-actions">
-              <button class="btn-icon" id="shareBtn" title="Share PDF">
+              <button class="btn-icon" id="modalShareBtn" title="Share PDF">
                 <i class="fas fa-share-alt"></i>
               </button>
               <button class="btn-icon" id="downloadBtn" title="Download PDF">
@@ -221,51 +221,28 @@
       <span id="toastMessage">Action completed!</span>
     </div>
 
-    <div id="wave-footer-placeholder"></div>
+    <button class="btn-icon go-to-top" id="goToTopBtn" title="Go to top">
+      <i class="fas fa-arrow-up"></i>
+    </button>
 
-    <footer class="wave-footer">
-      <div class="bubbles" id="footer-bubbles"></div>
-      <div class="container wave-content">
-        <div class="footer-simple-content">
-          <p class="thanks-message">
-            ✨ Thank you to every friend who shared their notes ✨
-          </p>
-          <p class="contact-info">
-            For any queries:
-            <a href="mailto:notes@alokdasofficial.in"
-              >notes@alokdasofficial.in</a
-            >
-          </p>
-        </div>
-
-        <div class="footer-bottom">
-          <p class="credits">
-            Made with
-            <span class="heart" role="img" aria-label="love">❤️</span> by
-            <a href="http://alokdasofficial.in" target="_blank">Alok Das</a>
-          </p>
-          <p class="copyright-text" id="copyright-year"></p>
-        </div>
+    <footer>
+      <div class="footer-content">
+        <p class="thanks-message">
+          ✨ Big shoutout to every friend who shared their notes 🙌
+        </p>
+        <p class="contact-info">
+          Questions?
+          <a href="mailto:notes@alokdasofficial.in">notes@alokdasofficial.in</a>
+        </p>
+        <p class="credits">
+          Made with <span class="heart">❤️</span> by
+          <a href="http://alokdasofficial.in" target="_blank">Alok Das</a>
+        </p>
+        <p class="copyright-text" id="copyright-year">
+          © 2025 ClassNotes. All rights reserved.
+        </p>
       </div>
     </footer>
-
-    <svg style="position: fixed; top: 100vh; pointer-events: none">
-      <defs>
-        <filter id="blob">
-          <feGaussianBlur
-            in="SourceGraphic"
-            stdDeviation="10"
-            result="blur"
-          ></feGaussianBlur>
-          <feColorMatrix
-            in="blur"
-            mode="matrix"
-            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9"
-            result="blob"
-          ></feColorMatrix>
-        </filter>
-      </defs>
-    </svg>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script>
