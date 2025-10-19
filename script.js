@@ -1,12 +1,53 @@
 let pdfDatabase = [];
 
+// async function loadPDFDatabase() {
+//     try {
+//         const response = await fetch('notes.json');
+//         pdfDatabase = await response.json();
+//         renderPDFs();
+//     } catch (error) {
+//         console.error('Error loading notes:', error);
+//     }
+// }
+
+// script.js (REPLACE existing loadPDFDatabase function)
+
 async function loadPDFDatabase() {
     try {
-        const response = await fetch('notes.json');
-        pdfDatabase = await response.json();
+        // Assume 'db' is initialized globally from index.html
+        const pdfsRef = db.collection('pdfs');
+
+        // Fetch data from Firestore
+        const snapshot = await pdfsRef
+            .orderBy('uploadDate', 'desc') // Example: Order by most recent
+            .get();
+
+        pdfDatabase = []; // Clear the existing array
+
+        snapshot.forEach(doc => {
+            // Get data and assign the Firestore document ID to the PDF object
+            // Use spread operator for clean data structure
+            pdfDatabase.push({
+                id: doc.id, // Use Firestore document ID as the unique ID
+                ...doc.data()
+            });
+        });
+
         renderPDFs();
+
     } catch (error) {
-        console.error('Error loading notes:', error);
+        console.error('Error loading PDFs from Firestore:', error);
+        // Display a user-friendly error or fallback
+        const mainContent = document.querySelector('.main .container');
+        if (mainContent) {
+            mainContent.innerHTML = `
+                <div class="empty-state" style="display: block;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Error Loading Notes</h3>
+                    <p>Failed to connect to the database. Please try again later.</p>
+                </div>
+            `;
+        }
     }
 }
 
@@ -35,9 +76,12 @@ const commentForm = document.getElementById('commentForm');
 const commentInput = document.getElementById('commentInput');
 const commentAuthor = document.getElementById('commentAuthor');
 
+// script.js (REPLACE existing DOMContentLoaded function)
+
 document.addEventListener('DOMContentLoaded', async function () {
-    initializeApp();
-    await loadPDFDatabase();
+    // initializeApp() removed - initial rendering now happens inside loadPDFDatabase
+
+    await loadPDFDatabase(); // Wait for data load and initial render
     setupEventListeners();
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -52,47 +96,27 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 });
 
-function initializeApp() {
-    renderPDFs();
-}
+// document.addEventListener('DOMContentLoaded', async function () {
+//     initializeApp();
+//     await loadPDFDatabase();
+//     setupEventListeners();
 
-// function setupEventListeners() {
-//     searchInput.addEventListener('input', renderPDFs);
-
-//     tabBtns.forEach(btn => {
-//         btn.addEventListener('click', handleSemesterChange);
-//     });
-
-//     filterBtns.forEach(btn => {
-//         btn.addEventListener('click', handleCategoryChange);
-//     });
-
-//     document.getElementById('closeModal').addEventListener('click', closePDFModal);
-//     document.getElementById('closeShareModal').addEventListener('click', closeShareModal);
-//     document.getElementById('shareBtn').addEventListener('click', () => showShareModal());
-//     document.getElementById('downloadBtn').addEventListener('click', downloadCurrentPDF);
-//     document.getElementById('copyLinkBtn').addEventListener('click', copyShareLink);
-
-//     pdfModal.addEventListener('click', function (e) {
-//         if (e.target === pdfModal) closePDFModal();
-//     });
-
-//     shareModal.addEventListener('click', function (e) {
-//         if (e.target === shareModal) closeShareModal();
-//     });
-
-//     document.addEventListener('keydown', function (e) {
-//         if (e.key === 'Escape') {
-//             if (shareModal.classList.contains('active')) {
-//                 closeShareModal();
-//             } else if (pdfModal.classList.contains('active')) {
-//                 closePDFModal();
-//             }
+//     const urlParams = new URLSearchParams(window.location.search);
+//     const pdfId = urlParams.get('pdf');
+//     if (pdfId) {
+//         const pdf = pdfDatabase.find(p => p.id == pdfId);
+//         if (pdf) {
+//             currentSemester = pdf.semester;
+//             updateSemesterTab();
+//             viewPDF(pdf);
 //         }
-//     });
+//     }
+// });
+
+// function initializeApp() {
+//     renderPDFs();
 // }
 
-// script.js (REPLACE the existing setupEventListeners function)
 function setupEventListeners() {
     searchInput.addEventListener('input', renderPDFs);
 
@@ -132,21 +156,45 @@ function setupEventListeners() {
     });
 }
 
+// script.js (REPLACE existing viewPDF function, keep the comments part you already added)
 
-// script.js (REPLACE the existing viewPDF function)
 async function viewPDF(pdf) {
-    const pdfPath = `./pdf/${pdf.filename}`;
+    // pdf.pdfUrl is expected to be the shared link/URL now
+    const pdfPath = pdf.pdfUrl; // Use the direct URL instead of the local path
+
+    if (!pdfPath) {
+        showToast('PDF link is missing or invalid.', 'error');
+        return;
+    }
 
     modalTitle.textContent = pdf.title;
     pdfViewer.src = pdfPath;
     pdfModal.classList.add('active');
     document.body.style.overflow = 'hidden';
 
+    // IMPORTANT: Store the full PDF object with the Firestore document ID
     pdfModal.dataset.currentPdf = JSON.stringify(pdf);
 
     // NEW: Load comments when opening the modal
+    // Note: The comments system uses pdf.id, which should now be the Firestore doc ID.
     await loadComments(pdf.id);
 }
+
+
+// script.js (REPLACE the existing viewPDF function)
+// async function viewPDF(pdf) {
+//     const pdfPath = `./pdf/${pdf.filename}`;
+
+//     modalTitle.textContent = pdf.title;
+//     pdfViewer.src = pdfPath;
+//     pdfModal.classList.add('active');
+//     document.body.style.overflow = 'hidden';
+
+//     pdfModal.dataset.currentPdf = JSON.stringify(pdf);
+
+//     // NEW: Load comments when opening the modal
+//     await loadComments(pdf.id);
+// }
 
 function handleSemesterChange(e) {
     tabBtns.forEach(btn => btn.classList.remove('active'));
@@ -336,21 +384,73 @@ function copyShareLink() {
     }
 }
 
+// script.js (REPLACE existing downloadCurrentPDF function)
+
 function downloadCurrentPDF() {
     if (!pdfModal.dataset.currentPdf) return;
 
     const pdf = JSON.parse(pdfModal.dataset.currentPdf);
-    const pdfPath = `./pdf/${pdf.filename}`;
+    const originalPdfPath = pdf.pdfUrl;
 
-    const link = document.createElement('a');
-    link.href = pdfPath;
-    link.download = pdf.filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    if (!originalPdfPath) {
+        showToast('Cannot download: PDF link is missing.', 'error');
+        return;
+    }
 
-    showToast('Download started!');
+    let downloadUrl = originalPdfPath;
+
+    // 1. Convert Google Drive 'preview' or 'view' URL to a 'download' URL
+    const driveRegex = /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)\//;
+    const match = originalPdfPath.match(driveRegex);
+
+    if (match) {
+        const fileId = match[1];
+
+        // Use a slightly different download format: 'exports/download'
+        // This is functionally similar to 'uc?export=download' but can
+        // sometimes trick mobile browsers differently.
+        downloadUrl = `https://drive.google.com/uc?id=${fileId}&export=download`;
+    }
+
+    // 2. Trigger the download using window.open()
+    const downloadWindow = window.open(downloadUrl, '_blank');
+
+    showToast('PDF is opening in a new tab. Please use the download button inside Google Drive to download!');
+
+    // 3. Fallback/User Instruction Toast
+    // If the download fails or redirects, this instructs the user.
+    setTimeout(() => {
+        // You cannot detect if the download succeeded, so this provides context.
+        showToast("If download failed, try tapping 'Download' inside the new window.", 'error');
+    }, 5000);
 }
+
+// function downloadCurrentPDF() {
+//     if (!pdfModal.dataset.currentPdf) return;
+
+//     const pdf = JSON.parse(pdfModal.dataset.currentPdf);
+//     // Use the direct URL for download
+//     const pdfPath = pdf.pdfUrl;
+
+//     if (!pdfPath) {
+//         showToast('Cannot download: PDF link is missing.', 'error');
+//         return;
+//     }
+
+//     // Attempt to infer filename, or use a default
+//     const downloadFilename = pdf.filename || `${pdf.title.replace(/\s/g, '_')}.pdf`;
+
+//     const link = document.createElement('a');
+//     link.href = pdfPath;
+//     link.download = downloadFilename; // Suggest a filename for the download
+//     document.body.appendChild(link);
+//     link.click();
+//     document.body.removeChild(link);
+
+//     showToast('Download started!');
+// }
+
+
 
 function showToast(message, type = 'success') {
     toastMessage.textContent = message;
