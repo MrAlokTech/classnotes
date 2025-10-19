@@ -2,15 +2,15 @@ let pdfDatabase = [];
 
 async function loadPDFDatabase() {
     try {
-        // Assume 'db' is initialized globally from index.html
+
         const pdfsRef = db.collection('pdfs');
 
         // Fetch data from Firestore
         const snapshot = await pdfsRef
-            .orderBy('uploadDate', 'desc') // Example: Order by most recent
+            .orderBy('uploadDate', 'desc')
             .get();
 
-        pdfDatabase = []; // Clear the existing array
+        pdfDatabase = [];
 
         snapshot.forEach(doc => {
             // Get data and assign the Firestore document ID to the PDF object
@@ -79,7 +79,6 @@ const commentAuthor = document.getElementById('commentAuthor');
 const preloader = document.getElementById('preloader');
 
 document.addEventListener('DOMContentLoaded', async function () {
-    // initializeApp() removed - initial rendering now happens inside loadPDFDatabase
 
     await loadPDFDatabase(); // Wait for data load and initial render
     generateBubbles();
@@ -433,7 +432,7 @@ function showToast(message, type = 'success') {
 const START_YEAR = 2025;
 
 // Get the current year
-const CURRENT_YEAR = new Date().getFullYear();
+// const CURRENT_YEAR = new Date().getFullYear();
 
 // Find the paragraph element by its ID
 const copyrightElement = document.getElementById('copyright-year');
