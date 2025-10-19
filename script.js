@@ -1,17 +1,5 @@
 let pdfDatabase = [];
 
-// async function loadPDFDatabase() {
-//     try {
-//         const response = await fetch('notes.json');
-//         pdfDatabase = await response.json();
-//         renderPDFs();
-//     } catch (error) {
-//         console.error('Error loading notes:', error);
-//     }
-// }
-
-// script.js (REPLACE existing loadPDFDatabase function)
-
 async function loadPDFDatabase() {
     try {
         // Assume 'db' is initialized globally from index.html
@@ -35,6 +23,10 @@ async function loadPDFDatabase() {
 
         renderPDFs();
 
+        hidePreloader();
+
+
+
     } catch (error) {
         console.error('Error loading PDFs from Firestore:', error);
         // Display a user-friendly error or fallback
@@ -48,6 +40,13 @@ async function loadPDFDatabase() {
                 </div>
             `;
         }
+    }
+
+}
+
+function hidePreloader() {
+    if (preloader) {
+        preloader.classList.add('hidden');
     }
 }
 
@@ -76,12 +75,14 @@ const commentForm = document.getElementById('commentForm');
 const commentInput = document.getElementById('commentInput');
 const commentAuthor = document.getElementById('commentAuthor');
 
-// script.js (REPLACE existing DOMContentLoaded function)
+// Preloader
+const preloader = document.getElementById('preloader');
 
 document.addEventListener('DOMContentLoaded', async function () {
     // initializeApp() removed - initial rendering now happens inside loadPDFDatabase
 
     await loadPDFDatabase(); // Wait for data load and initial render
+    generateBubbles();
     setupEventListeners();
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -96,26 +97,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 });
 
-// document.addEventListener('DOMContentLoaded', async function () {
-//     initializeApp();
-//     await loadPDFDatabase();
-//     setupEventListeners();
 
-//     const urlParams = new URLSearchParams(window.location.search);
-//     const pdfId = urlParams.get('pdf');
-//     if (pdfId) {
-//         const pdf = pdfDatabase.find(p => p.id == pdfId);
-//         if (pdf) {
-//             currentSemester = pdf.semester;
-//             updateSemesterTab();
-//             viewPDF(pdf);
-//         }
-//     }
-// });
-
-// function initializeApp() {
-//     renderPDFs();
-// }
 
 function setupEventListeners() {
     searchInput.addEventListener('input', renderPDFs);
@@ -156,7 +138,36 @@ function setupEventListeners() {
     });
 }
 
-// script.js (REPLACE existing viewPDF function, keep the comments part you already added)
+
+function generateBubbles() {
+    const bubblesContainer = document.getElementById('footer-bubbles');
+    if (!bubblesContainer) return;
+
+    const numberOfBubbles = 128; // As per your requirement
+
+    for (let i = 0; i < numberOfBubbles; i++) {
+        const bubble = document.createElement('div');
+        bubble.classList.add('bubble');
+
+        // Apply random CSS variables
+        const size = (2 + Math.random() * 4).toFixed(2);
+        const distance = (6 + Math.random() * 4).toFixed(2);
+        const position = (-5 + Math.random() * 100).toFixed(2);
+        const time = (2 + Math.random() * 2).toFixed(2);
+        const delay = (-1 * (2 + Math.random() * 2)).toFixed(2);
+
+        bubble.style.cssText = `
+            --size: ${size}rem; 
+            --distance: ${distance}rem; 
+            --position: ${position}%; 
+            --time: ${time}s; 
+            --delay: ${delay}s;
+        `;
+
+        bubblesContainer.appendChild(bubble);
+    }
+}
+
 
 async function viewPDF(pdf) {
     // pdf.pdfUrl is expected to be the shared link/URL now
@@ -180,21 +191,6 @@ async function viewPDF(pdf) {
     await loadComments(pdf.id);
 }
 
-
-// script.js (REPLACE the existing viewPDF function)
-// async function viewPDF(pdf) {
-//     const pdfPath = `./pdf/${pdf.filename}`;
-
-//     modalTitle.textContent = pdf.title;
-//     pdfViewer.src = pdfPath;
-//     pdfModal.classList.add('active');
-//     document.body.style.overflow = 'hidden';
-
-//     pdfModal.dataset.currentPdf = JSON.stringify(pdf);
-
-//     // NEW: Load comments when opening the modal
-//     await loadComments(pdf.id);
-// }
 
 function handleSemesterChange(e) {
     tabBtns.forEach(btn => btn.classList.remove('active'));
@@ -289,7 +285,7 @@ function createPDFCard(pdf) {
                     <i class="fas fa-eye"></i>
                     View
                 </button>
-                <button class="btn btn-secondary" onclick="sharePDF(${pdf.id})">
+                <button class="btn btn-secondary" id="shareBtn" onclick="sharePDF('${pdf.id}')">
                     <i class="fas fa-share-alt"></i>
                     Share
                 </button>
@@ -302,16 +298,6 @@ function updatePDFCount(count) {
     pdfCount.textContent = count;
 }
 
-// function viewPDF(pdf) {
-//     const pdfPath = `./pdf/${pdf.filename}`;
-
-//     modalTitle.textContent = pdf.title;
-//     pdfViewer.src = pdfPath;
-//     pdfModal.classList.add('active');
-//     document.body.style.overflow = 'hidden';
-
-//     pdfModal.dataset.currentPdf = JSON.stringify(pdf);
-// }
 
 function closePDFModal() {
     pdfModal.classList.remove('active');
@@ -424,32 +410,6 @@ function downloadCurrentPDF() {
         showToast("If download failed, try tapping 'Download' inside the new window.", 'error');
     }, 5000);
 }
-
-// function downloadCurrentPDF() {
-//     if (!pdfModal.dataset.currentPdf) return;
-
-//     const pdf = JSON.parse(pdfModal.dataset.currentPdf);
-//     // Use the direct URL for download
-//     const pdfPath = pdf.pdfUrl;
-
-//     if (!pdfPath) {
-//         showToast('Cannot download: PDF link is missing.', 'error');
-//         return;
-//     }
-
-//     // Attempt to infer filename, or use a default
-//     const downloadFilename = pdf.filename || `${pdf.title.replace(/\s/g, '_')}.pdf`;
-
-//     const link = document.createElement('a');
-//     link.href = pdfPath;
-//     link.download = downloadFilename; // Suggest a filename for the download
-//     document.body.appendChild(link);
-//     link.click();
-//     document.body.removeChild(link);
-
-//     showToast('Download started!');
-// }
-
 
 
 function showToast(message, type = 'success') {

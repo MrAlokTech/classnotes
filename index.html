@@ -4,11 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ClassNotes</title>
-    <link
-      rel="shortcut icon"
-      href="https://play-lh.googleusercontent.com/vzkH7wVzacIAjphQOSSzdSk2GmCUSL1mIE1jxoD808OiLAjtXmfDiAJ3DJuuhbeEI08"
-      type="image/x-icon"
-    />
+    <link rel="icon" type="image/svg+xml" href="icon.svg" />
     <link rel="stylesheet" href="style.css" />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
@@ -25,6 +21,40 @@
     ></script>
   </head>
   <body>
+    <!-- Loader Starts-->
+    <div id="preloader">
+      <div class="book">
+        <div class="inner">
+          <div class="left"></div>
+          <div class="middle"></div>
+          <div class="right"></div>
+        </div>
+        <ul>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+          <li></li>
+        </ul>
+      </div>
+      <p class="loader-text">Loading <span>ClassNotes</span>...</p>
+    </div>
+
+    <!-- Loader End -->
+
     <header class="header">
       <div class="container">
         <div class="header-content">
@@ -158,27 +188,6 @@
         </div>
       </div>
     </div>
-    <!-- <div class="modal" id="pdfModal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3 id="modalTitle">PDF Viewer</h3>
-          <div class="modal-actions">
-            <button class="btn-icon" id="shareBtn" title="Share PDF">
-              <i class="fas fa-share-alt"></i>
-            </button>
-            <button class="btn-icon" id="downloadBtn" title="Download PDF">
-              <i class="fas fa-download"></i>
-            </button>
-            <button class="btn-icon" id="closeModal" title="Close">
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
-        </div>
-        <div class="modal-body">
-          <iframe id="pdfViewer" src="" width="100%" height="100%"></iframe>
-        </div>
-      </div>
-    </div> -->
 
     <!-- Share Modal -->
     <div class="modal" id="shareModal">
@@ -193,8 +202,8 @@
           <p>Share this link with your classmates:</p>
           <div class="share-link-container">
             <input type="text" id="shareLink" readonly />
-            <button class="btn-primary" id="copyLinkBtn">
-              <i class="fas fa-copy"></i>
+            <button class="btn btn-primary" id="copyLinkBtn">
+              <i class="fas fa-clone"></i>
               Copy
             </button>
           </div>
@@ -212,24 +221,51 @@
       <span id="toastMessage">Action completed!</span>
     </div>
 
-    <footer>
-      <div class="footer-content">
-        <p class="thanks-message">
-          ✨ Thank you to every friend who shared their notes ✨
-        </p>
-        <p class="contact-info">
-          For any queries:
-          <a href="mailto:notes@alokdasofficial.in">notes@alokdasofficial.in</a>
-        </p>
-        <p class="credits">
-          Made with <span class="heart">❤️</span> by
-          <a href="http://alokdasofficial.in" target="_blank">Alok Das</a>
-        </p>
-        <p class="copyright-text" id="copyright-year">
-          © 2025 ClassNotes. All rights reserved.
-        </p>
+    <div id="wave-footer-placeholder"></div>
+
+    <footer class="wave-footer">
+      <div class="bubbles" id="footer-bubbles"></div>
+      <div class="container wave-content">
+        <div class="footer-simple-content">
+          <p class="thanks-message">
+            ✨ Thank you to every friend who shared their notes ✨
+          </p>
+          <p class="contact-info">
+            For any queries:
+            <a href="mailto:notes@alokdasofficial.in"
+              >notes@alokdasofficial.in</a
+            >
+          </p>
+        </div>
+
+        <div class="footer-bottom">
+          <p class="credits">
+            Made with
+            <span class="heart" role="img" aria-label="love">❤️</span> by
+            <a href="http://alokdasofficial.in" target="_blank">Alok Das</a>
+          </p>
+          <p class="copyright-text" id="copyright-year"></p>
+        </div>
       </div>
     </footer>
+
+    <svg style="position: fixed; top: 100vh; pointer-events: none">
+      <defs>
+        <filter id="blob">
+          <feGaussianBlur
+            in="SourceGraphic"
+            stdDeviation="10"
+            result="blur"
+          ></feGaussianBlur>
+          <feColorMatrix
+            in="blur"
+            mode="matrix"
+            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9"
+            result="blob"
+          ></feColorMatrix>
+        </filter>
+      </defs>
+    </svg>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script>
