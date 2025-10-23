@@ -28,6 +28,11 @@ const commentAuthor = document.getElementById('commentAuthor');
 // Preloader
 const preloader = document.getElementById('preloader');
 
+// App Promotion Elements
+const alomolePromo = document.getElementById('alomolePromo');
+const closeAlomolePromo = document.getElementById('closeAlomolePromo');
+
+// NEW: Go to Top Button
 const goToTopBtn = document.getElementById('goToTopBtn');
 
 function handleGoToTopVisibility() {
@@ -95,6 +100,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     await loadPDFDatabase();
     setupEventListeners();
+    checkAlomolePromoState();
 
     const urlParams = new URLSearchParams(window.location.search);
     const pdfId = urlParams.get('pdf');
@@ -133,6 +139,10 @@ function setupEventListeners() {
     // NEW: Comment form submission
     commentForm.addEventListener('submit', handleCommentSubmit);
 
+    if (closeAlomolePromo) {
+        closeAlomolePromo.addEventListener('click', hideAlomolePromo);
+    }
+
     pdfModal.addEventListener('click', function (e) {
         if (e.target === pdfModal) closePDFModal();
     });
@@ -160,6 +170,26 @@ function setupEventListeners() {
         goToTopBtn.addEventListener('click', () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
+    }
+}
+
+function checkAlomolePromoState() {
+    // Check sessionStorage instead of localStorage
+    const isHiddenForSession = sessionStorage.getItem('hideAlomolePromoSession');
+
+    if (alomolePromo && isHiddenForSession === 'true') {
+        alomolePromo.classList.add('hidden');
+    } else if (alomolePromo) {
+        // Ensure it is visible by default if the session flag is not set
+        alomolePromo.classList.remove('hidden');
+    }
+}
+
+function hideAlomolePromo() {
+    if (alomolePromo) {
+        alomolePromo.classList.add('hidden');
+        // Use sessionStorage to store the preference only for the current tab/session
+        sessionStorage.setItem('hideAlomolePromoSession', 'true');
     }
 }
 

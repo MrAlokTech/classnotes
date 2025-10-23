@@ -589,10 +589,9 @@ body {
 }
 
 footer {
-  /* Kept background, color, and margin-top as they are good */
   background: var(--gray-900);
   color: var(--gray-300);
-  padding: calc(var(--spacing) * 3) calc(var(--spacing) * 2); /* Reduced vertical padding */
+  padding: calc(var(--spacing) * 3) calc(var(--spacing) * 2);
   text-align: center;
   margin-top: auto;
 }
@@ -602,20 +601,18 @@ footer {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  /* Reduced gap between elements */
+
   gap: calc(var(--spacing) * 1);
 }
 
 .thanks-message {
-  font-size: 0.875rem; /* Standard body size */
+  font-size: 0.875rem;
   color: var(--gray-400);
-  margin-bottom: calc(
-    var(--spacing) * 1
-  ); /* Add a bit more separation to the top group */
+  margin-bottom: calc(var(--spacing) * 1);
 }
 
 .contact-info {
-  font-size: 0.875rem; /* Consistent size */
+  font-size: 0.875rem;
   color: var(--gray-400);
   word-break: break-word;
 }
@@ -632,8 +629,8 @@ footer {
 }
 
 .credits {
-  font-size: 0.8125rem; /* Slightly smaller for a minimal, secondary feel */
-  font-weight: 400; /* Reduced weight */
+  font-size: 0.8125rem;
+  font-weight: 400;
 }
 
 .credits a {
@@ -667,7 +664,7 @@ footer {
 .copyright-text {
   font-size: 0.75rem;
   color: var(--gray-500);
-  margin-top: calc(var(--spacing) * 1); /* Small separation from the credits */
+  margin-top: calc(var(--spacing) * 1);
 }
 
 @media (max-width: 1024px) {
@@ -898,7 +895,7 @@ footer {
   }
 
   .footer-content {
-    gap: calc(var(--spacing) * 0.75); /* Further reduce mobile gap */
+    gap: calc(var(--spacing) * 0.75);
   }
 
   .thanks-message {
@@ -988,9 +985,6 @@ input:focus-visible {
   }
 }
 
-/* style.css (Add at the end) */
-
-/* Modal Layout for Comments Sidebar */
 .pdf-viewer-layout {
   display: flex;
   flex-direction: row;
@@ -1005,13 +999,13 @@ input:focus-visible {
 }
 
 .modal-sidebar {
-  width: 350px; /* Adjust sidebar width as needed */
+  width: 350px;
   background: var(--gray-50);
   border-left: 1px solid var(--gray-200);
   padding: calc(var(--spacing) * 3);
   display: flex;
   flex-direction: column;
-  max-height: 90vh; /* Match modal-content max-height */
+  max-height: 90vh;
 }
 
 .modal-sidebar h4 {
@@ -1024,11 +1018,10 @@ input:focus-visible {
 .comments-list {
   flex: 1;
   overflow-y: auto;
-  padding-right: calc(var(--spacing)); /* Space for scrollbar */
+  padding-right: calc(var(--spacing));
   margin-bottom: calc(var(--spacing) * 2);
 }
 
-/* Comment Item Style */
 .comment-item {
   border-bottom: 1px dashed var(--gray-200);
   padding: calc(var(--spacing) * 1.5) 0;
@@ -1061,7 +1054,6 @@ input:focus-visible {
   line-height: 1.4;
 }
 
-/* Comment Form Style */
 .comment-form {
   display: flex;
   flex-direction: column;
@@ -1098,31 +1090,21 @@ input:focus-visible {
   width: 100%;
 }
 
-/* ===============================
-   💻 Desktop visibility fixes
-   =============================== */
-
-/* Hide the floating "Comments" button on desktop */
 #openCommentsBtn {
   display: none;
 }
 
-/* Hide the mobile-style close button on desktop */
 .drawer-close {
   display: none;
 }
 
-/* ===============================
-   📱 Mobile Comment Drawer (YouTube-style)
-   =============================== */
 @media (max-width: 768px) {
-  /* Hide the default sidebar layout */
   .modal-sidebar {
     position: fixed;
     left: 0;
     bottom: -100%;
     width: 100%;
-    height: 70vh; /* Drawer height */
+    height: 70vh;
     max-height: 80vh;
     background: var(--gray-50);
     border-top: 2px solid var(--gray-200);
@@ -1135,12 +1117,10 @@ input:focus-visible {
     overflow: hidden;
   }
 
-  /* When active (opened) */
   .modal-sidebar.active {
     bottom: 0;
   }
 
-  /* Drawer header (with close button) */
   .modal-sidebar h4 {
     font-size: 1.1rem;
     font-weight: 600;
@@ -1153,7 +1133,6 @@ input:focus-visible {
     align-items: center;
   }
 
-  /* "Close" button inside header */
   .drawer-close {
     background: none;
     border: none;
@@ -1168,7 +1147,6 @@ input:focus-visible {
     padding: 1rem 1.25rem;
   }
 
-  /* Sticky input area at bottom */
   .comment-form {
     flex-shrink: 0;
     background: var(--gray-100);
@@ -1192,7 +1170,6 @@ input:focus-visible {
     width: 100%;
   }
 
-  /* Add "Comments" button below PDF viewer */
   #openCommentsBtn {
     display: inline-flex;
     align-items: center;
@@ -1214,15 +1191,11 @@ input:focus-visible {
     font-size: 1rem;
   }
 
-  /* Hide desktop sidebar entirely */
   .pdf-viewer-layout {
     flex-direction: column;
   }
 }
 
-/* style.css (Add at the end) */
-
-/* --- Preloader Styles --- */
 #preloader {
   background: var(--white);
   height: 100%;
@@ -1234,7 +1207,7 @@ input:focus-visible {
 #preloader.hidden {
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.5s ease, visibility 0s 0.5s; /* Smooth fade-out */
+  transition: opacity 0.5s ease, visibility 0s 0.5s;
 }
 
 .book {
@@ -1675,7 +1648,7 @@ input:focus-visible {
 }
 .loader-text {
   position: absolute;
-  top: calc(50% + 30px); /* below the book animation */
+  top: calc(50% + 30px);
   left: 50%;
   transform: translateX(-50%);
   font-size: 0.8rem;
@@ -1700,7 +1673,6 @@ input:focus-visible {
     opacity: 1;
   }
 }
-/* style.css (Add to style.css, e.g., near the bottom of the file) */
 
 .go-to-top {
   position: fixed;
@@ -1726,10 +1698,108 @@ input:focus-visible {
   transform: translateY(0);
 }
 
-/* Adjust position on smaller screens so it doesn't conflict with the toast/comment button */
 @media (max-width: 768px) {
   .go-to-top {
-    bottom: calc(var(--spacing) * 7); /* Higher than the toast */
+    bottom: calc(var(--spacing) * 7);
     right: calc(var(--spacing) * 2);
+  }
+}
+
+.alomole-promo {
+  position: fixed;
+
+  bottom: calc(var(--spacing) * 12);
+  right: calc(var(--spacing) * 4);
+  left: auto;
+  z-index: 901;
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--border-radius-lg);
+  padding: calc(var(--spacing) * 2);
+
+  box-shadow: var(--shadow-lg);
+  transition: opacity 0.3s, transform 0.3s;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--spacing) * 0.5);
+  max-width: 140px;
+}
+
+.alomole-promo.hidden {
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.9);
+}
+
+.promo-close-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: var(--gray-100);
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gray-600);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.promo-close-btn:hover {
+  background: var(--error-color);
+  color: var(--white);
+}
+
+.promo-link {
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--spacing) * 0.25);
+  cursor: pointer;
+}
+
+.promo-link img {
+  width: 100px;
+  height: 100px;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--gray-200);
+  padding: 4px;
+  background: var(--white);
+}
+
+.promo-text {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  text-align: center;
+  word-break: break-word;
+}
+
+.promo-text-body {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--gray-600);
+  text-align: center;
+  word-break: break-word;
+  line-height: 1.2;
+}
+
+@media (max-width: 768px) {
+  .alomole-promo {
+    bottom: calc(var(--spacing) * 5);
+    left: calc(var(--spacing) * 2);
+    right: auto;
+    padding: calc(var(--spacing) * 1.5);
+  }
+
+  .promo-close-btn {
+    right: 4px;
   }
 }
