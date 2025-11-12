@@ -1891,3 +1891,176 @@ input:focus-visible {
     font-size: 0.9375rem;
   }
 }
+
+/* For Upload */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+  position: relative;
+}
+.form-group label {
+  font-weight: 600;
+  color: var(--gray-700);
+}
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  transition: var(--transition);
+  background: var(--white);
+  font-family: inherit;
+}
+/* Adjust padding for password icon */
+.form-group input[type="password"],
+.form-group input[type="email"] {
+  padding-right: calc(var(--spacing) * 5);
+}
+
+.form-group textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Password visibility toggle */
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 44px; /* Adjust based on label height */
+  cursor: pointer;
+  color: var(--gray-400);
+  transition: var(--transition);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.password-toggle:hover {
+  color: var(--primary-color);
+}
+
+/* Form toggle link (e.g., "Sign up instead") */
+.form-toggle-link {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 0.875rem;
+}
+.form-toggle-link a {
+  color: var(--primary-color);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+.form-toggle-link a:hover {
+  text-decoration: underline;
+}
+
+/* Signup warning message */
+.signup-warning {
+  font-size: 0.8125rem;
+  color: var(--gray-600);
+  background-color: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--border-radius);
+  padding: calc(var(--spacing) * 1.5);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+.signup-warning i {
+  color: var(--accent-color);
+  margin-right: 4px;
+}
+.signup-warning strong {
+  color: var(--gray-800);
+}
+
+/* Status messages (re-styled from original) */
+.status-message {
+  font-weight: 500;
+  margin-top: 16px;
+  text-align: center;
+}
+.status-message.error {
+  color: var(--error-color);
+}
+.status-message.success {
+  color: var(--success-color);
+}
+
+/* --- Admin Header --- */
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.admin-header h2 {
+  font-size: 1.25rem;
+  word-break: break-all;
+}
+
+/* --- Toast Notification --- */
+#toastContainer {
+  position: fixed;
+  top: calc(var(--spacing) * 2);
+  right: calc(var(--spacing) * 2);
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing);
+  max-width: 350px;
+  width: calc(100% - calc(var(--spacing) * 4));
+}
+.toast.custom {
+  /* Using .custom to avoid conflict with style.css .toast */
+  display: flex;
+  align-items: center;
+  gap: var(--spacing);
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  z-index: 1100;
+  padding: calc(var(--spacing) * 2);
+  border-radius: var(--border-radius);
+  color: var(--white);
+  transform: translateX(120%);
+  transition: transform 0.3s ease;
+  opacity: 0;
+}
+.toast.custom.show {
+  transform: translateX(0);
+  opacity: 1;
+}
+.toast.custom.success {
+  background: var(--success-color);
+}
+.toast.custom.error {
+  background: var(--error-color);
+}
+.toast.custom i {
+  font-size: 1.25rem;
+}
+
+@media (max-width: 480px) {
+  #toastContainer {
+    top: var(--spacing);
+    right: var(--spacing);
+    left: var(--spacing);
+    width: auto;
+    max-width: none;
+  }
+}

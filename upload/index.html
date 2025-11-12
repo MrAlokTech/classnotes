@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Upload Panel - ClassNotes</title>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="../icon.svg" />
+    <link rel="apple-touch-icon" href="../icon.svg" />
+
+    <link rel="stylesheet" href="../style.css" />
+  </head>
+  <body>
+    <div id="toastContainer"></div>
+
+    <header class="header">
+      <div class="container">
+        <div class="header-content">
+          <div class="logo">
+            <i class="fas fa-graduation-cap"></i>
+            <h1>ClassNotes</h1>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main">
+      <div class="container">
+        <section id="loginSection">
+          <div class="pdf-card" style="max-width: 500px; margin: 2rem auto">
+            <h2 style="text-align: center; margin-bottom: 24px">Login</h2>
+            <form id="loginForm">
+              <div class="form-group">
+                <label for="loginEmail">Email</label>
+                <input type="email" id="loginEmail" required />
+              </div>
+              <div class="form-group">
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" required />
+                <i
+                  class="fas fa-eye password-toggle"
+                  id="loginPasswordToggle"
+                ></i>
+              </div>
+              <button type="submit" class="btn btn-primary" id="loginBtn">
+                <i class="fas fa-sign-in-alt"></i> Log In
+              </button>
+              <p class="status-message error" id="loginError"></p>
+              <p class="form-toggle-link">
+                Don't have an account? <a id="showSignUp">Sign Up</a>
+              </p>
+            </form>
+          </div>
+        </section>
+
+        <section id="signUpSection" style="display: none">
+          <div class="pdf-card" style="max-width: 500px; margin: 2rem auto">
+            <h2 style="text-align: center; margin-bottom: 24px">Sign Up</h2>
+            <form id="signUpForm">
+              <div class="signup-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>Verification Required:</strong> Signup details will be
+                verified by the email ID provided. Once verified, you will be
+                granted access to upload notes.
+              </div>
+
+              <div class="form-group">
+                <label for="signUpEmail">Email</label>
+                <input type="email" id="signUpEmail" required />
+              </div>
+              <div class="form-group">
+                <label for="signUpPassword">Password (min. 6 characters)</label>
+                <input type="password" id="signUpPassword" required />
+                <i
+                  class="fas fa-eye password-toggle"
+                  id="signUpPasswordToggle"
+                ></i>
+              </div>
+              <div class="form-group">
+                <label for="signUpConfirmPassword">Confirm Password</label>
+                <input type="password" id="signUpConfirmPassword" required />
+                <i
+                  class="fas fa-eye password-toggle"
+                  id="signUpConfirmPasswordToggle"
+                ></i>
+              </div>
+              <button type="submit" class="btn btn-primary" id="signUpBtn">
+                <i class="fas fa-user-plus"></i> Sign Up
+              </button>
+              <p class="status-message error" id="signUpError"></p>
+              <p class="form-toggle-link">
+                Already have an account? <a id="showLogin">Log In</a>
+              </p>
+            </form>
+          </div>
+        </section>
+
+        <section id="pendingVerificationSection" style="display: none">
+          <div class="pdf-card" style="max-width: 600px; margin: 2rem auto">
+            <div class="admin-header">
+              <h2>
+                Welcome,
+                <br />
+                <span
+                  id="pendingAdminEmail"
+                  style="color: var(--primary-color)"
+                ></span>
+              </h2>
+              <button class="btn btn-secondary" id="logoutBtnPending">
+                <i class="fas fa-sign-out-alt"></i> Log Out
+              </button>
+            </div>
+            <div style="text-align: center; padding: 2rem 0">
+              <i
+                class="fas fa-hourglass-half"
+                style="
+                  font-size: 3rem;
+                  color: var(--accent-color);
+                  margin-bottom: 1rem;
+                "
+              ></i>
+              <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem">
+                Account Pending Verification
+              </h3>
+              <p>
+                Your account has been created successfully. We’ve notified
+                <a href="https://alokdasofficial.in" target="_blank">Alok</a>,
+                and your request for upload access is under consideration.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section id="uploadSection" style="display: none">
+          <div class="pdf-card" style="max-width: 800px; margin: 2rem auto">
+            <div class="admin-header">
+              <h2>
+                Welcome,
+                <br />
+                <span
+                  id="adminEmail"
+                  style="color: var(--primary-color)"
+                ></span>
+              </h2>
+              <button class="btn btn-secondary" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i> Log Out
+              </button>
+            </div>
+
+            <form id="uploadForm">
+              <h3 style="color: red">Upload New Note Info</h3>
+              <p style="margin-bottom: 16px; color: var(--gray-600)">
+                <strong style="color: red">Important:</strong> First, upload
+                your PDF to Google Drive, set sharing to "Anyone with the link",
+                then copy the link here.
+                <br />
+                <strong style="color: red">Important:</strong> Make sure the
+                uploaded pdf file is accessible to "Anyone with the link",
+                otherwise users won't be able to view/download it.
+              </p>
+
+              <div class="form-group">
+                <label for="pdfTitle">Title</label>
+                <input
+                  type="text"
+                  id="pdfTitle"
+                  placeholder="e.g., Spectroscopy Basics"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="pdfDescription">Description</label>
+                <textarea
+                  id="pdfDescription"
+                  placeholder="A brief description of the notes."
+                  required
+                ></textarea>
+              </div>
+
+              <div class="form-group">
+                <label for="pdfAuthor">Author / Teacher</label>
+                <input
+                  type="text"
+                  id="pdfAuthor"
+                  placeholder="e.g., Prof. R.K. Sharma"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="pdfUrl">Google Drive Share Link</label>
+                <input
+                  type="url"
+                  id="pdfUrl"
+                  placeholder="https://drive.google.com/file/d/..."
+                  required
+                />
+              </div>
+
+              <div style="display: flex; gap: 16px; flex-wrap: wrap">
+                <div class="form-group" style="flex: 1">
+                  <label for="pdfSemester">Semester</label>
+                  <select id="pdfSemester">
+                    <option value="1">Semester 1</option>
+                    <option value="2">Semester 2</option>
+                    <option value="3">Semester 3</option>
+                    <option value="4">Semester 4</option>
+                  </select>
+                </div>
+
+                <div class="form-group" style="flex: 1">
+                  <label for="pdfCategory">Category</label>
+                  <select id="pdfCategory">
+                    <option value="Organic">Organic</option>
+                    <option value="Inorganic">Inorganic</option>
+                    <option value="Physical">Physical</option>
+                    <option value="Organic">Physics</option>
+                    <option value="Inorganic">General</option>
+                  </select>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary" id="uploadBtn">
+                <i class="fas fa-upload"></i> Add Note to Database
+              </button>
+
+              <p class="status-message" id="uploadStatus"></p>
+
+              <br />
+              <br />
+              <br />
+              <p style="margin-bottom: 16px; color: var(--gray-600)">
+                <strong style="color: red">Important:</strong> You're
+                <i>100%</i> anonymous to all the public user's using this site
+                (Mostly our classmates 😊).
+              </p>
+            </form>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer>
+      <div class="footer-content">
+        <p class="thanks-message">✨ Thanks For Visiting 🙌</p>
+        <p class="contact-info">
+          Found an issue? Email me at
+          <a href="mailto:notes@alokdasofficial.in">notes@alokdasofficial.in</a>
+        </p>
+        <p class="credits">
+          Made with <span class="heart">❤️</span> by
+          <a href="https://alokdasofficial.in" target="_blank">Alok Das</a>
+        </p>
+        <p class="copyright-text" id="copyright-year">
+          © 2025 ClassNotes. All rights reserved.
+        </p>
+        <p class="policy-links">
+          <a
+            onclick="window.location.href = window.location.origin;"
+            style="cursor: pointer"
+            >Home</a
+          >
+          |
+          <a href="/legal/privacy-policy.html">Privacy Policy</a> |
+          <a href="/legal/terms-of-use.html">Terms of Use</a> |
+          <a href="/legal/takedown-policy.html">Takedown Policy</a>
+        </p>
+      </div>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
+    <script>
+      const firebaseConfig = {
+        // --- YOUR FIREBASE CONFIG ---
+        apiKey: "AIzaSyAf9MEc8495GUwWHZsE4HcvJvbtptkBfQc",
+        authDomain: "alokdasofficial-69f96.firebaseapp.com",
+        projectId: "alokdasofficial",
+        storageBucket: "alokdasofficial.firebasestorage.app",
+        messagingSenderId: "315463239297",
+        appId: "1:315463239297:web:c374126286d9b33f3f2f80",
+        measurementId: "G-QPXHCK0R2E",
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+      const auth = firebase.auth(); // Initialize Auth
+    </script>
+
+    <script src="upload.js"></script>
+  </body>
+</html>

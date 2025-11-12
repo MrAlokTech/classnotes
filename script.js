@@ -207,17 +207,47 @@ function handleScroll() {
     }
 }
 
-async function viewPDF(pdf) {
-    // pdf.pdfUrl is expected to be the shared link/URL now
-    const pdfPath = pdf.pdfUrl; // Use the direct URL instead of the local path
+/**
+ * Converts a standard Google Drive sharing URL into an embeddable 'preview' URL.
+ * @param {string} url The original URL from the database
+ * @returns {string} The embeddable ('/preview') URL or the original URL
+ */
+function getGoogleDriveEmbedUrl(url) {
+    if (!url) return '';
 
-    if (!pdfPath) {
+    // Regex to find the Google Drive file ID
+    // It looks for 'drive.google.com/file/d/' followed by the ID, and then a '/'
+    const driveRegex = /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)\//;
+    const match = url.match(driveRegex);
+
+    if (match && match[1]) {
+        const fileId = match[1];
+        // Construct the embeddable 'preview' URL
+        return `https://drive.google.com/file/d/${fileId}/preview`;
+    }
+
+    // If it's not a matching GDrive link, return the original URL as-is
+    return url;
+}
+
+// REPLACE your existing viewPDF function with this one
+async function viewPDF(pdf) {
+    // Get the original URL from the PDF object
+    const originalPdfPath = pdf.pdfUrl;
+
+    if (!originalPdfPath) {
         showToast('PDF link is missing or invalid.', 'error');
         return;
     }
 
+    // NEW: Convert the URL to the correct embeddable '/preview' format
+    const embeddablePdfPath = getGoogleDriveEmbedUrl(originalPdfPath);
+
     modalTitle.textContent = pdf.title;
-    pdfViewer.src = pdfPath;
+
+    // Use the new, converted path for the viewer
+    pdfViewer.src = embeddablePdfPath;
+
     pdfModal.classList.add('active');
     document.body.style.overflow = 'hidden';
 
@@ -228,7 +258,6 @@ async function viewPDF(pdf) {
     // Note: The comments system uses pdf.id, which should now be the Firestore doc ID.
     await loadComments(pdf.id);
 }
-
 
 function handleSemesterChange(e) {
     tabBtns.forEach(btn => btn.classList.remove('active'));
