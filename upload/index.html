@@ -199,13 +199,24 @@
               </div>
 
               <div class="form-group">
-                <label for="pdfUrl">Google Drive Share Link</label>
+                <label for="pdfFile">PDF File</label>
                 <input
-                  type="url"
-                  id="pdfUrl"
-                  placeholder="https://drive.google.com/file/d/..."
+                  type="file"
+                  id="pdfFile"
+                  accept="application/pdf"
                   required
                 />
+              </div>
+
+              <p id="uploadStatus"></p>
+
+              <div
+                class="progress-container"
+                id="uploadProgressContainer"
+                style="display: none"
+              >
+                <progress id="uploadProgress" value="0" max="100"></progress>
+                <span id="uploadPercentage">0%</span>
               </div>
 
               <div style="display: flex; gap: 16px; flex-wrap: wrap">
