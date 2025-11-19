@@ -1,49 +1,33 @@
 :root {
-  /* Comic-friendly primary tones */
-  --primary-color: #2b6cb0; /* Soft comic blue */
-  --primary-dark: #1a365d; /* Deep outline blue */
-  --primary-light: #63b3ed; /* Light sky blue */
-
-  /* Secondary + accents */
-  --secondary-color: #38a169; /* Retro green */
-  --accent-color: #f6ad55; /* Warm comic yellow-orange */
-
-  /* State colors */
-  --success-color: #2f855a; /* Softer green */
-  --error-color: #e53e3e; /* Comic red */
-
-  /* Background & ink tones (comic paper vibes) */
-  --white: #fffaf0; /* Slight warm paper white */
-  --ink-black: var(--gray-900); /* Use existing deep black for outlines */
-  --border-thickness: 3px; /* NEW: Thicker border for comic panels */
-
-  /* Neutral grayscale (comic ink style) */
-  --gray-50: #fafafa;
-  --gray-100: #f2f2f2;
-  --gray-200: #e5e5e5;
-  --gray-300: #cccccc;
-  --gray-400: #a3a3a3;
-  --gray-500: #737373;
-  --gray-600: #525252;
-  --gray-700: #3f3f3f;
-  --gray-800: #2d2d2d;
-  --gray-900: #1a202c; /* Deep ink black */
-
-  /* Comic-style shadows (Flat, offset comic shadow) */
-  --shadow-sm: 4px 4px 0 var(--ink-black);
-  --shadow-md: 6px 6px 0 var(--ink-black);
-  --shadow-lg: 8px 8px 0 var(--ink-black);
-  --shadow-xl: 12px 12px 0 var(--ink-black);
+  --primary-color: #2563eb;
+  --primary-dark: #1d4ed8;
+  --primary-light: #3b82f6;
+  --secondary-color: #10b981;
+  --accent-color: #f59e0b;
+  --success-color: #059669;
+  --error-color: #dc2626;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+  --white: #fffef7;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
   --border-radius: 8px;
   --border-radius-lg: 12px;
   --transition: all 0.2s ease;
   --spacing: 8px;
   --header-height: 73px;
 
-  /* NEW: Comic Typography */
-  --font-comic-title: "Bangers", cursive, "Inter", sans-serif; /* For H1, H2, Logo */
-  --font-comic-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
-    Roboto, sans-serif; /* For main text */
+  --background-color: #fff5ee;
 }
 
 * {
@@ -53,10 +37,11 @@
 }
 
 body {
-  font-family: var(--font-comic-body); /* Updated to new variable */
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
   line-height: 1.5;
   color: var(--gray-800);
-  background: var(--gray-50);
+  background: var(--background-color);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -72,8 +57,9 @@ body {
 }
 
 .header {
-  background: var(--white);
-  border-bottom: var(--border-thickness) solid var(--ink-black); /* Upgraded border */
+  background: var(--background-color);
+
+  border-bottom: 1px solid var(--gray-200);
   padding: calc(var(--spacing) * 2) 0;
   position: sticky;
   top: 0;
@@ -97,22 +83,16 @@ body {
 
 .logo i {
   font-size: 2rem;
-  text-shadow: 1px 1px 0 var(--primary-dark); /* Comic icon shadow */
 }
 
 .logo h1 {
-  font-family: var(--font-comic-title); /* Applied comic title font */
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  font-size: 2rem; /* Increased size */
+  font-size: 1.75rem;
   font-weight: 700;
-  text-shadow: 2px 2px 0 var(--primary-dark); /* Comic text shadow */
-  color: var(--primary-light); /* Lighter color for comic effect */
 }
 
 .semester-tabs {
-  background: var(--white);
-  border-bottom: var(--border-thickness) solid var(--ink-black); /* Upgraded border */
+  background: var(--background-color);
+  border-bottom: 1px solid var(--gray-200);
   position: sticky;
   top: var(--header-height);
   z-index: 99;
@@ -155,7 +135,8 @@ body {
 }
 
 .tab-btn:hover {
-  background: var(--gray-50);
+  background: var(--background-color);
+
   color: var(--primary-color);
 }
 
@@ -198,7 +179,7 @@ body {
 
 .search-box i {
   position: absolute;
-  left: calc(var(--spacing) * 1.5); /* Adjusted position */
+  left: calc(var(--spacing) * 2);
   top: 50%;
   transform: translateY(-50%);
   color: var(--gray-400);
@@ -210,19 +191,18 @@ body {
   width: 100%;
   padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2)
     calc(var(--spacing) * 1.5) calc(var(--spacing) * 6);
-  border: var(--border-thickness) solid var(--ink-black); /* Comic border */
+  border: 1px solid var(--gray-200);
   border-radius: var(--border-radius);
   font-size: 1rem;
   transition: var(--transition);
-  background: var(--white);
+  background: var(--background-color);
   font-family: inherit;
-  box-shadow: 2px 2px 0 var(--gray-500); /* Input shadow */
 }
 
 .search-box input:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 4px 4px 0 var(--primary-dark); /* Accent shadow on focus */
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .search-box input::placeholder {
@@ -240,8 +220,8 @@ body {
   align-items: center;
   gap: calc(var(--spacing) * 1);
   padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 3);
-  background: var(--white);
-  border: var(--border-thickness) solid var(--ink-black); /* Comic border */
+  background: var(--background-color);
+  border: 1px solid var(--gray-200);
   border-radius: var(--border-radius);
   cursor: pointer;
   transition: var(--transition);
@@ -252,25 +232,18 @@ body {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   white-space: nowrap;
-  box-shadow: 2px 2px 0 var(--gray-500); /* Button shadow */
 }
 
 .filter-btn:hover {
   border-color: var(--primary-color);
   color: var(--primary-color);
-  background: var(--gray-50);
-  box-shadow: 2px 2px 0 var(--gray-500); /* Keep shadow on hover */
+  background: var(--background-color);
 }
 
 .filter-btn.active {
   background: var(--primary-color);
   color: var(--white);
-  border-color: var(--primary-dark); /* Darker border for active */
-  box-shadow: 3px 3px 0 var(--primary-dark); /* Stronger shadow for active */
-}
-
-.filter-btn.active:hover {
-  border-color: var(--primary-dark);
+  border-color: var(--primary-color);
 }
 
 .filter-btn i {
@@ -283,10 +256,9 @@ body {
   font-weight: 500;
   margin-bottom: calc(var(--spacing) * 3);
   padding: calc(var(--spacing) * 1.5);
-  background: var(--white);
+  background: var(--background-color);
   border-radius: var(--border-radius);
-  border: var(--border-thickness) solid var(--ink-black); /* Comic border */
-  box-shadow: var(--shadow-sm); /* Comic shadow */
+  border: 1px solid var(--gray-200);
 }
 
 .pdf-grid {
@@ -296,25 +268,21 @@ body {
 }
 
 .pdf-card {
-  background: var(--white);
+  background: var(--background-color);
   border-radius: var(--border-radius-lg);
   padding: calc(var(--spacing) * 3);
-  /* Comic panel styling */
-  border: var(--border-thickness) solid var(--ink-black);
-  box-shadow: var(--shadow-md);
-  transform: rotate(0.5deg); /* Slight rotation */
-
+  box-shadow: var(--shadow-sm);
   transition: var(--transition);
-
+  border: 1px solid var(--gray-200);
   display: flex;
   flex-direction: column;
   gap: calc(var(--spacing) * 2);
 }
 
 .pdf-card:hover {
-  transform: translateY(0px) rotate(0.5deg);
+  transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
-  border-color: var(--ink-black);
+  border-color: var(--gray-300);
 }
 
 .pdf-header {
@@ -338,7 +306,6 @@ body {
   color: var(--white);
   font-size: 1.25rem;
   flex-shrink: 0;
-  border: 2px solid var(--ink-black);
 }
 
 .pdf-info {
@@ -371,7 +338,6 @@ body {
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 500;
-  border: 1px solid var(--gray-400);
 }
 
 .pdf-date {
@@ -417,25 +383,20 @@ body {
   background: var(--primary-color);
   color: var(--white);
   flex: 1;
-  border: var(--border-thickness) solid var(--ink-black); /* Comic border */
-  box-shadow: 3px 3px 0 var(--ink-black); /* Comic shadow */
 }
 
 .btn-primary:hover {
   background: var(--primary-dark);
-  box-shadow: 3px 3px 0 var(--ink-black);
 }
 
 .btn-primary:active {
-  transform: translate(3px, 3px); /* Comic 'Press' effect */
-  box-shadow: 0 0 0 var(--ink-black);
+  transform: scale(0.98);
 }
 
 .btn-secondary {
   background: var(--gray-100);
   color: var(--gray-700);
-  border: var(--border-thickness) solid var(--ink-black); /* Comic border */
-  box-shadow: 2px 2px 0 var(--gray-500); /* Comic shadow */
+  border: 1px solid var(--gray-200);
 }
 
 .btn-secondary:hover {
@@ -443,8 +404,7 @@ body {
 }
 
 .btn-secondary:active {
-  transform: translate(2px, 2px); /* Comic 'Press' effect */
-  box-shadow: 0 0 0 var(--gray-500);
+  transform: scale(0.98);
 }
 
 .btn-icon {
@@ -452,8 +412,7 @@ body {
   height: 40px;
   border-radius: var(--border-radius);
   background: var(--gray-100);
-  border: 2px solid var(--ink-black); /* Comic border */
-  box-shadow: 1px 1px 0 var(--ink-black); /* Comic shadow */
+  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -470,18 +429,16 @@ body {
 }
 
 .btn-icon:active {
-  transform: translate(1px, 1px); /* Comic 'Press' effect */
-  box-shadow: 0 0 0 var(--ink-black);
+  transform: scale(0.95);
 }
 
 .empty-state {
   text-align: center;
   padding: calc(var(--spacing) * 8) calc(var(--spacing) * 4);
   color: var(--gray-500);
-  background: var(--white);
+  background: var(--background-color);
   border-radius: var(--border-radius-lg);
-  border: var(--border-thickness) solid var(--ink-black); /* Comic border */
-  box-shadow: var(--shadow-md); /* Comic shadow */
+  border: 1px solid var(--gray-200);
 }
 
 .empty-state i {
@@ -495,8 +452,6 @@ body {
   font-weight: 600;
   margin-bottom: calc(var(--spacing) * 1);
   color: var(--gray-700);
-  font-family: var(--font-comic-title); /* Comic font for heading */
-  text-transform: uppercase;
 }
 
 .empty-state p {
@@ -523,7 +478,7 @@ body {
 }
 
 .modal-content {
-  background: var(--white);
+  background: var(--background-color);
   border-radius: var(--border-radius-lg);
   width: 100%;
   max-width: 90vw;
@@ -531,8 +486,7 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: var(--border-thickness) solid var(--ink-black); /* Comic border */
-  box-shadow: var(--shadow-xl); /* Comic shadow */
+  box-shadow: var(--shadow-xl);
 }
 
 .modal-header {
@@ -541,7 +495,8 @@ body {
   justify-content: space-between;
   padding: calc(var(--spacing) * 3);
   border-bottom: 1px solid var(--gray-200);
-  background: var(--gray-50);
+  background: var(--background-color);
+
   gap: calc(var(--spacing) * 2);
 }
 
@@ -551,8 +506,6 @@ body {
   color: var(--gray-900);
   word-break: break-word;
   flex: 1;
-  font-family: var(--font-comic-title); /* Comic font for modal title */
-  text-transform: uppercase;
 }
 
 .modal-actions {
@@ -597,9 +550,10 @@ body {
 .share-link-container input {
   flex: 1;
   padding: calc(var(--spacing) * 1.5);
-  border: var(--border-thickness) solid var(--ink-black); /* Comic border */
+  border: 1px solid var(--gray-200);
   border-radius: var(--border-radius);
-  background: var(--gray-50);
+  background: var(--background-color);
+
   font-family: monospace;
   font-size: 0.875rem;
   min-width: 0;
@@ -614,7 +568,6 @@ body {
   padding: calc(var(--spacing) * 1.5);
   background: rgba(5, 150, 105, 0.1);
   border-radius: var(--border-radius);
-  border: 1px solid var(--success-color);
 }
 
 .toast {
@@ -629,7 +582,6 @@ body {
   align-items: center;
   gap: calc(var(--spacing) * 1);
   font-weight: 500;
-  border: 2px solid var(--ink-black);
   box-shadow: var(--shadow-lg);
   z-index: 1100;
   transform: translateX(100%);
@@ -684,7 +636,7 @@ footer {
 
 .credits {
   font-size: 0.8125rem;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .credits a {
@@ -990,13 +942,10 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Updated focus state to use thick border */
 button:focus-visible,
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible {
-  outline: var(--border-thickness) solid var(--primary-color);
-  outline-offset: 4px; /* Increased offset */
+input:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
 }
 
 ::-webkit-scrollbar {
@@ -1020,7 +969,6 @@ select:focus-visible {
 @media (hover: none) and (pointer: coarse) {
   .pdf-card:hover {
     transform: none;
-    box-shadow: var(--shadow-sm); /* Reset to small shadow on mobile hover */
   }
 
   .tab-btn:hover,
@@ -1030,7 +978,7 @@ select:focus-visible {
   }
 
   .tab-btn.active:hover {
-    background: var(--gray-50);
+    background: var(--background-color);
   }
 
   .filter-btn.active:hover {
@@ -1058,8 +1006,9 @@ select:focus-visible {
 
 .modal-sidebar {
   width: 350px;
-  background: var(--gray-50);
-  border-left: var(--border-thickness) solid var(--ink-black); /* Comic border */
+  background: var(--background-color);
+
+  border-left: 1px solid var(--gray-200);
   padding: calc(var(--spacing) * 3);
   display: flex;
   flex-direction: column;
@@ -1071,8 +1020,6 @@ select:focus-visible {
   font-weight: 600;
   color: var(--gray-900);
   margin-bottom: calc(var(--spacing) * 2);
-  font-family: var(--font-comic-title); /* Comic font */
-  text-transform: uppercase;
 }
 
 .comments-list {
@@ -1083,7 +1030,7 @@ select:focus-visible {
 }
 
 .comment-item {
-  border-bottom: 1px dashed var(--gray-400); /* Slightly thicker dashed border */
+  border-bottom: 1px dashed var(--gray-200);
   padding: calc(var(--spacing) * 1.5) 0;
 }
 
@@ -1126,20 +1073,19 @@ select:focus-visible {
 .comment-form input {
   width: 100%;
   padding: calc(var(--spacing) * 1);
-  border: var(--border-thickness) solid var(--ink-black); /* Comic border */
+  border: 1px solid var(--gray-300);
   border-radius: var(--border-radius);
   font-size: 0.9375rem;
   font-family: inherit;
   transition: var(--transition);
   resize: vertical;
-  box-shadow: 1px 1px 0 var(--gray-500);
 }
 
 .comment-form textarea:focus,
 .comment-form input:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 2px 2px 0 var(--primary-dark);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .comment-form textarea {
@@ -1167,7 +1113,8 @@ select:focus-visible {
     width: 100%;
     height: 70vh;
     max-height: 80vh;
-    background: var(--gray-50);
+    background: var(--background-color);
+
     border-top: 2px solid var(--gray-200);
     border-radius: 16px 16px 0 0;
     box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.2);
@@ -1238,7 +1185,7 @@ select:focus-visible {
     font-size: 0.95rem;
     color: white;
     background: var(--primary-color, #2563eb);
-    border: var(--border-thickness) solid var(--ink-black); /* Comic border */
+    border: none;
     padding: 0.6rem 1.2rem;
     border-radius: 999px;
     position: fixed;
@@ -1258,7 +1205,7 @@ select:focus-visible {
 }
 
 #preloader {
-  background: var(--white);
+  background: var(--background-color);
   height: 100%;
   position: fixed;
   width: 100%;
@@ -1272,7 +1219,7 @@ select:focus-visible {
 }
 
 .book {
-  --color: var(--ink-black); /* Updated to ink-black */
+  --color: var(--primary-color);
   --duration: 6.8s;
   width: 32px;
   height: 12px;
@@ -1721,6 +1668,7 @@ select:focus-visible {
 
 .loader-text span {
   color: var(--primary-color);
+
   font-weight: 600;
 }
 
@@ -1734,7 +1682,6 @@ select:focus-visible {
   }
 }
 
-/* Go to Top Button START */
 .go-to-top {
   position: fixed;
   bottom: calc(var(--spacing) * 4);
@@ -1745,8 +1692,7 @@ select:focus-visible {
   transform: translateY(10px);
   background: var(--primary-color);
   color: var(--white);
-  border: var(--border-thickness) solid var(--ink-black); /* Comic border */
-  box-shadow: var(--shadow-sm); /* Comic shadow */
+  box-shadow: var(--shadow-md);
 }
 
 .go-to-top:hover {
@@ -1757,7 +1703,7 @@ select:focus-visible {
 .go-to-top.show {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0) rotate(-3deg); /* Add a slight tilt */
+  transform: translateY(0);
 }
 
 @media (max-width: 768px) {
@@ -1766,8 +1712,7 @@ select:focus-visible {
     right: calc(var(--spacing) * 7);
   }
 }
-/* Go to Top Button END */
-/* Upload Button Start */
+
 .upload-btn {
   position: fixed;
   bottom: calc(var(--spacing) * 4);
@@ -1775,11 +1720,10 @@ select:focus-visible {
   z-index: 900;
   opacity: 1;
   visibility: visible;
-  transform: translateY(0);
-  background: var(--accent-color);
-  color: var(--gray-900);
-  border: var(--border-thickness) solid var(--ink-black); /* Comic border */
-  box-shadow: var(--shadow-md); /* Comic shadow */
+  transform: translateY(0px);
+  background: var(--primary-color);
+  color: var(--white);
+  box-shadow: var(--shadow-md);
 }
 
 .upload-btn:hover {
@@ -1801,11 +1745,11 @@ select:focus-visible {
   right: calc(var(--spacing) * 4);
   left: auto;
   z-index: 901;
-  background: var(--white);
-  border: var(--border-thickness) solid var(--ink-black); /* Comic border */
+  background: var(--background-color);
+  border: 1px solid var(--gray-200);
   border-radius: var(--border-radius-lg);
   padding: calc(var(--spacing) * 2);
-  transform: rotate(2deg); /* Added tilt */
+
   box-shadow: var(--shadow-lg);
   transition: opacity 0.3s, transform 0.3s;
 
@@ -1819,7 +1763,7 @@ select:focus-visible {
 .alomole-promo.hidden {
   opacity: 0;
   visibility: hidden;
-  transform: scale(0.9) rotate(2deg);
+  transform: scale(0.9);
 }
 
 .promo-close-btn {
@@ -1827,7 +1771,7 @@ select:focus-visible {
   top: 4px;
   right: 4px;
   background: var(--gray-100);
-  border: 1px solid var(--gray-300); /* Slightly thicker border */
+  border: none;
   border-radius: 50%;
   width: 24px;
   height: 24px;
@@ -1858,9 +1802,9 @@ select:focus-visible {
   width: 100px;
   height: 100px;
   border-radius: var(--border-radius);
-  border: 2px solid var(--ink-black); /* Comic border */
+  border: 1px solid var(--gray-200);
   padding: 4px;
-  background: var(--white);
+  background: var(--background-color);
 }
 
 .promo-text {
@@ -1899,15 +1843,11 @@ select:focus-visible {
   margin: calc(var(--spacing) * 4) calc(var(--spacing) * 2);
   padding: calc(var(--spacing) * 8) calc(var(--spacing) * 4);
   color: var(--gray-500);
-  background: var(--white);
+  background: var(--background-color);
   border-radius: var(--border-radius-lg);
-  border: var(--border-thickness) solid var(--ink-black); /* Comic border */
-  box-shadow: var(--shadow-md);
+  border: 1px solid var(--gray-200);
 }
 .main-policy h2 {
-  font-family: var(--font-comic-title); /* Comic font */
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
   font-weight: 700;
   color: var(--gray-900);
   margin-bottom: calc(var(--spacing) * 2);
@@ -1916,9 +1856,6 @@ select:focus-visible {
 }
 
 .main-policy h3 {
-  font-family: var(--font-comic-title); /* Comic font */
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
   font-size: 1.5rem; /* Secondary heading */
   font-weight: 600;
   color: var(--primary-dark);
@@ -2005,13 +1942,12 @@ select:focus-visible {
 .form-group select {
   width: 100%;
   padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
-  border: var(--border-thickness) solid var(--ink-black); /* Comic border */
+  border: 1px solid var(--gray-200);
   border-radius: var(--border-radius);
   font-size: 1rem;
   transition: var(--transition);
-  background: var(--white);
+  background: var(--background-color);
   font-family: inherit;
-  box-shadow: 2px 2px 0 var(--gray-500); /* Input shadow */
 }
 /* Adjust padding for password icon */
 .form-group input[type="password"],
@@ -2028,7 +1964,7 @@ select:focus-visible {
 .form-group select:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 4px 4px 0 var(--primary-dark); /* Accent shadow on focus */
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 /* Password visibility toggle */
@@ -2070,12 +2006,11 @@ select:focus-visible {
   font-size: 0.8125rem;
   color: var(--gray-600);
   background-color: var(--gray-50);
-  border: 2px solid var(--accent-color); /* Comic border accent */
+  border: 1px solid var(--gray-200);
   border-radius: var(--border-radius);
   padding: calc(var(--spacing) * 1.5);
   margin-bottom: 16px;
   line-height: 1.5;
-  box-shadow: 2px 2px 0 var(--accent-color);
 }
 .signup-warning i {
   color: var(--accent-color);
@@ -2110,8 +2045,6 @@ select:focus-visible {
 .admin-header h2 {
   font-size: 1.25rem;
   word-break: break-all;
-  font-family: var(--font-comic-title); /* Comic font */
-  text-transform: uppercase;
 }
 
 /* --- Toast Notification --- */
@@ -2132,7 +2065,6 @@ select:focus-visible {
   align-items: center;
   gap: var(--spacing);
   font-weight: 500;
-  border: 2px solid var(--ink-black); /* Comic border */
   box-shadow: var(--shadow-lg);
   z-index: 1100;
   padding: calc(var(--spacing) * 2);
@@ -2164,145 +2096,4 @@ select:focus-visible {
     width: auto;
     max-width: none;
   }
-}
-
-/* ==================================== */
-/* 🌙 2. DARK MODE STYLES (Comic Noir) */
-/* ==================================== */
-
-body.dark-mode {
-  /* Core Colors */
-  --white: #1a1a2e; /* Deep dark blue-black background */
-  --gray-50: #2c2c54; /* Dark card/panel background */
-  --gray-100: #3a3a69;
-  --gray-200: #494980;
-  --gray-700: #e0e0e0; /* Light text on dark background */
-  --gray-800: #ffffff;
-  --gray-900: #f0f0ff; /* Light ink color (now white/light gray) */
-  --ink-black: var(--gray-900); /* Inked lines are now light */
-
-  /* Primary Accent Colors remain similar, but text/background changes are key */
-  --primary-color: #63b3ed; /* Light sky blue */
-  --primary-dark: #2b6cb0; /* Soft comic blue */
-  --primary-light: #90cdf4;
-
-  /* Shadows (Crucial for comic look) - Change to a negative color shadow */
-  --shadow-sm: 4px 4px 0 var(--primary-dark);
-  --shadow-md: 6px 6px 0 var(--primary-dark);
-  --shadow-lg: 8px 8px 0 var(--primary-dark);
-  --shadow-xl: 12px 12px 0 var(--primary-dark);
-
-  /* Body background uses the dark card color */
-  background: var(--gray-50);
-  color: var(--gray-800);
-}
-
-/* Header and Tabs need explicit dark mode background */
-body.dark-mode .header,
-body.dark-mode .semester-tabs {
-  background: var(--white); /* Deepest dark background */
-  border-bottom-color: var(--ink-black); /* Light border */
-}
-
-/* Logo Color Adjustment */
-body.dark-mode .logo h1 {
-  color: var(--accent-color); /* Use a bright accent for the logo title */
-  text-shadow: 2px 2px 0 var(--primary-dark);
-}
-
-/* Card/Panel Styling Override */
-body.dark-mode .pdf-card {
-  background: var(--gray-50); /* Darker panel background */
-  border-color: var(--ink-black); /* Light border */
-  box-shadow: var(
-    --shadow-md
-  ); /* Comic shadow remains with dark primary color */
-}
-
-body.dark-mode .pdf-card:hover {
-  box-shadow: var(--shadow-lg);
-}
-
-/* Button Overrides */
-body.dark-mode .btn-secondary {
-  background: var(--gray-100);
-  color: var(--gray-700);
-  border-color: var(--ink-black);
-  box-shadow: 2px 2px 0 var(--gray-200); /* Use a lighter shadow color */
-}
-
-body.dark-mode .btn-secondary:hover {
-  background: var(--gray-200);
-}
-
-body.dark-mode .btn-secondary:active {
-  box-shadow: 0 0 0 var(--gray-500);
-}
-
-/* Input/Search Overrides */
-body.dark-mode .search-box input,
-body.dark-mode .form-group input,
-body.dark-mode .form-group textarea,
-body.dark-mode .form-group select {
-  background: var(--gray-100);
-  color: var(--gray-800);
-  border-color: var(--ink-black);
-  box-shadow: 2px 2px 0 var(--gray-200);
-}
-
-body.dark-mode .search-box input:focus,
-body.dark-mode .form-group input:focus,
-body.dark-mode .form-group textarea:focus,
-body.dark-mode .form-group select:focus {
-  border-color: var(--primary-light);
-  box-shadow: 4px 4px 0 var(--primary-light);
-}
-
-body.dark-mode .search-box i {
-  color: var(--gray-400);
-}
-
-/* Empty State / Policy Box / Stats Bar */
-body.dark-mode .empty-state,
-body.dark-mode .main-policy,
-body.dark-mode .stats-bar {
-  background: var(--gray-50);
-  border-color: var(--ink-black);
-  box-shadow: var(--shadow-md);
-}
-
-body.dark-mode .empty-state h3,
-body.dark-mode .main-policy h2,
-body.dark-mode .main-policy h3 {
-  color: var(--gray-900);
-}
-
-/* Comments Sidebar */
-body.dark-mode .modal-sidebar {
-  background: var(--gray-50);
-  border-left-color: var(--ink-black);
-}
-
-body.dark-mode .comment-item {
-  border-bottom-color: var(--gray-600);
-}
-
-body.dark-mode .comment-author {
-  color: var(--primary-light);
-}
-
-body.dark-mode .comment-text {
-  color: var(--gray-700);
-}
-
-/* Toast/Promo */
-body.dark-mode .toast.custom,
-body.dark-mode .go-to-top,
-body.dark-mode .upload-btn {
-  border-color: var(--ink-black);
-}
-
-body.dark-mode .alomole-promo {
-  background: var(--gray-50);
-  border-color: var(--ink-black);
 }

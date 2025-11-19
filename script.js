@@ -34,53 +34,7 @@ const closeAlomolePromo = document.getElementById('closeAlomolePromo');
 
 // NEW: Go to Top Button
 const goToTopBtn = document.getElementById('goToTopBtn');
-// Dark Mode Toggle
-const darkModeToggle = document.getElementById('darkModeToggle');
 
-function applyStoredTheme() {
-    const storedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-    // Determine the initial theme
-    let initialThemeIsDark = false;
-    if (storedTheme === 'dark') {
-        initialThemeIsDark = true;
-    } else if (storedTheme === 'light') {
-        initialThemeIsDark = false;
-    } else if (prefersDark) {
-        // If no preference stored, check system preference
-        initialThemeIsDark = true;
-    }
-
-    // Apply the class and update the button icon
-    if (initialThemeIsDark) {
-        document.body.classList.add('dark-mode');
-        updateDarkModeIcon(true);
-    } else {
-        document.body.classList.remove('dark-mode');
-        updateDarkModeIcon(false);
-    }
-}
-
-function toggleDarkMode() {
-    const isDark = document.body.classList.toggle('dark-mode');
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    updateDarkModeIcon(isDark);
-    showToast(`Switched to ${isDark ? 'Dark Mode' : 'Light Mode'}!`);
-}
-
-function updateDarkModeIcon(isDark) {
-    if (darkModeToggle) {
-        const icon = darkModeToggle.querySelector('i');
-        if (isDark) {
-            icon.classList.remove('fa-sun');
-            icon.classList.add('fa-moon');
-        } else {
-            icon.classList.remove('fa-moon');
-            icon.classList.add('fa-sun');
-        }
-    }
-}
 
 function handleGoToTopVisibility() {
     // Show button if scrolled down more than 400 pixels
@@ -148,7 +102,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     await loadPDFDatabase();
     setupEventListeners();
     checkAlomolePromoState();
-    applyStoredTheme();
 
     const urlParams = new URLSearchParams(window.location.search);
     const pdfId = urlParams.get('pdf');
@@ -186,10 +139,6 @@ function setupEventListeners() {
 
     // NEW: Comment form submission
     commentForm.addEventListener('submit', handleCommentSubmit);
-
-    if (darkModeToggle) {
-        darkModeToggle.addEventListener('click', toggleDarkMode);
-    }
 
     if (closeAlomolePromo) {
         closeAlomolePromo.addEventListener('click', hideAlomolePromo);

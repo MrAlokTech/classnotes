@@ -130,14 +130,6 @@
             <i class="fas fa-graduation-cap"></i>
             <h1>ClassNotes</h1>
           </div>
-          <button
-            class="btn-icon"
-            id="darkModeToggle"
-            title="Toggle Dark/Light Mode"
-            style="position: absolute; right: 16px"
-          >
-            <i class="fas fa-moon"></i>
-          </button>
         </div>
       </div>
     </header>
@@ -364,6 +356,7 @@
     </footer>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
     <script>
       const firebaseConfig = {
         apiKey: "AIzaSyAf9MEc8495GUwWHZsE4HcvJvbtptkBfQc",
@@ -379,6 +372,6 @@
       firebase.initializeApp(firebaseConfig);
       const db = firebase.firestore();
     </script>
-    <script src="script.js"></script>
+    <script src="script.js" defer></script>
   </body>
 </html>
