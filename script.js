@@ -1,6 +1,7 @@
 let pdfDatabase = [];
 let currentSemester = 1;
 let currentCategory = 'all';
+let isMaintenanceActive = false;
 
 const pdfGrid = document.getElementById('pdfGrid');
 const searchInput = document.getElementById('searchInput');
@@ -47,49 +48,50 @@ function handleGoToTopVisibility() {
 }
 
 async function loadPDFDatabase() {
-    try {
+    // 1. Frontend Check: Stop if we already know we are in maintenance
+    if (isMaintenanceActive) {
+        console.warn("Maintenance active. Data load blocked by frontend.");
+        return;
+    }
 
+    try {
         const pdfsRef = db.collection('pdfs');
 
-        // Fetch data from Firestore
-        const snapshot = await pdfsRef
-            .orderBy('uploadDate', 'desc')
-            .get();
+        // Fetch data
+        const snapshot = await pdfsRef.orderBy('uploadDate', 'desc').get();
 
         pdfDatabase = [];
-
         snapshot.forEach(doc => {
-            // Get data and assign the Firestore document ID to the PDF object
-            // Use spread operator for clean data structure
-            pdfDatabase.push({
-                id: doc.id, // Use Firestore document ID as the unique ID
-                ...doc.data()
-            });
+            pdfDatabase.push({ id: doc.id, ...doc.data() });
         });
 
         renderPDFs();
-
         hidePreloader();
 
-
-
     } catch (error) {
-        console.error('Error loading PDFs from Firestore:', error);
-        // Display a user-friendly error or fallback
-        const mainContent = document.querySelector('.main .container');
-        if (mainContent) {
-            mainContent.innerHTML = `
-                <div class="empty-state" style="display: block;">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <h3>Error Loading Notes</h3>
-                    <p>Failed to connect to the database. Please try again later.</p>
-                </div>
-            `;
+        // 2. Backend Check: This catches the Firebase Rule "Permission Denied"
+        console.error('Error loading PDFs:', error);
+
+        // If the error is specifically "Missing or insufficient permissions",
+        // it likely means Maintenance Mode is ON but the frontend listener hasn't fired yet.
+        if (error.code === 'permission-denied') {
+            console.log("Access denied by database. Forcing Maintenance Mode.");
+            activateMaintenanceMode();
+        } else {
+            // Handle other network errors
+            const mainContent = document.querySelector('.main .container');
+            if (mainContent) {
+                mainContent.innerHTML = `
+                    <div class="empty-state" style="display: block;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>Connection Error</h3>
+                        <p>Unable to load notes.</p>
+                    </div>
+                `;
+            }
         }
     }
-
 }
-
 function hidePreloader() {
     if (preloader) {
         preloader.classList.add('hidden');
@@ -123,58 +125,69 @@ function initMaintenanceListener() {
 
 function activateMaintenanceMode() {
     console.log("System Status: CRITICAL");
+    isMaintenanceActive = true; // Set the flag
+
     const screen = document.getElementById('maintenanceScreen');
+    const mainContainer = document.querySelector('.main');
+    const header = document.querySelector('header');
+    const tabs = document.querySelector('.semester-tabs');
 
+    // 1. Show the overlay
     if (screen) {
-        // CHANGE: Use .add('active') instead of removing 'hidden'
         screen.classList.add('active');
-
-        // 2. Update the timestamp
         const timeSpan = document.getElementById('errorTime');
         if (timeSpan) timeSpan.innerText = new Date().toISOString();
 
-        // 3. Check if Admin is logged in
+        // Check for admin (optional, based on your previous code)
         firebase.auth().onAuthStateChanged((user) => {
             if (user) {
                 const adminSection = document.getElementById('adminDiagnostics');
-                if (adminSection) {
-                    adminSection.classList.remove('hidden');
-                }
+                if (adminSection) adminSection.classList.remove('hidden');
             }
         });
     }
 
-    // 4. SECURITY NUKE: Remove content
-    const main = document.querySelector('main');
-    const header = document.querySelector('header');
-    const tabs = document.querySelector('.semester-tabs');
-
-    if (main) main.remove();
-    if (header) header.remove();
-    if (tabs) tabs.remove();
-
-    // Clear data
+    // 2. DATA WIPE: Clear the array from memory
     pdfDatabase = [];
+
+    // 3. DOM WIPE: Remove the actual cards from the screen
+    if (pdfGrid) pdfGrid.innerHTML = '';
+
+    // 4. VISUAL HIDE: Hide the main interface elements
+    // We hide them instead of removing them so we can bring them back easily
+    if (mainContainer) mainContainer.style.display = 'none';
+    if (header) header.style.display = 'none';
+    if (tabs) tabs.style.display = 'none';
+
     hidePreloader();
     document.body.style.overflow = 'hidden';
 }
 
 function deactivateMaintenanceMode() {
     console.log("System Status: OPERATIONAL");
+    isMaintenanceActive = false; // Unset the flag
+
     const screen = document.getElementById('maintenanceScreen');
+    const mainContainer = document.querySelector('.main');
+    const header = document.querySelector('header');
+    const tabs = document.querySelector('.semester-tabs');
 
     // 1. Hide the error screen
     if (screen) {
-        // CHANGE: Use .remove('active') instead of adding 'hidden'
         screen.classList.remove('active');
     }
 
-    // 2. Unlock scrolling
+    // 2. RESTORE VISUALS: Bring back the interface elements
+    if (mainContainer) mainContainer.style.display = 'block';
+    if (header) header.style.display = 'block'; // Check if your header is flex or block in CSS
+    if (tabs) tabs.style.display = 'block';
+
+    // 3. Unlock scrolling
     document.body.style.overflow = 'auto';
 
-    // 3. Load Data (Only if we haven't already)
+    // 4. RELOAD DATA
+    // We check if the database is empty. If it is, we fetch data.
     if (pdfDatabase.length === 0) {
-        // Ensure preloader is shown while data loads
         if (preloader) preloader.classList.remove('hidden');
 
         loadPDFDatabase().then(() => {
