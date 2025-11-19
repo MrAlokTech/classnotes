@@ -2113,10 +2113,18 @@ input:focus-visible {
   justify-content: center;
   padding: 2rem;
 
-  /* Default is VISIBLE. We hide it only if DB says so. */
+/* CHANGE: Default is now HIDDEN */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none; /* Allow clicks to pass through when hidden */
+  transition: opacity 0.5s ease;
+}
+
+/* CHANGE: New class to show the screen */
+.maintenance-overlay.active {
   opacity: 1;
   visibility: visible;
-  transition: opacity 0.5s ease;
+  pointer-events: auto; /* Block clicks when visible */
 }
 
 .maintenance-overlay.hidden {

@@ -126,17 +126,16 @@ function activateMaintenanceMode() {
     const screen = document.getElementById('maintenanceScreen');
 
     if (screen) {
-        // 1. Make sure error screen is visible
-        screen.classList.remove('hidden');
+        // CHANGE: Use .add('active') instead of removing 'hidden'
+        screen.classList.add('active');
 
         // 2. Update the timestamp
         const timeSpan = document.getElementById('errorTime');
         if (timeSpan) timeSpan.innerText = new Date().toISOString();
 
-        // 3. NEW: Check if Admin is logged in
+        // 3. Check if Admin is logged in
         firebase.auth().onAuthStateChanged((user) => {
             if (user) {
-                // If a user is logged in, we assume it's you (the admin)
                 const adminSection = document.getElementById('adminDiagnostics');
                 if (adminSection) {
                     adminSection.classList.remove('hidden');
@@ -166,7 +165,8 @@ function deactivateMaintenanceMode() {
 
     // 1. Hide the error screen
     if (screen) {
-        screen.classList.add('hidden');
+        // CHANGE: Use .remove('active') instead of adding 'hidden'
+        screen.classList.remove('active');
     }
 
     // 2. Unlock scrolling
@@ -174,10 +174,10 @@ function deactivateMaintenanceMode() {
 
     // 3. Load Data (Only if we haven't already)
     if (pdfDatabase.length === 0) {
+        // Ensure preloader is shown while data loads
         if (preloader) preloader.classList.remove('hidden');
 
         loadPDFDatabase().then(() => {
-            // Check URL params only after data load
             const urlParams = new URLSearchParams(window.location.search);
             const pdfId = urlParams.get('pdf');
             if (pdfId) {
