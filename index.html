@@ -85,6 +85,57 @@
   </head>
 
   <body>
+    <!-- Maintenance Screen -->
+    <div id="maintenanceScreen" class="maintenance-overlay">
+      <div class="error-terminal">
+        <div class="terminal-header">
+          <span>System Diagnostics</span>
+          <span>UID: 0x0000F4</span>
+        </div>
+
+        <div class="error-code"><i class="fas fa-bug"></i> ERROR 503</div>
+
+        <div class="error-message">
+          <p>> CRITICAL_PROCESS_DIED</p>
+          <p>> Database connection refused.</p>
+          <p>
+            > The requested resource is currently unavailable due to a backend
+            partition failure.
+          </p>
+          <p class="blink-cursor">> Retrying connection...</p>
+        </div>
+
+        <div id="adminDiagnostics" class="admin-only hidden">
+          <div class="admin-header">
+            <i class="fas fa-user-shield"></i> ROOT ACCESS DETECTED
+          </div>
+          <p class="cmd-text">>> SUDO_USER: CONFIRMED</p>
+          <p class="cmd-text">
+            >> MAINTENANCE_PROTOCOL: <span style="color: #4ade80">ACTIVE</span>
+          </p>
+          <p class="cmd-text">>> CORE_INTEGRITY: 100% (SAFE MODE)</p>
+          <p class="cmd-text">>> BYPASS_KEY: 0x99_A1_D4</p>
+        </div>
+
+        <div class="terminal-details">
+          Reference: #c0ffee_overload<br />
+          Timestamp: <span id="errorTime"></span>
+        </div>
+
+        <div class="terminal-actions">
+          <button class="retry-btn" onclick="window.location.reload()">
+            [ RETRY ]
+          </button>
+
+          <a
+            href="mailto:notes@alokdasofficial.in?subject=Website%20Error%20Report&body=I%20am%20seeing%20Error%20503%20on%20ClassNotes."
+            class="contact-btn"
+          >
+            <i class="fas fa-envelope"></i> REPORT OUTAGE
+          </a>
+        </div>
+      </div>
+    </div>
     <!-- Loader Starts-->
     <div id="preloader">
       <div class="book">
@@ -356,6 +407,9 @@
     </footer>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script>
+      document.getElementById("errorTime").innerText = new Date().toISOString();
+    </script>
 
     <script>
       const firebaseConfig = {

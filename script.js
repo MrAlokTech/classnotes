@@ -35,6 +35,7 @@ const closeAlomolePromo = document.getElementById('closeAlomolePromo');
 // NEW: Go to Top Button
 const goToTopBtn = document.getElementById('goToTopBtn');
 
+const maintenanceScreen = document.getElementById('maintenanceScreen');
 
 function handleGoToTopVisibility() {
     // Show button if scrolled down more than 400 pixels
@@ -95,11 +96,104 @@ function hidePreloader() {
     }
 }
 
+function initMaintenanceListener() {
+    // 1. Define the Error Screen Element
+    const screen = document.getElementById('maintenanceScreen');
+
+    // 2. Start listening to Firestore
+    db.collection('controll').doc('classNotes')
+        .onSnapshot((doc) => {
+            let isDown = false;
+
+            if (doc.exists) {
+                isDown = doc.data().isMaintenance === true;
+            }
+
+            if (isDown) {
+                activateMaintenanceMode();
+            } else {
+                deactivateMaintenanceMode();
+            }
+        }, (error) => {
+            // If we can't connect to DB, assume it's actually broken (or maintenance)
+            console.error("Connection failed:", error);
+            activateMaintenanceMode();
+        });
+}
+
+function activateMaintenanceMode() {
+    console.log("System Status: CRITICAL");
+    const screen = document.getElementById('maintenanceScreen');
+
+    if (screen) {
+        // 1. Make sure error screen is visible
+        screen.classList.remove('hidden');
+
+        // 2. Update the timestamp
+        const timeSpan = document.getElementById('errorTime');
+        if (timeSpan) timeSpan.innerText = new Date().toISOString();
+
+        // 3. NEW: Check if Admin is logged in
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                // If a user is logged in, we assume it's you (the admin)
+                const adminSection = document.getElementById('adminDiagnostics');
+                if (adminSection) {
+                    adminSection.classList.remove('hidden');
+                }
+            }
+        });
+    }
+
+    // 4. SECURITY NUKE: Remove content
+    const main = document.querySelector('main');
+    const header = document.querySelector('header');
+    const tabs = document.querySelector('.semester-tabs');
+
+    if (main) main.remove();
+    if (header) header.remove();
+    if (tabs) tabs.remove();
+
+    // Clear data
+    pdfDatabase = [];
+    hidePreloader();
+    document.body.style.overflow = 'hidden';
+}
+
+function deactivateMaintenanceMode() {
+    console.log("System Status: OPERATIONAL");
+    const screen = document.getElementById('maintenanceScreen');
+
+    // 1. Hide the error screen
+    if (screen) {
+        screen.classList.add('hidden');
+    }
+
+    // 2. Unlock scrolling
+    document.body.style.overflow = 'auto';
+
+    // 3. Load Data (Only if we haven't already)
+    if (pdfDatabase.length === 0) {
+        if (preloader) preloader.classList.remove('hidden');
+
+        loadPDFDatabase().then(() => {
+            // Check URL params only after data load
+            const urlParams = new URLSearchParams(window.location.search);
+            const pdfId = urlParams.get('pdf');
+            if (pdfId) {
+                const pdf = pdfDatabase.find(p => p.id == pdfId);
+                if (pdf) viewPDF(pdf);
+            }
+        });
+    }
+}
 
 
 document.addEventListener('DOMContentLoaded', async function () {
 
-    await loadPDFDatabase();
+    initMaintenanceListener();
+
+    // await loadPDFDatabase();
     setupEventListeners();
     checkAlomolePromoState();
 
