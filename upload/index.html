@@ -36,20 +36,34 @@
 
     <main class="main">
       <div class="container">
+        <!-- Login Section -->
         <section id="loginSection">
           <div class="pdf-card" style="max-width: 500px; margin: 2rem auto">
-            <h2 style="text-align: center; margin-bottom: 24px">Login</h2>
+            <h2 style="text-align: center; margin-bottom: 24px">
+              Welcome Back
+            </h2>
             <form id="loginForm">
               <div class="form-group">
-                <label for="loginEmail">Email</label>
-                <input type="email" id="loginEmail" required />
+                <label for="loginEmail">Email Address</label>
+                <input
+                  type="email"
+                  id="loginEmail"
+                  placeholder="your.email@example.com"
+                  required
+                />
               </div>
               <div class="form-group">
                 <label for="loginPassword">Password</label>
-                <input type="password" id="loginPassword" required />
+                <input
+                  type="password"
+                  id="loginPassword"
+                  placeholder="Enter your password"
+                  required
+                />
                 <i
                   class="fas fa-eye password-toggle"
                   id="loginPasswordToggle"
+                  title="Show password"
                 ></i>
               </div>
               <button type="submit" class="btn btn-primary" id="loginBtn">
@@ -57,54 +71,79 @@
               </button>
               <p class="status-message error" id="loginError"></p>
               <p class="form-toggle-link">
-                Don't have an account? <a id="showSignUp">Sign Up</a>
+                New here? <a id="showSignUp">Create an account</a>
               </p>
             </form>
           </div>
         </section>
 
+        <!-- Sign Up Section -->
         <section id="signUpSection" style="display: none">
           <div class="pdf-card" style="max-width: 500px; margin: 2rem auto">
-            <h2 style="text-align: center; margin-bottom: 24px">Sign Up</h2>
+            <h2 style="text-align: center; margin-bottom: 24px">
+              Create Account
+            </h2>
             <form id="signUpForm">
               <div class="signup-warning">
-                <i class="fas fa-exclamation-triangle"></i>
-                <strong>Verification Required:</strong> Signup details will be
-                verified by the email ID provided. Once verified, you will be
-                granted access to upload notes.
+                <i class="fas fa-info-circle"></i>
+                <div>
+                  <strong>Account Verification Required</strong>
+                  <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem">
+                    Your account will be reviewed and verified before you can
+                    upload notes. You'll receive access once approved.
+                  </p>
+                </div>
               </div>
 
               <div class="form-group">
-                <label for="signUpEmail">Email</label>
-                <input type="email" id="signUpEmail" required />
+                <label for="signUpEmail">Email Address</label>
+                <input
+                  type="email"
+                  id="signUpEmail"
+                  placeholder="your.email@example.com"
+                  required
+                />
               </div>
               <div class="form-group">
-                <label for="signUpPassword">Password (min. 6 characters)</label>
-                <input type="password" id="signUpPassword" required />
+                <label for="signUpPassword">Password</label>
+                <input
+                  type="password"
+                  id="signUpPassword"
+                  placeholder="Minimum 6 characters"
+                  required
+                />
                 <i
                   class="fas fa-eye password-toggle"
                   id="signUpPasswordToggle"
+                  title="Show password"
                 ></i>
               </div>
               <div class="form-group">
                 <label for="signUpConfirmPassword">Confirm Password</label>
-                <input type="password" id="signUpConfirmPassword" required />
+                <input
+                  type="password"
+                  id="signUpConfirmPassword"
+                  placeholder="Re-enter your password"
+                  required
+                />
                 <i
                   class="fas fa-eye password-toggle"
                   id="signUpConfirmPasswordToggle"
+                  title="Show password"
                 ></i>
               </div>
               <button type="submit" class="btn btn-primary" id="signUpBtn">
-                <i class="fas fa-user-plus"></i> Sign Up
+                <i class="fas fa-user-plus"></i> Create Account
               </button>
               <p class="status-message error" id="signUpError"></p>
               <p class="form-toggle-link">
-                Already have an account? <a id="showLogin">Log In</a>
+                Already have an account? <a id="showLogin">Log in</a>
               </p>
             </form>
           </div>
         </section>
 
+        <!-- Pending Verification Section -->
         <section id="pendingVerificationSection" style="display: none">
           <div class="pdf-card" style="max-width: 600px; margin: 2rem auto">
             <div class="admin-header">
@@ -129,23 +168,37 @@
                   margin-bottom: 1rem;
                 "
               ></i>
-              <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem">
-                Account Pending Verification
+              <h3
+                style="
+                  font-size: 1.25rem;
+                  margin-bottom: 0.5rem;
+                  color: var(--gray-800);
+                "
+              >
+                Account Under Review
               </h3>
-              <p>
-                Your account has been created successfully. We’ve notified
-                <a href="https://alokdasofficial.in" target="_blank">Alok</a>,
-                and your request for upload access is under consideration.
+              <p
+                style="color: var(--gray-600); max-width: 400px; margin: 0 auto"
+              >
+                Thanks for signing up! Your account has been created
+                successfully and is currently awaiting verification by
+                <a
+                  href="https://alokdasofficial.in"
+                  target="_blank"
+                  style="color: var(--primary-color)"
+                  >Alok</a
+                >. You'll be able to upload notes once approved.
               </p>
             </div>
           </div>
         </section>
 
+        <!-- Upload Section -->
         <section id="uploadSection" style="display: none">
           <div class="pdf-card" style="max-width: 800px; margin: 2rem auto">
             <div class="admin-header">
               <h2>
-                Welcome,
+                Welcome back,
                 <br />
                 <span
                   id="adminEmail"
@@ -158,48 +211,81 @@
             </div>
 
             <form id="uploadForm">
-              <h3 style="color: red">Upload New Note Info</h3>
-              <p style="margin-bottom: 16px; color: var(--gray-600)">
-                <strong style="color: red">Important:</strong> First, upload
-                your PDF to Google Drive, set sharing to "Anyone with the link",
-                then copy the link here.
-                <br />
-                <strong style="color: red">Important:</strong> Make sure the
-                uploaded pdf file is accessible to "Anyone with the link",
-                otherwise users won't be able to view/download it.
-              </p>
+              <h3 style="color: var(--gray-800); margin-bottom: 0.5rem">
+                <i
+                  class="fas fa-cloud-upload-alt"
+                  style="color: var(--primary-color)"
+                ></i>
+                Upload New Notes
+              </h3>
+              <div class="signup-warning" style="margin-bottom: 2rem">
+                <i class="fas fa-exclamation-circle"></i>
+                <div>
+                  <strong>Before You Begin:</strong>
+                  <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem">
+                    First, upload your PDF to Google Drive and set sharing to
+                    <strong>"Anyone with the link"</strong>. Then paste the
+                    share link below. This ensures everyone can access the
+                    notes.
+                  </p>
+                </div>
+              </div>
 
               <div class="form-group">
-                <label for="pdfTitle">Title</label>
+                <label for="pdfTitle">
+                  <i
+                    class="fas fa-heading"
+                    style="color: var(--primary-color); margin-right: 4px"
+                  ></i>
+                  Note Title
+                </label>
                 <input
                   type="text"
                   id="pdfTitle"
-                  placeholder="e.g., Spectroscopy Basics"
+                  placeholder="e.g., Spectroscopy Fundamentals"
                   required
                 />
               </div>
 
               <div class="form-group">
-                <label for="pdfDescription">Description</label>
+                <label for="pdfDescription">
+                  <i
+                    class="fas fa-align-left"
+                    style="color: var(--primary-color); margin-right: 4px"
+                  ></i>
+                  Description
+                </label>
                 <textarea
                   id="pdfDescription"
-                  placeholder="A brief description of the notes."
+                  placeholder="Brief overview of what these notes cover..."
                   required
                 ></textarea>
               </div>
 
               <div class="form-group">
-                <label for="pdfAuthor">Author / Teacher</label>
+                <label for="pdfAuthor">
+                  <i
+                    class="fas fa-chalkboard-teacher"
+                    style="color: var(--primary-color); margin-right: 4px"
+                  ></i>
+                  Author / Professor
+                </label>
                 <input
                   type="text"
                   id="pdfAuthor"
-                  placeholder="e.g., Prof. R.K. Sharma"
+                  placeholder="e.g., Prof. J.K. Sharma"
                   required
                 />
               </div>
 
               <div class="form-group">
-                <label for="pdfUrl">Google Drive Share Link</label>
+                <label for="pdfUrl">
+                  <i
+                    class="fab fa-google-drive"
+                    style="color: var(--primary-color); margin-right: 4px"
+                  ></i>
+                  Google Drive Share Link
+                </label>
                 <input
                   type="url"
                   id="pdfUrl"
@@ -209,8 +295,14 @@
               </div>
 
               <div style="display: flex; gap: 16px; flex-wrap: wrap">
-                <div class="form-group" style="flex: 1">
-                  <label for="pdfSemester">Semester</label>
+                <div class="form-group" style="flex: 1; min-width: 200px">
+                  <label for="pdfSemester">
+                    <i
+                      class="fas fa-calendar-alt"
+                      style="color: var(--primary-color); margin-right: 4px"
+                    ></i>
+                    Semester
+                  </label>
                   <select id="pdfSemester">
                     <option value="1">Semester 1</option>
                     <option value="2">Semester 2</option>
@@ -219,32 +311,56 @@
                   </select>
                 </div>
 
-                <div class="form-group" style="flex: 1">
-                  <label for="pdfCategory">Category</label>
+                <div class="form-group" style="flex: 1; min-width: 200px">
+                  <label for="pdfCategory">
+                    <i
+                      class="fas fa-tag"
+                      style="color: var(--primary-color); margin-right: 4px"
+                    ></i>
+                    Category
+                  </label>
                   <select id="pdfCategory">
-                    <option value="Organic">Organic</option>
-                    <option value="Inorganic">Inorganic</option>
-                    <option value="Physical">Physical</option>
-                    <option value="Organic">Physics</option>
-                    <option value="Inorganic">General</option>
+                    <option value="Organic">Organic Chemistry</option>
+                    <option value="Inorganic">Inorganic Chemistry</option>
+                    <option value="Physical">Physical Chemistry</option>
+                    <option value="Physics">Physics</option>
+                    <option value="General">General</option>
                   </select>
                 </div>
               </div>
 
               <button type="submit" class="btn btn-primary" id="uploadBtn">
-                <i class="fas fa-upload"></i> Add Note to Database
+                <i class="fas fa-upload"></i> Add to Database
               </button>
 
               <p class="status-message" id="uploadStatus"></p>
 
-              <br />
-              <br />
-              <br />
-              <p style="margin-bottom: 16px; color: var(--gray-600)">
-                <strong style="color: red">Important:</strong> You're
-                <i>100%</i> anonymous to all the public user's using this site
-                (Mostly our classmates 😊).
-              </p>
+              <div
+                style="
+                  margin-top: 2rem;
+                  padding: 1rem;
+                  background: rgba(37, 99, 235, 0.05);
+                  border-radius: var(--border-radius);
+                  border: 1px solid rgba(37, 99, 235, 0.1);
+                "
+              >
+                <p
+                  style="
+                    margin: 0;
+                    color: var(--gray-600);
+                    font-size: 0.9rem;
+                    text-align: center;
+                  "
+                >
+                  <i
+                    class="fas fa-user-shield"
+                    style="color: var(--primary-color)"
+                  ></i>
+                  <strong>Privacy Note:</strong> Your identity remains
+                  completely anonymous to all users (mostly our classmates 😊).
+                  Only the note content is shared.
+                </p>
+              </div>
             </form>
           </div>
         </section>
@@ -253,13 +369,13 @@
 
     <footer>
       <div class="footer-content">
-        <p class="thanks-message">✨ Thanks For Visiting 🙌</p>
+        <p class="thanks-message">✨ Thanks for visiting! 🙌</p>
         <p class="contact-info">
-          Found an issue? Email me at
-          <a href="mailto:notes@alokdasofficial.in">notes@alokdasofficial.in</a>
+          Found an issue or have feedback?
+          <a href="mailto:notes@alokdasofficial.in">Get in touch</a>
         </p>
         <p class="credits">
-          Made with <span class="heart">❤️</span> by
+          Crafted with <span class="heart">❤️</span> by
           <a href="https://alokdasofficial.in" target="_blank">Alok Das</a>
         </p>
         <p class="copyright-text" id="copyright-year">
@@ -285,7 +401,6 @@
 
     <script>
       const firebaseConfig = {
-        // --- YOUR FIREBASE CONFIG ---
         apiKey: "AIzaSyAf9MEc8495GUwWHZsE4HcvJvbtptkBfQc",
         authDomain: "alokdasofficial-69f96.firebaseapp.com",
         projectId: "alokdasofficial",
@@ -295,10 +410,9 @@
         measurementId: "G-QPXHCK0R2E",
       };
 
-      // Initialize Firebase
       firebase.initializeApp(firebaseConfig);
       const db = firebase.firestore();
-      const auth = firebase.auth(); // Initialize Auth
+      const auth = firebase.auth();
     </script>
 
     <script src="upload.js"></script>
