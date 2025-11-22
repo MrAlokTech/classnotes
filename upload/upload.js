@@ -10,9 +10,6 @@ document.addEventListener('DOMContentLoaded', () => {
     );
     const toastContainer = document.getElementById('toastContainer');
 
-    // Worker
-    const WORKER_URL = 'https://notes-api.alokdasofficial.in';
-
     // Toggles
     const showSignUp = document.getElementById('showSignUp');
     const showLogin = document.getElementById('showLogin');
@@ -53,12 +50,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const pdfUrl = document.getElementById('pdfUrl');
     const pdfSemester = document.getElementById('pdfSemester');
     const pdfCategory = document.getElementById('pdfCategory');
-
-    const uploadProgressContainer = document.getElementById(
-        'uploadProgressContainer'
-    );
-    const uploadProgress = document.getElementById('uploadProgress');
-    const uploadPercentage = document.getElementById('uploadPercentage');
 
     // --- Helper Functions ---
 
@@ -297,162 +288,55 @@ document.addEventListener('DOMContentLoaded', () => {
     uploadForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        // Get the file from the new input
-        const fileInput = document.getElementById('pdfFile');
-        const file = fileInput.files[0];
+        // Formated Date into String
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const formattedDate = `${year}-${month}-${day}`;
 
-        // --- Simple file validation (same as before) ---
-        if (!file) {
-            showToast('Please select a PDF file to upload.', 'error');
+        // Get all form values
+        const newNote = {
+            title: pdfTitle.value.trim(),
+            description: pdfDescription.value.trim(),
+            author: pdfAuthor.value.trim(),
+            pdfUrl: pdfUrl.value.trim(),
+            semester: parseInt(pdfSemester.value, 10),
+            category: pdfCategory.value,
+            uploadDate: formattedDate,
+            uploadedBy: auth.currentUser ? auth.currentUser.email : 'Unknown',
+        };
+
+        // Simple validation
+        if (!newNote.title || !newNote.pdfUrl || !newNote.author) {
+            uploadStatus.textContent = 'Please fill out all required fields.';
+            uploadStatus.style.color = 'var(--error-color)';
+            showToast('Please fill out all required fields.', 'error');
             return;
         }
-        if (file.type !== 'application/pdf') {
-            showToast('Only PDF files are allowed.', 'error');
-            return;
-        }
 
-        // --- Disable button and show loading state ---
+        // Disable button and show loading state
         uploadBtn.disabled = true;
         uploadBtn.innerHTML =
-            '<i class="fas fa-spinner fa-spin"></i> Uploading File...';
+            '<i class="fas fa-spinner fa-spin"></i> Adding Note...';
+        uploadStatus.textContent = '';
 
-        // --- NEW: Reset and show progress bar ---
-        uploadProgressContainer.style.display = 'block';
-        uploadProgress.value = 0;
-        uploadPercentage.textContent = '0%';
-        uploadStatus.textContent = 'Step 1/2: Uploading file to secure server...';
-        uploadStatus.style.color = 'var(--gray-600)';
-
-        let googleDriveUrl = '';
-
-        // --- STEP 1: Upload File to Cloudflare Worker (with Progress) ---
         try {
-            const formData = new FormData();
-            formData.append('file', file, file.name); // Pass file and filename
-
-            // --- NEW: We use XHR for progress, wrapped in a Promise ---
-            const uploadPromise = new Promise((resolve, reject) => {
-                const xhr = new XMLHttpRequest();
-
-                // 1. Listen for progress events
-                xhr.upload.onprogress = (event) => {
-                    if (event.lengthComputable) {
-                        const percent = Math.round((event.loaded / event.total) * 100);
-                        uploadProgress.value = percent;
-                        uploadPercentage.textContent = `${percent}%`;
-                    }
-                };
-
-                // 2. Handle successful upload
-                xhr.onload = () => {
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        // We resolve with the response text
-                        resolve(xhr.responseText);
-                    } else {
-                        // Handle HTTP errors
-                        reject(new Error(xhr.responseText || `Server error: ${xhr.status}`));
-                    }
-                };
-
-                // 3. Handle network errors
-                xhr.onerror = () => {
-                    reject(new Error('Network error during upload.'));
-                };
-
-                // 4. Handle upload being aborted
-                xhr.onabort = () => {
-                    reject(new Error('Upload was aborted.'));
-                };
-
-                // 5. Configure and send the request
-                xhr.open('POST', WORKER_URL);
-                xhr.send(formData);
-            });
-            // --- End of new XHR Promise ---
-
-            // Await our new promise
-            const responseText = await uploadPromise;
-            // Manually parse the JSON response from the text
-            const data = JSON.parse(responseText);
-
-            googleDriveUrl = data.pdfUrl; // Get the URL from the worker
-
-            showToast('File uploaded successfully!', 'success');
-            uploadStatus.textContent =
-                'Step 2/2: Adding note details to database...';
-
-        } catch (error) {
-            console.error('File Upload Error:', error);
-            // Try to parse the error if it's a JSON string
-            let errorMessage = 'File upload failed.';
-            try {
-                const errJson = JSON.parse(error.message);
-                errorMessage = errJson.error || errorMessage;
-            } catch (e) {
-                errorMessage = error.message;
-            }
-
-            uploadStatus.textContent = `File Upload Failed: ${errorMessage}`;
-            uploadStatus.style.color = 'var(--error-color)';
-            showToast(`File Upload Failed: ${errorMessage}`, 'error');
-
-            // Re-enable button and hide progress
-            uploadBtn.disabled = false;
-            uploadBtn.innerHTML =
-                '<i class="fas fa-upload"></i> Add Note to Database';
-            uploadProgressContainer.style.display = 'none'; // Hide progress on error
-            return; // Stop execution
-        }
-
-        // --- STEP 2: Add Note Info to Firestore ---
-        // (This part is 100% the same as your old code)
-        try {
-            // ... (all your date formatting and newNote object creation) ...
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const formattedDate = `${year}-${month}-${day}`;
-
-            const newNote = {
-                title: pdfTitle.value.trim(),
-                description: pdfDescription.value.trim(),
-                author: pdfAuthor.value.trim(),
-                pdfUrl: googleDriveUrl,
-                semester: parseInt(pdfSemester.value, 10),
-                category: pdfCategory.value,
-                uploadDate: formattedDate,
-            };
-
-            // ... (all your validation) ...
-            if (!newNote.title || !newNote.author) {
-                uploadStatus.textContent = 'Please fill out all required fields.';
-                // ... (rest of your validation) ...
-                uploadBtn.disabled = false;
-                uploadBtn.innerHTML =
-                    '<i class="fas fa-upload"></i> Add Note to Database';
-                return;
-            }
-
-            // Add to 'pdfs' collection
+            // Add the newNote object as a new document to the 'pdfs' collection
             await db.collection('pdfs').add(newNote);
 
             // Success!
             uploadStatus.textContent = 'Success! Your note has been added.';
             uploadStatus.style.color = 'var(--success-color)';
-            showToast('Note added to database!', 'success');
+            showToast('Note added successfully!', 'success');
 
             // Reset the form
             uploadForm.reset();
-
-            // --- NEW: Hide progress bar on final success ---
-            uploadProgressContainer.style.display = 'none';
-
         } catch (error) {
             console.error('Firestore Add Error:', error);
-            uploadStatus.textContent = 'Error adding note to database. Please try again.';
+            uploadStatus.textContent = 'Error adding note. Please try again.';
             uploadStatus.style.color = 'var(--error-color)';
-            showToast('Error adding note to database.', 'error');
+            showToast('Error adding note.', 'error');
         } finally {
             // Re-enable the button
             uploadBtn.disabled = false;
