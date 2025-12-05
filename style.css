@@ -2113,7 +2113,7 @@ input:focus-visible {
   justify-content: center;
   padding: 2rem;
 
-/* CHANGE: Default is now HIDDEN */
+  /* CHANGE: Default is now HIDDEN */
   opacity: 0;
   visibility: hidden;
   pointer-events: none; /* Allow clicks to pass through when hidden */
@@ -2259,4 +2259,41 @@ input:focus-visible {
   font-size: 0.85rem;
   font-family: "Courier New", monospace;
   margin: 2px 0;
+}
+
+/* style.css */
+
+/* The Favorite Button on the card */
+.btn-favorite {
+  background: transparent;
+  border: 1px solid var(--gray-200);
+  color: var(--gray-400);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--border-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1.1rem;
+}
+
+.btn-favorite:hover {
+  background: #fee2e2; /* Light red background on hover */
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+/* State when the item is actually favorited */
+.btn-favorite.active {
+  background: #fee2e2;
+  border-color: #ef4444;
+  color: #ef4444; /* Red Heart */
+}
+
+/* Adjust card actions to fit the new button */
+.pdf-actions {
+  display: flex;
+  gap: 8px; /* Slightly tighter gap */
 }

@@ -390,12 +390,26 @@ function updateSemesterTab() {
     });
 }
 
+// script.js - REPLACE existing renderPDFs()
+
 function renderPDFs() {
     const searchTerm = searchInput.value.toLowerCase();
+    const favorites = getFavorites(); // Get current favorites
 
     const filteredPdfs = pdfDatabase.filter(pdf => {
         const matchesSemester = pdf.semester === currentSemester;
-        const matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
+
+        // --- NEW FILTER LOGIC START ---
+        let matchesCategory = false;
+        if (currentCategory === 'favorites') {
+            // If viewing favorites, check if ID is in list
+            matchesCategory = favorites.includes(pdf.id);
+        } else {
+            // Otherwise, standard category check
+            matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
+        }
+        // --- NEW FILTER LOGIC END ---
+
         const matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
             pdf.description.toLowerCase().includes(searchTerm) ||
             pdf.category.toLowerCase().includes(searchTerm) ||
@@ -409,15 +423,35 @@ function renderPDFs() {
     if (filteredPdfs.length === 0) {
         pdfGrid.style.display = 'none';
         emptyState.style.display = 'block';
+
+        // Optional: Change empty state text if in Favorites mode
+        if (currentCategory === 'favorites') {
+            emptyState.querySelector('h3').textContent = "No saved notes yet";
+            emptyState.querySelector('p').textContent = "Click the heart icon on any note to save it here.";
+        } else {
+            emptyState.querySelector('h3').textContent = "No notes found";
+            emptyState.querySelector('p').textContent = "Try adjusting your search or filter";
+        }
+
         return;
     }
 
     pdfGrid.style.display = 'grid';
     emptyState.style.display = 'none';
-    pdfGrid.innerHTML = filteredPdfs.map(pdf => createPDFCard(pdf)).join('');
+
+    // Pass the favorites list to createPDFCard so it knows which hearts to fill
+    pdfGrid.innerHTML = filteredPdfs.map(pdf => createPDFCard(pdf, favorites)).join('');
 }
 
-function createPDFCard(pdf) {
+function createPDFCard(pdf, favoritesList) {
+    // Default fallback if list isn't passed
+    const favorites = favoritesList || getFavorites();
+    const isFav = favorites.includes(pdf.id);
+
+    // Dynamic classes
+    const heartIconClass = isFav ? 'fas' : 'far'; // Solid (fas) vs Regular (far)
+    const btnActiveClass = isFav ? 'active' : '';
+
     const categoryIcons = {
         'Organic': 'fa-flask',
         'Inorganic': 'fa-atom',
@@ -431,6 +465,7 @@ function createPDFCard(pdf) {
         day: 'numeric'
     });
 
+    // Note: I added the toggleFavorite button in the actions div below
     return `
         <div class="pdf-card" data-category="${pdf.category}">
             <div class="pdf-header">
@@ -460,9 +495,13 @@ function createPDFCard(pdf) {
                     <i class="fas fa-eye"></i>
                     View
                 </button>
+                
+                <button class="btn-favorite ${btnActiveClass}" onclick="toggleFavorite(event, '${pdf.id}')" title="Save Note">
+                    <i class="${heartIconClass} fa-heart"></i>
+                </button>
+
                 <button class="btn btn-secondary" id="shareBtn" onclick="sharePDF('${pdf.id}')">
                     <i class="fas fa-share-alt"></i>
-                    Share
                 </button>
             </div>
         </div>
@@ -484,15 +523,40 @@ function closePDFModal() {
     window.history.replaceState({}, document.title, url);
 }
 
+
 function sharePDF(pdfId) {
-    const pdf = pdfDatabase.find(p => p.id === pdfId);
+    let pdf;
+
+    // Logic to find PDF (kept from your original code)
+    if (typeof pdfId === 'string') {
+        pdf = pdfDatabase.find(p => p.id === pdfId);
+    } else if (pdfModal.dataset.currentPdf) {
+        try { pdf = JSON.parse(pdfModal.dataset.currentPdf); } catch (e) { }
+    }
+
     if (!pdf) return;
 
-    showShareModal(pdf);
+    // const shareUrl = `${window.location.origin}${window.location.pathname}?pdf=${pdf.id}`;
+    const shareUrl = `https://notes.alokdasofficial.in/?pdf=${pdf.id}`;
+    const shareData = {
+        title: `ClassNotes: ${pdf.title}`,
+        text: `Check out this note: ${pdf.title} on ClassNotes`,
+        url: shareUrl
+    };
+
+    // 1. Try Native Share (Mobile)
+    if (navigator.share) {
+        navigator.share(shareData)
+            .then(() => console.log('Shared successfully'))
+            .catch((err) => console.log('Error sharing:', err));
+    }
+    // 2. Fallback to your existing Modal (Desktop)
+    else {
+        showShareModal(pdf); // Your existing modal function
+    }
 }
 
 
-// NEW Function (more robust)
 function showShareModal(pdfFromCard) {
     let pdf;
 
@@ -517,7 +581,7 @@ function showShareModal(pdfFromCard) {
         return;
     }
 
-    const shareUrl = `${window.location.origin}${window.location.pathname}?pdf=${pdf.id}`;
+    const shareUrl = `https://notes.alokdasofficial.in/?pdf=${pdf.id}`;
     shareLink.value = shareUrl;
     shareModal.classList.add('active');
 
@@ -548,8 +612,6 @@ function copyShareLink() {
         showToast('Failed to copy link', 'error');
     }
 }
-
-// script.js (REPLACE existing downloadCurrentPDF function)
 
 function downloadCurrentPDF() {
     if (!pdfModal.dataset.currentPdf) return;
@@ -781,3 +843,35 @@ openCommentsBtn.addEventListener("click", () => {
 closeBtn.addEventListener("click", () => {
     commentSidebar.classList.remove("active");
 });
+
+// script.js - New Helper Functions
+
+// 1. Get list of favorite IDs from storage
+function getFavorites() {
+    const stored = localStorage.getItem('classNotesFavorites');
+    return stored ? JSON.parse(stored) : [];
+}
+
+// 2. Handle the click on the heart icon
+function toggleFavorite(event, pdfId) {
+    // Stop the card click event (so it doesn't open the PDF modal)
+    event.stopPropagation();
+
+    let favorites = getFavorites();
+
+    if (favorites.includes(pdfId)) {
+        // Remove if exists
+        favorites = favorites.filter(id => id !== pdfId);
+        showToast('Removed from saved notes');
+    } else {
+        // Add if doesn't exist
+        favorites.push(pdfId);
+        showToast('Added to saved notes');
+    }
+
+    // Save back to storage
+    localStorage.setItem('classNotesFavorites', JSON.stringify(favorites));
+
+    // Re-render to update the UI (fill/unfill heart)
+    renderPDFs();
+}
