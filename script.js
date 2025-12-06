@@ -201,8 +201,97 @@ function deactivateMaintenanceMode() {
     }
 }
 
+function checkHolidayMode() {
+    // Current date logic
+    const today = new Date();
+    const month = today.getMonth(); // 0 = Jan, 11 = Dec
+    const date = today.getDate();
+
+    const overlay = document.getElementById('holidayOverlay');
+    const title = document.getElementById('holidayTitle');
+    const msg = document.getElementById('holidayMessage');
+    const sub = document.getElementById('holidaySubMessage');
+
+    // --- Configuration ---
+    // 1. Republic Day: Jan 26
+    const isRepublicDay = (month === 0 && date === 26);
+
+    // 2. Independence Day: Aug 15
+    const isIndependenceDay = (month === 7 && date === 15);
+
+    // 3. Holi: March 4, 2026 (Wednesday)
+    const isHoli = (month === 2 && date === 4);
+
+    // 4. Diwali: Nov 8, 2026 (Sunday)
+    // We can show it for 2 days (Nov 8 & 9)
+    const isDiwali = (month === 10 && (date === 8 || date === 9));
+
+    // Christmas: Dec 24 & 25
+    const isChristmas = (month === 11 && (date === 24 || date === 25));
+
+    // New Year: Dec 31 & Jan 1
+    const isNewYear = (month === 11 && date === 31) || (month === 0 && date === 1);
+
+    if (isRepublicDay || isIndependenceDay) {
+        overlay.classList.remove('hidden');
+        overlay.classList.add('tricolor');
+        title.innerText = isRepublicDay ? "Happy Republic Day" : "Happy Independence Day";
+        msg.innerText = "Celebrating the spirit of India — unity, courage, and hope.";
+        document.body.style.overflow = 'hidden';
+        return true;
+    }
+
+    if (isHoli) {
+        overlay.classList.remove('hidden');
+        overlay.classList.add('holi');
+        title.innerText = "Happy Holi!";
+        msg.innerText = "Wishing you colors of joy, laughter, and peace this Holi.";
+        sub.innerText = "P.S: ClassNotes will return on March 5th. Have a colorful day!";
+        document.body.style.overflow = 'hidden';
+        return true;
+    }
+
+    if (isDiwali) {
+        overlay.classList.remove('hidden');
+        overlay.classList.add('diwali');
+        title.innerText = "Happy Diwali";
+        msg.innerText = "Shubh Deepavali! May the festival of lights bring warmth, clarity, and new beginnings.";
+        sub.innerText = "P.S: ClassNotes will resume on Nov 10th. Enjoy the celebrations!";
+        document.body.style.overflow = 'hidden';
+        return true;
+    }
+
+    if (isChristmas) {
+        overlay.classList.remove('hidden');
+        overlay.classList.add('christmas');
+        title.innerText = "Merry Christmas";
+        msg.innerText = "Wishing you calm vibes, cozy moments, and lots of warmth with your friends and fam.";
+        sub.innerText = "P.S: ClassNotes will be back to normal on Dec 26th. Have a great & long day!";
+        document.body.style.overflow = 'hidden';
+        return true;
+    }
+    else if (isNewYear) {
+        overlay.classList.remove('hidden');
+        overlay.classList.add('new-year');
+        title.innerText = "Happy New Year";
+        msg.innerText = "Wishing you a year full of peace, clarity, and good energy. Take care and grow strong. Hope you have a great year ahead and don't forget Alok :)";
+        sub.innerText = "P.S: ClassNotes will be back to normal on Jan 2nd. Enjoy the break!";
+        document.body.style.overflow = 'hidden';
+        return true;
+    }
+
+    return false;
+}
+
 
 document.addEventListener('DOMContentLoaded', async function () {
+
+    const isHoliday = checkHolidayMode();
+    if (isHoliday) {
+        // Stop the loader from spinning forever behind the overlay
+        hidePreloader();
+        return; // EXIT. Do not load PDFs, do not init listeners.
+    }
 
     initMaintenanceListener();
 
@@ -239,7 +328,7 @@ function setupEventListeners() {
     document.getElementById('closeShareModal').addEventListener('click', closeShareModal);
     // CHANGE: Listen to the new modalShareBtn
     if (modalShareBtn) {
-        modalShareBtn.addEventListener('click', () => showShareModal());
+        modalShareBtn.addEventListener('click', () => sharePDF());
     }
     document.getElementById('downloadBtn').addEventListener('click', downloadCurrentPDF);
     document.getElementById('copyLinkBtn').addEventListener('click', copyShareLink);
