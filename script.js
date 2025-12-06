@@ -226,7 +226,7 @@ function checkHolidayMode() {
     // We can show it for 2 days (Nov 8 & 9)
     const isDiwali = (month === 10 && (date === 8 || date === 9));
 
-    // Christmas: Dec 24 & 25
+    // Christmas: Dec 25
     const isChristmas = (month === 11 && date === 25);
 
     // New Year: Dec 31 & Jan 1
