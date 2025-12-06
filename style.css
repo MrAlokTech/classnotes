@@ -2261,15 +2261,10 @@ input:focus-visible {
   margin: 2px 0;
 }
 
-/* style.css */
-
-/* The Favorite Button on the card */
 .btn-favorite {
   background: transparent;
-  border: 1px solid var(--gray-200);
-  color: var(--gray-400);
-  width: 40px;
-  height: 40px;
+  border: 1px solid #ef4444;
+  color: #ef4444;
   border-radius: var(--border-radius);
   display: flex;
   align-items: center;
@@ -2289,7 +2284,8 @@ input:focus-visible {
 .btn-favorite.active {
   background: #fee2e2;
   border-color: #ef4444;
-  color: #ef4444; /* Red Heart */
+  color: #ef4444;
+  transform: scale(0.98);
 }
 
 /* Adjust card actions to fit the new button */
@@ -2629,4 +2625,13 @@ input:focus-visible {
   50% {
     opacity: 0.4;
   }
+}
+
+/* Add this to style.css */
+.highlight {
+  background-color: #fde047; /* Yellow highlight */
+  color: #000;
+  padding: 0 2px;
+  border-radius: 2px;
+  font-weight: 600;
 }

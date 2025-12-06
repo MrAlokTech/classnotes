@@ -227,7 +227,7 @@ function checkHolidayMode() {
     const isDiwali = (month === 10 && (date === 8 || date === 9));
 
     // Christmas: Dec 24 & 25
-    const isChristmas = (month === 11 && (date === 24 || date === 25));
+    const isChristmas = (month === 11 && date === 25);
 
     // New Year: Dec 31 & Jan 1
     const isNewYear = (month === 11 && date === 31) || (month === 0 && date === 1);
@@ -536,9 +536,7 @@ function createPDFCard(pdf, favoritesList) {
     // Default fallback if list isn't passed
     const favorites = favoritesList || getFavorites();
     const isFav = favorites.includes(pdf.id);
-
-    // Dynamic classes
-    const heartIconClass = isFav ? 'fas' : 'far'; // Solid (fas) vs Regular (far)
+    const heartIconClass = isFav ? 'fas' : 'far';
     const btnActiveClass = isFav ? 'active' : '';
 
     const categoryIcons = {
@@ -548,13 +546,41 @@ function createPDFCard(pdf, favoritesList) {
     };
 
     const categoryIcon = categoryIcons[pdf.category] || 'fa-file-pdf';
+
+    // Format Date
     const formattedDate = new Date(pdf.uploadDate).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric'
     });
 
-    // Note: I added the toggleFavorite button in the actions div below
+    // Helper to safely highlight text matching the search term
+    const escapeHtml = (text) => {
+        if (!text) return '';
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    };
+
+    const highlightText = (text) => {
+        const searchTerm = searchInput.value.trim();
+        const safeText = escapeHtml(text);
+
+        if (!searchTerm) return safeText;
+
+        // Create a regex for the search term (case insensitive)
+        const regex = new RegExp(`(${searchTerm})`, 'gi');
+        return safeText.replace(regex, '<span class="highlight">$1</span>');
+    };
+
+    // We prepare the string, but we pass data attributes safely
+    // Note: We are using JSON.stringify for the viewPDF onclick, which is tricky.
+    // It is safer to attach the event listener in JS, but for now, we will encode quotes.
+    const safePdfString = JSON.stringify(pdf).replace(/"/g, '&quot;');
+
     return `
         <div class="pdf-card" data-category="${pdf.category}">
             <div class="pdf-header">
@@ -562,14 +588,14 @@ function createPDFCard(pdf, favoritesList) {
                     <i class="fas fa-file-pdf"></i>
                 </div>
                 <div class="pdf-info">
-                    <h3>${pdf.title}</h3>
+                    <h3>${highlightText(pdf.title)}</h3>
                 </div>
             </div>
 
             <div class="pdf-meta">
                 <div class="pdf-category">
                     <i class="fas ${categoryIcon}"></i>
-                    ${pdf.category}
+                    ${escapeHtml(pdf.category)}
                 </div>
                 <div class="pdf-date">
                     <i class="fas fa-calendar"></i>
@@ -577,15 +603,15 @@ function createPDFCard(pdf, favoritesList) {
                 </div>
             </div>
 
-            <p class="pdf-description">${pdf.description}</p>
+            <p class="pdf-description">${highlightText(pdf.description)}</p>
 
             <div class="pdf-actions">
-                <button class="btn btn-primary" onclick="viewPDF(${JSON.stringify(pdf).replace(/"/g, '&quot;')})">
+                <button class="btn btn-primary" onclick="viewPDF(${safePdfString})">
                     <i class="fas fa-eye"></i>
                     View
                 </button>
                 
-                <button class="btn-favorite ${btnActiveClass}" onclick="toggleFavorite(event, '${pdf.id}')" title="Save Note">
+                <button class="btn btn-favorite ${btnActiveClass}" onclick="toggleFavorite(event, '${pdf.id}')" title="Save Note">
                     <i class="${heartIconClass} fa-heart"></i>
                 </button>
 
