@@ -30,6 +30,86 @@
   --background-color: #fff5ee;
 }
 
+/* style.css */
+
+/* Dark Mode Overrides */
+[data-theme="dark"] {
+  --primary-color: #60a5fa; /* Lighter blue for better contrast */
+  --primary-dark: #3b82f6;
+  --primary-light: #93c5fd;
+
+  --background-color: #121212; /* Deep dark background */
+
+  /* Invert Grays for Dark Mode */
+  --gray-50: #18181b;
+  --gray-100: #27272a; /* Darker element bg */
+  --gray-200: #3f3f46; /* Dark borders */
+  --gray-300: #52525b;
+  --gray-400: #a1a1aa;
+  --gray-500: #d4d4d8; /* Lighter secondary text */
+  --gray-600: #e4e4e7; /* Main text */
+  --gray-700: #f4f4f5;
+  --gray-800: #fafafa;
+  --gray-900: #ffffff; /* Headings */
+
+  --white: #1e1e1e; /* Card background */
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+}
+
+/* Header Layout Adjustment */
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative; /* Needed for absolute positioning of toggle */
+}
+
+/* Position the toggle button to the right */
+.theme-toggle {
+  position: absolute;
+  right: 0;
+  background: transparent;
+  border: 1px solid var(--gray-200);
+  color: var(--gray-600);
+}
+
+.theme-toggle:hover {
+  background: var(--gray-100);
+  color: var(--primary-color);
+}
+
+/* Optional: Smooth transition for color changes */
+body,
+.header,
+.pdf-card,
+.tab-btn,
+input,
+.modal-content {
+  transition: background-color 0.3s ease, color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+/* Fix for Google Ad backgrounds in Dark Mode (Optional) */
+[data-theme="dark"] ins.adsbygoogle {
+  background: var(--gray-50);
+}
+
+/* Fix Footer in Dark Mode */
+[data-theme="dark"] footer {
+  /* Force the background to be black or very dark gray */
+  background-color: #000000;
+
+  /* Reset the text color to a readable gray */
+  color: var(--gray-400);
+
+  /* Optional: Add a subtle top border to separate it from the body */
+  border-top: 1px solid var(--gray-200);
+}
+
 * {
   margin: 0;
   padding: 0;

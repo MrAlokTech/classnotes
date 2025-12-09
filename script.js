@@ -2,7 +2,10 @@ let pdfDatabase = [];
 let currentSemester = 1;
 let currentCategory = 'all';
 let isMaintenanceActive = false;
+let currentUserUID = null;
+let searchTimeout;
 
+const preloader = document.getElementById('preloader');
 const pdfGrid = document.getElementById('pdfGrid');
 const searchInput = document.getElementById('searchInput');
 const pdfCount = document.getElementById('pdfCount');
@@ -17,26 +20,94 @@ const modalTitle = document.getElementById('modalTitle');
 const shareLink = document.getElementById('shareLink');
 const toast = document.getElementById('toast');
 const toastMessage = document.getElementById('toastMessage');
-
-// NEW Comment Variables
 const commentSidebar = document.getElementById('commentSidebar');
 const commentsList = document.getElementById('commentsList');
 const commentCount = document.getElementById('commentCount');
 const commentForm = document.getElementById('commentForm');
 const commentInput = document.getElementById('commentInput');
 const commentAuthor = document.getElementById('commentAuthor');
-
-// Preloader
-const preloader = document.getElementById('preloader');
-
-// App Promotion Elements
 const alomolePromo = document.getElementById('alomolePromo');
 const closeAlomolePromo = document.getElementById('closeAlomolePromo');
-
-// NEW: Go to Top Button
 const goToTopBtn = document.getElementById('goToTopBtn');
-
 const maintenanceScreen = document.getElementById('maintenanceScreen');
+
+// 1. Silently Sign In
+firebase.auth().signInAnonymously()
+    .then((userCredential) => {
+        currentUserUID = userCredential.user.uid;
+        // console.log("Analytics: User identified.");
+
+        // Optional: Log session start in the main user doc
+        updateUserMetadata();
+    })
+    .catch((error) => {
+        console.error("Analytics Error:", error);
+    });
+
+// 2. Helper to update general user info (Device, Last Active)
+function updateUserMetadata() {
+    if (!currentUserUID) return;
+
+    const userRef = db.collection('analytics').doc(currentUserUID);
+    userRef.set({
+        lastActive: firebase.firestore.FieldValue.serverTimestamp(),
+        device: getSimpleDeviceName(), // See helper function below
+        platform: navigator.platform
+    }, { merge: true });
+}
+
+/**
+ * Tracks interactions by updating counters inside the User's document
+ */
+function logInteraction(actionType, details, pdfId = null) {
+    // Safety check: Don't log if system is down or user isn't ID'd yet
+    if (!currentUserUID || isMaintenanceActive) return;
+
+    const userRef = db.collection('analytics').doc(currentUserUID);
+
+    // CASE 1: PDF Interaction (View or Download) -> UPDATE COUNTER
+    if (pdfId && (actionType === 'view_pdf' || actionType === 'download')) {
+        // We create/update a document specifically for THIS PDF inside the user's history
+        const pdfStatsRef = userRef.collection('interactions').doc(pdfId);
+
+        const updateData = {
+            title: details, // Store title so you know what 'doc123' is
+            lastInteraction: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        // Magic: Atomically increment the specific counter
+        if (actionType === 'view_pdf') {
+            updateData.viewCount = firebase.firestore.FieldValue.increment(1);
+        } else if (actionType === 'download') {
+            updateData.downloadCount = firebase.firestore.FieldValue.increment(1);
+        }
+
+        // { merge: true } ensures we don't overwrite existing counts
+        pdfStatsRef.set(updateData, { merge: true });
+
+        // Also update the main user "last active" time
+        updateUserMetadata();
+    }
+
+    // CASE 2: Search or other events -> ADD TO LIST
+    // (We don't usually count searches, we just want to see the history)
+    else if (actionType === 'search') {
+        userRef.collection('search_history').add({
+            term: details,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    }
+}
+
+// Helper to get a readable device name
+function getSimpleDeviceName() {
+    const ua = navigator.userAgent;
+    if (/Android/i.test(ua)) return "Android Mobile";
+    if (/iPhone|iPad|iPod/i.test(ua)) return "iOS Device";
+    if (/Windows/i.test(ua)) return "Windows PC";
+    if (/Mac/i.test(ua)) return "Mac";
+    return "Other";
+}
 
 function handleGoToTopVisibility() {
     // Show button if scrolled down more than 400 pixels
@@ -75,7 +146,7 @@ async function loadPDFDatabase() {
         // If the error is specifically "Missing or insufficient permissions",
         // it likely means Maintenance Mode is ON but the frontend listener hasn't fired yet.
         if (error.code === 'permission-denied') {
-            console.log("Access denied by database. Forcing Maintenance Mode.");
+            // console.log("Access denied by database. Forcing Maintenance Mode.");
             activateMaintenanceMode();
         } else {
             // Handle other network errors
@@ -124,7 +195,7 @@ function initMaintenanceListener() {
 }
 
 function activateMaintenanceMode() {
-    console.log("System Status: CRITICAL");
+    // console.log("System Status: CRITICAL");
     isMaintenanceActive = true; // Set the flag
 
     const screen = document.getElementById('maintenanceScreen');
@@ -164,7 +235,7 @@ function activateMaintenanceMode() {
 }
 
 function deactivateMaintenanceMode() {
-    console.log("System Status: OPERATIONAL");
+    // console.log("System Status: OPERATIONAL");
     isMaintenanceActive = false; // Unset the flag
 
     const screen = document.getElementById('maintenanceScreen');
@@ -285,6 +356,8 @@ function checkHolidayMode() {
 
 
 document.addEventListener('DOMContentLoaded', async function () {
+
+    initTheme();
 
     const isHoliday = checkHolidayMode();
     if (isHoliday) {
@@ -427,32 +500,25 @@ function getGoogleDriveEmbedUrl(url) {
     return url;
 }
 
-// REPLACE your existing viewPDF function with this one
+
 async function viewPDF(pdf) {
     // Get the original URL from the PDF object
     const originalPdfPath = pdf.pdfUrl;
+
+    logInteraction('view_pdf', pdf.title, pdf.id);
 
     if (!originalPdfPath) {
         showToast('PDF link is missing or invalid.', 'error');
         return;
     }
 
-    // NEW: Convert the URL to the correct embeddable '/preview' format
     const embeddablePdfPath = getGoogleDriveEmbedUrl(originalPdfPath);
 
     modalTitle.textContent = pdf.title;
-
-    // Use the new, converted path for the viewer
     pdfViewer.src = embeddablePdfPath;
-
     pdfModal.classList.add('active');
     document.body.style.overflow = 'hidden';
-
-    // IMPORTANT: Store the full PDF object with the Firestore document ID
     pdfModal.dataset.currentPdf = JSON.stringify(pdf);
-
-    // NEW: Load comments when opening the modal
-    // Note: The comments system uses pdf.id, which should now be the Firestore doc ID.
     await loadComments(pdf.id);
 }
 
@@ -479,11 +545,16 @@ function updateSemesterTab() {
     });
 }
 
-// script.js - REPLACE existing renderPDFs()
-
 function renderPDFs() {
     const searchTerm = searchInput.value.toLowerCase();
     const favorites = getFavorites(); // Get current favorites
+
+    if (searchTerm.length > 2) {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            logInteraction('search', searchTerm);
+        }, 2000);
+    }
 
     const filteredPdfs = pdfDatabase.filter(pdf => {
         const matchesSemester = pdf.semester === currentSemester;
@@ -732,6 +803,7 @@ function downloadCurrentPDF() {
     if (!pdfModal.dataset.currentPdf) return;
 
     const pdf = JSON.parse(pdfModal.dataset.currentPdf);
+    logInteraction('download', pdf.title, pdf.id);
     const originalPdfPath = pdf.pdfUrl;
 
     if (!originalPdfPath) {
@@ -989,4 +1061,50 @@ function toggleFavorite(event, pdfId) {
 
     // Re-render to update the UI (fill/unfill heart)
     renderPDFs();
+}
+
+// Theme
+function initTheme() {
+    const toggleBtn = document.getElementById('themeToggleBtn');
+    const icon = toggleBtn.querySelector('i');
+    const html = document.documentElement;
+
+    // Check LocalStorage or System Preference
+    const savedTheme = localStorage.getItem('theme');
+    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    // Apply Theme
+    if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
+        applyTheme('dark', icon);
+    } else {
+        applyTheme('light', icon);
+    }
+
+    // Toggle Listener
+    toggleBtn.addEventListener('click', (e) => {
+        // Stop propagation if inside header to prevent other clicks
+        e.stopPropagation();
+
+        const currentTheme = html.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+        applyTheme(newTheme, icon);
+        localStorage.setItem('theme', newTheme);
+    });
+}
+
+function applyTheme(theme, icon) {
+    const html = document.documentElement;
+    html.setAttribute('data-theme', theme);
+
+    if (theme === 'dark') {
+        icon.classList.remove('fa-moon');
+        icon.classList.add('fa-sun');
+        // Update meta theme-color for mobile browsers
+        document.querySelector('meta[name="theme-color"]').setAttribute('content', '#121212');
+    } else {
+        icon.classList.remove('fa-sun');
+        icon.classList.add('fa-moon');
+        document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff');
+    }
 }
