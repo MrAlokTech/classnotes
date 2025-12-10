@@ -4,6 +4,7 @@ let currentCategory = 'all';
 let isMaintenanceActive = false;
 let currentUserUID = null;
 let searchTimeout;
+let adDatabase = {};
 
 const preloader = document.getElementById('preloader');
 const pdfGrid = document.getElementById('pdfGrid');
@@ -30,6 +31,8 @@ const alomolePromo = document.getElementById('alomolePromo');
 const closeAlomolePromo = document.getElementById('closeAlomolePromo');
 const goToTopBtn = document.getElementById('goToTopBtn');
 const maintenanceScreen = document.getElementById('maintenanceScreen');
+const openCommentsBtn = document.getElementById("openCommentsBtn");
+const closeCommentsBtn = document.getElementById("closeCommentsBtn");
 
 // 1. Silently Sign In
 firebase.auth().signInAnonymously()
@@ -117,6 +120,85 @@ function handleGoToTopVisibility() {
         goToTopBtn.classList.remove('show');
     }
 }
+
+/* --- SPONSORED ADS SYSTEM --- */
+async function loadSponsoredAds() {
+    try {
+        const adsRef = db.collection('sponsors');
+        const snapshot = await adsRef.get(); // Get ALL ads
+
+        // Reset DB
+        adDatabase = {};
+
+        // Store every document found in the collection
+        snapshot.forEach(doc => {
+            adDatabase[doc.id] = doc.data();
+        });
+
+        // Render fixed slots immediately
+        renderAdSlot('slot_top', 'ad-slot-top');
+        renderAdSlot('slot_middle', 'ad-slot-middle');
+        renderAdSlot('slot_modal', 'ad-slot-modal');
+
+    } catch (error) {
+        console.error("Error loading ads:", error);
+    }
+}
+
+function renderAdSlot(dbId, elementId) {
+    const container = document.getElementById(elementId);
+    if (!container) return;
+
+    const data = adDatabase[dbId];
+
+    // 1. If data exists and is Active -> Show Ad
+    if (data && data.active) {
+        container.innerHTML = createAdHTML(data);
+    }
+    // 2. If Inactive or Missing -> Show Fallback
+    else {
+        container.innerHTML = createFallbackHTML();
+    }
+}
+
+function createAdHTML(data) {
+    const link = data.link || '#';
+    const target = data.link ? '_blank' : '_self';
+
+    // IMAGE TYPE
+    if (data.type === 'image') {
+        return `
+            <a href="${link}" target="${target}" class="sponsored-card" onclick="logInteraction('ad_click', '${data.title || 'Ad'}')">
+                <span class="sponsored-badge">Sponsored</span>
+                <img src="${data.imageUrl}" alt="${data.title || 'Advertisement'}" class="sponsored-image" loading="lazy">
+            </a>
+        `;
+    }
+    // TEXT / CTA TYPE
+    else {
+        return `
+            <a href="${link}" target="${target}" class="sponsored-card" onclick="logInteraction('ad_click', '${data.title || 'Ad'}')">
+                <span class="sponsored-badge">Sponsored</span>
+                <div class="sponsored-content">
+                    <div class="sponsored-title">${data.title}</div>
+                    <div class="sponsored-body">${data.body}</div>
+                    ${data.ctaText ? `<span class="sponsored-cta">${data.ctaText}</span>` : ''}
+                </div>
+            </a>
+        `;
+    }
+}
+
+function createFallbackHTML() {
+    return `
+        <a href="mailto:notes@alokdasofficial.in?subject=Sponsorship Inquiry" class="sponsored-fallback">
+            <i class="fas fa-bullhorn"></i>
+            <h4>Advertise Here</h4>
+            <p>Let others know your presence.</p>
+        </a>
+    `;
+}
+
 
 async function loadPDFDatabase() {
     // 1. Frontend Check: Stop if we already know we are in maintenance
@@ -368,7 +450,9 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     initMaintenanceListener();
 
-    // await loadPDFDatabase();
+    loadSponsoredAds();
+
+    await loadPDFDatabase();
     setupEventListeners();
     checkAlomolePromoState();
 
@@ -547,8 +631,9 @@ function updateSemesterTab() {
 
 function renderPDFs() {
     const searchTerm = searchInput.value.toLowerCase();
-    const favorites = getFavorites(); // Get current favorites
+    const favorites = getFavorites();
 
+    // Search Interaction Logging
     if (searchTerm.length > 2) {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
@@ -556,19 +641,16 @@ function renderPDFs() {
         }, 2000);
     }
 
+    // Filter Logic
     const filteredPdfs = pdfDatabase.filter(pdf => {
         const matchesSemester = pdf.semester === currentSemester;
-
-        // --- NEW FILTER LOGIC START ---
         let matchesCategory = false;
+
         if (currentCategory === 'favorites') {
-            // If viewing favorites, check if ID is in list
             matchesCategory = favorites.includes(pdf.id);
         } else {
-            // Otherwise, standard category check
             matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
         }
-        // --- NEW FILTER LOGIC END ---
 
         const matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
             pdf.description.toLowerCase().includes(searchTerm) ||
@@ -580,27 +662,62 @@ function renderPDFs() {
 
     updatePDFCount(filteredPdfs.length);
 
+    // Empty State
     if (filteredPdfs.length === 0) {
         pdfGrid.style.display = 'none';
         emptyState.style.display = 'block';
-
-        // Optional: Change empty state text if in Favorites mode
-        if (currentCategory === 'favorites') {
-            emptyState.querySelector('h3').textContent = "No saved notes yet";
-            emptyState.querySelector('p').textContent = "Click the heart icon on any note to save it here.";
-        } else {
-            emptyState.querySelector('h3').textContent = "No notes found";
-            emptyState.querySelector('p').textContent = "Try adjusting your search or filter";
-        }
-
         return;
     }
 
     pdfGrid.style.display = 'grid';
     emptyState.style.display = 'none';
 
-    // Pass the favorites list to createPDFCard so it knows which hearts to fill
-    pdfGrid.innerHTML = filteredPdfs.map(pdf => createPDFCard(pdf, favorites)).join('');
+    let gridHTML = "";
+
+    // --- SETTINGS ---
+    const AD_FREQUENCY = 4; // Show an ad after every 4th PDF
+    let adCounter = 1;      // Start counting from 1 (e.g., slot_grid_1)
+
+    // --- GENERATE GRID ---
+    filteredPdfs.forEach((pdf, index) => {
+        gridHTML += createPDFCard(pdf, favorites);
+
+        // Check if we should insert an ad here
+        if ((index + 1) % AD_FREQUENCY === 0) {
+
+            // 1. Try to find a specific ad for this position (e.g., slot_grid_1)
+            let adData = adDatabase[`slot_grid_${adCounter}`];
+
+            // 2. If specific ad is missing or inactive, Fallback to the generic 'slot_grid'
+            if (!adData || !adData.active) {
+                adData = adDatabase['slot_grid'];
+            }
+
+            // 3. Render whatever we found
+            if (adData && adData.active) {
+                gridHTML += createAdHTML(adData);
+            } else {
+                gridHTML += createFallbackHTML();
+            }
+
+            // 4. Increment counter for the next time (slot_grid_2)
+            adCounter++;
+        }
+    });
+
+    // Safety Net: Append ad at the end if list is short
+    if (filteredPdfs.length < AD_FREQUENCY && filteredPdfs.length > 0) {
+        // Try slot_grid_1 first, then generic
+        let adData = adDatabase['slot_grid_1'] || adDatabase['slot_grid'];
+
+        if (adData && adData.active) {
+            gridHTML += createAdHTML(adData);
+        } else {
+            gridHTML += createFallbackHTML();
+        }
+    }
+
+    pdfGrid.innerHTML = gridHTML;
 }
 
 function createPDFCard(pdf, favoritesList) {
@@ -892,7 +1009,11 @@ if (copyrightElement) {
  */
 
 async function loadComments(pdfId) {
-    commentsList.innerHTML = '';
+    const adSlot = document.getElementById('ad-slot-modal');
+    commentsList.innerHTML = ''; // Wipe list
+    if (adSlot) {
+        commentsList.appendChild(adSlot); // Put the ad back immediately
+    }
     commentCount.textContent = '...';
 
     try {
@@ -1013,23 +1134,19 @@ async function handleCommentSubmit(e) {
     }
 }
 
-const openCommentsBtn = document.getElementById("openCommentsBtn");
-
 // Add close button dynamically inside header
-const header = commentSidebar.querySelector("h4");
-const closeBtn = document.createElement("button");
-closeBtn.classList.add("drawer-close");
-closeBtn.innerHTML = '<i class="fas fa-times"></i>';
-header.appendChild(closeBtn);
 
-// Open/Close functionality
-openCommentsBtn.addEventListener("click", () => {
-    commentSidebar.classList.add("active");
-});
+if (openCommentsBtn && commentSidebar) {
+    openCommentsBtn.addEventListener("click", () => {
+        commentSidebar.classList.add("active");
+    });
+}
 
-closeBtn.addEventListener("click", () => {
-    commentSidebar.classList.remove("active");
-});
+if (closeCommentsBtn && commentSidebar) {
+    closeCommentsBtn.addEventListener("click", () => {
+        commentSidebar.classList.remove("active");
+    });
+}
 
 // script.js - New Helper Functions
 

@@ -230,6 +230,10 @@
       </div>
     </div>
 
+    <div class="container">
+      <div id="ad-slot-top" class="ad-slot-container"></div>
+    </div>
+
     <main class="main">
       <div class="container">
         <div class="controls-section">
@@ -269,6 +273,7 @@
               Physics
             </button>
           </div>
+          <div id="ad-slot-middle" class="ad-slot-container"></div>
         </div>
 
         <div class="stats-bar">
@@ -316,8 +321,16 @@
         </div>
 
         <div class="modal-sidebar" id="commentSidebar">
-          <h4>Comments (<span id="commentCount">0</span>)</h4>
-          <div class="comments-list" id="commentsList"></div>
+          <h4>
+            <span>Comments (<span id="commentCount">0</span>)</span>
+            <button id="closeCommentsBtn" class="drawer-close" type="button">
+              <i class="fas fa-times"></i>
+            </button>
+          </h4>
+          <div class="comments-list" id="commentsList">
+            <div id="ad-slot-modal" class="ad-slot-container mb-4"></div>
+          </div>
+
           <form class="comment-form" id="commentForm">
             <textarea
               id="commentInput"

@@ -1100,6 +1100,12 @@ input:focus-visible {
   font-weight: 600;
   color: var(--gray-900);
   margin-bottom: calc(var(--spacing) * 2);
+
+  /* Flexbox magic for alignment */
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Pushes text to left, X to right */
+  width: 100%;
 }
 
 .comments-list {
@@ -1224,9 +1230,11 @@ input:focus-visible {
   .drawer-close {
     background: none;
     border: none;
-    font-size: 1.25rem;
+    font-size: 1.5rem; /* Increased size slightly for easier tapping */
     display: inline-flex;
     color: var(--gray-700);
+    padding: 8px; /* Add padding to make the touch target bigger */
+    cursor: pointer;
   }
 
   .comments-list {
@@ -2714,4 +2722,144 @@ input:focus-visible {
   padding: 0 2px;
   border-radius: 2px;
   font-weight: 600;
+}
+/* --- Sponsored Blocks System --- */
+.ad-slot-container {
+  width: 100%;
+  margin: 16px 0;
+  transition: all 0.3s ease;
+}
+
+.mb-4 {
+  margin-bottom: 16px;
+}
+
+/* The Card Look */
+.sponsored-card {
+  background: var(--background-color);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  text-decoration: none; /* For wrapping anchors */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sponsored-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-color);
+}
+
+/* Badge */
+.sponsored-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  z-index: 5;
+}
+
+/* Type: Image */
+.sponsored-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-height: 200px; /* Limit height for banners */
+  object-fit: cover;
+}
+
+/* Type: Text/CTA */
+.sponsored-content {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sponsored-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.sponsored-body {
+  font-size: 0.875rem;
+  color: var(--gray-600);
+  line-height: 1.4;
+}
+
+.sponsored-cta {
+  margin-top: 8px;
+  align-self: flex-start;
+  font-size: 0.8rem;
+  padding: 6px 12px;
+  background: var(--primary-color);
+  color: #fff;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+/* Fallback / "Your Ad Here" State */
+.sponsored-fallback {
+  border: 2px dashed var(--gray-300);
+  background: var(--gray-50);
+  color: var(--gray-600);
+  padding: 24px;
+  text-align: center;
+  border-radius: var(--border-radius-lg);
+  cursor: pointer;
+  transition: border-color 0.25s ease, background 0.25s ease, color 0.25s ease,
+    box-shadow 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 120px;
+  text-decoration: none;
+}
+
+.sponsored-fallback:hover {
+  border-color: var(--primary-color);
+  background: rgba(37, 99, 235, 0.06);
+  color: var(--primary-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.sponsored-fallback i {
+  font-size: 1.6rem;
+  transition: color 0.25s ease;
+}
+
+.sponsored-fallback h4 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: color 0.25s ease;
+}
+
+.sponsored-fallback p {
+  font-size: 0.8rem;
+  transition: color 0.25s ease;
+}
+
+/* Dark Mode Adjustments */
+[data-theme="dark"] .sponsored-fallback {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: var(--gray-300);
+}
+
+/* Mobile Tweak */
+@media (max-width: 768px) {
+  .sponsored-image {
+    max-height: 150px;
+  }
 }
