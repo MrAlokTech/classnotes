@@ -2185,168 +2185,306 @@ input:focus-visible {
     max-width: none;
   }
 }
-/* --- Critical Error / Maintenance Screen --- */
+/* --- CHEMISTRY MAINTENANCE TERMINAL (RESPONSIVE) --- */
 .maintenance-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: #0a0a0a; /* almost black */
-  color: #ef4444; /* Danger Red */
-  font-family: "Courier New", Courier, monospace;
-  z-index: 2147483647; /* Max integer value to cover EVERYTHING */
+  background-color: #050505; /* Lab Black */
+  z-index: 2147483647;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
 
-  /* CHANGE: Default is now HIDDEN */
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none; /* Allow clicks to pass through when hidden */
-  transition: opacity 0.5s ease;
-}
-
-/* CHANGE: New class to show the screen */
-.maintenance-overlay.active {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto; /* Block clicks when visible */
-}
-
-.maintenance-overlay.hidden {
+  /* Hidden by default */
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
+  transition: opacity 0.3s ease;
+  font-family: "Courier New", Courier, monospace;
+  padding: 1rem; /* Prevent edges touching on mobile */
 }
 
-.error-terminal {
-  max-width: 600px;
+.maintenance-overlay.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.terminal-window {
   width: 100%;
-  border: 1px solid #333;
+  max-width: 650px;
   background: #000;
-  padding: 20px;
-  box-shadow: 0 0 20px rgba(220, 38, 38, 0.2);
+  border: 1px solid #333;
+  box-shadow: 0 0 30px rgba(0, 255, 0, 0.1);
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
-.terminal-header {
+/* Header */
+.terminal-top-bar {
+  background: #111;
+  padding: 10px 15px;
   border-bottom: 1px solid #333;
-  padding-bottom: 10px;
-  margin-bottom: 15px;
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0; /* Prevent shrinking */
+}
+
+.traffic-lights {
+  display: flex;
+  gap: 8px;
+  margin-right: 15px;
+}
+.light {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+.light.red {
+  background: #ff5f56;
+}
+.light.yellow {
+  background: #ffbd2e;
+}
+.light.green {
+  background: #27c93f;
+}
+
+.terminal-title {
   color: #666;
   font-size: 0.8rem;
-  text-transform: uppercase;
+  margin: 0 auto;
+  padding-right: 40px; /* Balance the layout */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.error-code {
-  font-size: 3rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
-  color: #dc2626;
-  text-shadow: 2px 2px 0px rgba(255, 0, 0, 0.2);
+/* Content */
+.terminal-body {
+  padding: 20px;
+  color: #0f0; /* Neon Green */
+  position: relative;
+  min-height: 320px;
+  overflow-y: auto; /* Allow scrolling if content gets too tall on tiny screens */
 }
 
-.error-message {
+.cmd {
   color: #fff;
-  font-size: 1.1rem;
-  line-height: 1.6;
-  margin-bottom: 2rem;
+  margin-top: 15px;
+  margin-bottom: 5px;
+  font-weight: bold;
+  font-size: 1rem;
+}
+.output {
+  color: #0f0;
+  line-height: 1.5;
+  margin-left: 10px;
+  opacity: 0.9;
+  font-size: 0.95rem;
+}
+.output a {
+  color: #fde047;
+  text-decoration: none;
+}
+.output-dim {
+  color: #008f00;
+  font-size: 0.8rem;
+  margin-top: 5px;
+  margin-left: 10px;
+}
+.text-yellow {
+  color: #fde047;
 }
 
-.blink-cursor::after {
-  content: "_";
-  animation: blink 1s step-end infinite;
-}
-
-.terminal-details {
-  font-size: 0.85rem;
-  color: #888;
-  border-top: 1px dashed #333;
-  padding-top: 1rem;
-}
-
-.retry-btn {
-  background: transparent;
-  border: 1px solid #dc2626;
-  color: #dc2626;
-  padding: 10px 20px;
-  font-family: inherit;
-  cursor: pointer;
-  margin-top: 20px;
-  transition: all 0.2s;
-}
-
-.retry-btn:hover {
-  background: #dc2626;
+/* Blinking Status */
+.status-blink {
+  background: #ef4444; /* Danger Red */
   color: #000;
+  padding: 2px 6px;
+  font-weight: bold;
+  animation: blink 1.5s infinite;
 }
-
 @keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
   50% {
-    opacity: 0;
+    opacity: 0.5;
   }
 }
 
-/* Action Buttons Container */
-.terminal-actions {
+/* Bubbling Progress Bar */
+.terminal-progress-bar {
+  width: 100%;
+  height: 12px;
+  background: #0a200a;
+  border: 1px solid #0f0;
+  margin-top: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.terminal-progress-fill {
+  height: 100%;
+  width: 25%;
+  background: #0f0;
+  position: relative;
+  animation: liquidFlow 2s linear infinite;
+}
+
+.terminal-progress-fill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.2) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.2) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 20px 20px;
+  animation: moveStripes 1s linear infinite;
+}
+
+@keyframes moveStripes {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 20px 20px;
+  }
+}
+
+/* Scanline */
+.scan-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: rgba(0, 255, 0, 0.15);
+  animation: scan 6s linear infinite;
+  pointer-events: none;
+}
+@keyframes scan {
+  0% {
+    top: 0%;
+  }
+  100% {
+    top: 100%;
+  }
+}
+
+/* Buttons */
+.terminal-actions-row {
+  margin-top: 30px;
   display: flex;
   gap: 15px;
-  margin-top: 20px;
-  flex-wrap: wrap;
+  border-top: 1px dashed #333;
+  padding-top: 20px;
 }
 
-/* The Contact Button */
-.contact-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+.terminal-btn,
+.terminal-link {
   background: transparent;
-  border: 1px solid #666;
-  color: #888;
-  padding: 10px 20px;
-  font-family: inherit;
+  border: 1px solid #0f0;
+  color: #0f0;
+  padding: 12px 20px; /* Larger touch target */
   text-decoration: none;
-  font-size: 0.9rem;
+  font-family: inherit;
+  font-weight: bold;
+  cursor: pointer;
   transition: all 0.2s;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1; /* Make them equal width */
 }
 
-.contact-btn:hover {
-  border-color: #fff;
-  color: #fff;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+.terminal-btn:hover,
+.terminal-link:hover {
+  background: #0f0;
+  color: #000;
+  box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
 }
 
-/* Admin Only Section - The "Matrix" Look */
-.admin-only {
-  margin: 15px 0;
-  padding: 10px;
-  border: 1px dashed #10b981; /* Green border */
-  background: rgba(16, 185, 129, 0.05);
-  text-align: left;
+.terminal-footer-info {
+  margin-top: 30px;
+  font-size: 0.7rem;
+  color: #444;
+  text-align: right;
+  border-top: 1px solid #111;
+  padding-top: 10px;
 }
 
-/* Hide it by default */
 .admin-only.hidden {
   display: none;
 }
 
-.admin-header {
-  color: #10b981; /* Green text */
-  font-weight: bold;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+/* --- MOBILE SPECIFIC STYLES --- */
+@media (max-width: 600px) {
+  .maintenance-overlay {
+    padding: 0; /* Full screen on mobile */
+    align-items: flex-start; /* Start from top to handle scrolling */
+  }
 
-.cmd-text {
-  color: #34d399; /* Lighter green */
-  font-size: 0.85rem;
-  font-family: "Courier New", monospace;
-  margin: 2px 0;
+  .terminal-window {
+    width: 100%;
+    height: 100%; /* Full height */
+    max-width: none;
+    border-radius: 0;
+    border: none;
+  }
+
+  .terminal-top-bar {
+    padding: 15px; /* Bigger touch area */
+  }
+
+  .terminal-title {
+    font-size: 0.75rem; /* Slightly smaller text */
+  }
+
+  .terminal-body {
+    padding: 20px 15px;
+    font-size: 0.9rem;
+    min-height: auto; /* Let content dictate height */
+    flex: 1; /* Fill remaining space */
+  }
+
+  .terminal-actions-row {
+    flex-direction: column; /* Stack buttons */
+    gap: 12px;
+    margin-top: auto; /* Push to bottom if space permits */
+    padding-bottom: 20px;
+  }
+
+  .terminal-btn,
+  .terminal-link {
+    width: 100%; /* Full width buttons */
+    padding: 14px; /* Easier to tap */
+    font-size: 1rem;
+  }
+
+  .output {
+    margin-left: 0; /* More space for text */
+    word-break: break-word; /* Prevent overflow */
+  }
 }
 
 .btn-favorite {
@@ -2382,19 +2520,19 @@ input:focus-visible {
   gap: 8px; /* Slightly tighter gap */
 }
 
-/* --- Holiday Overlay --- */
+/* --- HOLIDAY GREETING CARD STYLES --- */
 .holiday-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  z-index: 2147483647;
+  z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: opacity 0.6s ease;
-  overflow: hidden;
+  transition: opacity 0.5s ease;
+  padding: 1rem;
 }
 
 .holiday-overlay.hidden {
@@ -2403,315 +2541,226 @@ input:focus-visible {
   pointer-events: none;
 }
 
-/* Glassmorphism Card */
-.glass-card {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 3rem 4rem;
-  border-radius: 24px;
-  text-align: center;
-  max-width: 500px;
-  width: 90%;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-  animation: floatUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  z-index: 10;
-}
-
-/* Typography - Clean & Minimal */
-.glass-card h1 {
-  font-family: "Inter", sans-serif;
-  font-weight: 700;
-  font-size: 2.5rem;
-  margin: 1.5rem 0 1rem;
-  letter-spacing: -0.02em;
-  color: #fff;
-  line-height: 1.1;
-}
-
-.glass-card p {
-  font-family: "Inter", sans-serif;
-  font-weight: 300;
-  font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.8);
-  line-height: 1.6;
-}
-
-.holiday-divider {
-  height: 1px;
-  width: 60px;
-  background: rgba(255, 255, 255, 0.2);
-  margin: 2rem auto;
-}
-
-.holiday-footer {
-  font-size: 0.8rem !important;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  opacity: 0.5 !important;
-}
-
-.holiday-icon {
-  font-size: 3rem;
-  margin-bottom: 0.5rem;
-}
-
-/* --- THEME: CHRISTMAS (Minimal Deep Green) --- */
-.holiday-overlay.christmas {
-  background-color: #0c2b22; /* Deep Alpine Green */
-  background-image: radial-gradient(circle at 50% 0%, #154536 0%, #0c2b22 70%);
-}
-
-.holiday-overlay.christmas .holiday-icon::before {
-  content: "🎄"; /* Or use a clean SVG if you prefer */
-}
-
-/* Modern Soft Snow */
-.holiday-overlay.christmas .holiday-bg-anim {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: radial-gradient(
-      4px 4px at 10% 10%,
-      rgba(255, 255, 255, 0.8) 50%,
-      transparent
-    ),
-    radial-gradient(
-      6px 6px at 20% 30%,
-      rgba(255, 255, 255, 0.6) 50%,
-      transparent
-    ),
-    radial-gradient(
-      3px 3px at 40% 70%,
-      rgba(255, 255, 255, 0.7) 50%,
-      transparent
-    ),
-    radial-gradient(
-      4px 4px at 60% 40%,
-      rgba(255, 255, 255, 0.5) 50%,
-      transparent
-    ),
-    radial-gradient(
-      5px 5px at 80% 80%,
-      rgba(255, 255, 255, 0.8) 50%,
-      transparent
-    );
-  background-size: 500px 500px;
-  animation: snowFall 20s linear infinite;
-  opacity: 0.6;
-}
-
-/* --- THEME: NEW YEAR (Elegant Black & Gold) --- */
-.holiday-overlay.new-year {
-  background-color: #050505;
-  background-image: radial-gradient(
-    circle at 50% 100%,
-    #1a1a1a 0%,
-    #000000 70%
-  );
-}
-
-.holiday-overlay.new-year h1 {
-  background: linear-gradient(135deg, #fff 0%, #ffd700 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.holiday-overlay.new-year .holiday-icon::before {
-  content: "✨";
-}
-
-/* Rising Gold Dust */
-.holiday-overlay.new-year .holiday-bg-anim {
+/* Background Animation Layer */
+.holiday-bg-anim {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: radial-gradient(
-      2px 2px at 20% 80%,
-      #ffd700 50%,
-      transparent
-    ),
-    radial-gradient(3px 3px at 50% 90%, #ffd700 50%, transparent),
-    radial-gradient(2px 2px at 80% 70%, #d4af37 50%, transparent);
-  background-size: 300px 600px;
-  animation: goldRise 10s linear infinite;
+  z-index: -1;
+}
+
+/* The Glass Card */
+.glass-card {
+  background: rgba(255, 255, 255, 0.1); /* Frosted Glass */
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 24px;
+  padding: 3rem 2rem;
+  width: 100%;
+  max-width: 450px;
+  text-align: center;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  transform: scale(0.9);
+  animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  color: #fff;
+}
+
+@keyframes popIn {
+  to {
+    transform: scale(1);
+  }
+}
+
+/* Typography & Layout */
+.holiday-emoji {
+  font-size: 4.5rem;
+  margin-bottom: 1rem;
+  filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.2));
+  animation: floatEmoji 3s ease-in-out infinite;
+}
+
+@keyframes floatEmoji {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+#holidayTitle {
+  font-family: "Bangers", cursive; /* Your fun font */
+  font-size: 3rem;
+  letter-spacing: 1px;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  line-height: 1.1;
+}
+
+.holiday-divider {
+  width: 60px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.4);
+  margin: 1.5rem auto;
+  border-radius: 2px;
+}
+
+#holidayMessage {
+  font-family: "Inter", sans-serif;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  font-weight: 500;
+  margin-bottom: 1.5rem;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.chem-note {
+  font-family: "Inter", sans-serif;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 2rem;
+  background: rgba(0, 0, 0, 0.2);
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+}
+
+.holiday-close-btn {
+  background: #fff;
+  color: #333;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.holiday-close-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* --- THEMES --- */
+
+/* 1. CHRISTMAS (Elegant Green/Red) */
+.holiday-overlay.christmas {
+  background: radial-gradient(circle at center, #1a472a, #0d1f15);
+}
+.christmas .holiday-bg-anim {
+  background-image: radial-gradient(white 2px, transparent 3px);
+  background-size: 50px 50px;
+  animation: snowFall 10s linear infinite;
   opacity: 0.5;
+}
+.christmas #holidayTitle {
+  color: #ff6b6b;
+} /* Soft Red */
+
+/* 2. NEW YEAR (Classy Black/Gold) */
+.holiday-overlay.new-year {
+  background: radial-gradient(circle at center, #2c2c2c, #000);
+}
+.new-year .holiday-bg-anim {
+  background-image: radial-gradient(#ffd700 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: flicker 3s infinite;
+  opacity: 0.4;
+}
+.new-year #holidayTitle {
+  color: #ffd700;
+}
+.new-year .holiday-close-btn {
+  color: #b8860b;
+}
+
+/* 3. REPUBLIC/INDEPENDENCE (Patriotic Gradient) */
+.holiday-overlay.tricolor {
+  background: linear-gradient(135deg, #ff9933, #ffffff 50%, #138808);
+}
+.tricolor .glass-card {
+  background: rgba(0, 0, 50, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.tricolor #holidayTitle {
+  background: linear-gradient(to right, #ff9933, #fff, #138808);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.tricolor .chem-note {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* 4. HOLI (Vibrant Splash) */
+.holiday-overlay.holi {
+  background: #fff;
+}
+.holi .holiday-bg-anim {
+  background: radial-gradient(circle at 20% 80%, #ff0055, transparent 40%),
+    radial-gradient(circle at 80% 20%, #00ccff, transparent 40%),
+    radial-gradient(circle at 50% 50%, #ffcc00, transparent 40%);
+  opacity: 0.8;
+}
+.holi .glass-card {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+.holi #holidayTitle {
+  color: #fff;
+  text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.2);
+}
+.holi #holidayMessage {
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* 5. DIWALI (Golden Glow) */
+.holiday-overlay.diwali {
+  background: radial-gradient(circle, #5e0a0a, #1a0000);
+}
+.diwali .holiday-bg-anim {
+  animation: flicker 4s infinite;
+  opacity: 0.5;
+}
+.diwali #holidayTitle {
+  color: #ffcc00;
+  text-shadow: 0 0 20px rgba(255, 204, 0, 0.6);
 }
 
 /* Animations */
-@keyframes floatUp {
-  from {
-    transform: translateY(40px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
 @keyframes snowFall {
   0% {
     background-position: 0 0;
   }
   100% {
-    background-position: 100px 500px;
-  }
-}
-
-@keyframes goldRise {
-  0% {
-    background-position: 0 600px;
-  }
-  100% {
-    background-position: 0 0;
-  }
-}
-
-@media (max-width: 480px) {
-  .glass-card {
-    padding: 2rem;
-    width: 85%;
-  }
-  .glass-card h1 {
-    font-size: 2rem;
-  }
-}
-
-/* --- THEME: REPUBLIC DAY / INDEPENDENCE DAY (Tricolor) --- */
-.holiday-overlay.tricolor {
-  background: linear-gradient(135deg, #ff9933 0%, #ffffff 50%, #138808 100%);
-}
-
-.holiday-overlay.tricolor .glass-card {
-  background: rgba(255, 255, 255, 0.85); /* Whiter glass for contrast */
-  border: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.holiday-overlay.tricolor h1 {
-  background: linear-gradient(to right, #ff9933, #000080, #138808);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.holiday-overlay.tricolor p {
-  color: #000080; /* Navy Blue text */
-  font-weight: 500;
-}
-
-.holiday-overlay.tricolor .holiday-icon {
-  width: 70px;
-  height: 45px;
-  margin: 0 auto 10px;
-  background-image: url("https://images.emojiterra.com/google/noto-emoji/unicode-16.0/color/svg/1f1ee-1f1f3.svg"); /* or .png */
-  background-size: cover;
-  background-position: center;
-  border-radius: 6px; /* optional */
-  display: block;
-}
-
-/* Spinning Ashoka Chakra Animation */
-.holiday-overlay.tricolor .holiday-bg-anim {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 600px;
-  height: 600px;
-  background: url("https://upload.wikimedia.org/wikipedia/commons/1/17/Ashoka_Chakra.svg")
-    no-repeat center;
-  background-size: contain;
-  opacity: 0.1;
-  transform: translate(-50%, -50%);
-  animation: spinSlow 30s linear infinite;
-}
-
-/* --- THEME: HOLI (Vibrant Splash) --- */
-.holiday-overlay.holi {
-  background-color: #ffffff;
-  background-image: radial-gradient(
-      circle at 20% 30%,
-      #ff0055 0%,
-      transparent 20%
-    ),
-    radial-gradient(circle at 80% 20%, #00ccff 0%, transparent 20%),
-    radial-gradient(circle at 40% 80%, #ffcc00 0%, transparent 20%),
-    radial-gradient(circle at 90% 90%, #66ff33 0%, transparent 20%);
-  color: #333;
-}
-
-.holiday-overlay.holi .glass-card {
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-}
-
-.holiday-overlay.holi h1 {
-  color: #d946ef; /* Pink/Purple */
-  text-shadow: 2px 2px 0px #00ccff;
-}
-
-.holiday-overlay.holi p {
-  color: #4b5563;
-}
-
-.holiday-overlay.holi .holiday-icon::before {
-  content: "🎨";
-}
-
-/* --- THEME: DIWALI (Golden Lamps) --- */
-.holiday-overlay.diwali {
-  background: radial-gradient(circle at center, #4d0000 0%, #1a0000 100%);
-  color: #ffcc00;
-}
-
-.holiday-overlay.diwali .glass-card {
-  background: rgba(50, 0, 0, 0.6);
-  border: 1px solid #ffcc00;
-}
-
-.holiday-overlay.diwali h1 {
-  color: #ffcc00;
-  text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
-}
-
-.holiday-overlay.diwali p {
-  color: #ffe680;
-}
-
-.holiday-overlay.diwali .holiday-icon::before {
-  content: "🪔";
-}
-
-/* Floating Lanterns Animation */
-.holiday-overlay.diwali .holiday-bg-anim {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background-image: radial-gradient(
-    circle,
-    rgba(255, 200, 0, 0.2) 2px,
-    transparent 3px
-  );
-  background-size: 50px 50px;
-  animation: flicker 4s infinite;
-}
-
-@keyframes spinSlow {
-  100% {
-    transform: translate(-50%, -50%) rotate(360deg);
+    background-position: 20px 400px;
   }
 }
 @keyframes flicker {
   0%,
   100% {
-    opacity: 0.8;
+    opacity: 0.5;
   }
   50% {
-    opacity: 0.4;
+    opacity: 0.2;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .glass-card {
+    padding: 2rem 1.5rem;
+    width: 90%;
+  }
+  #holidayTitle {
+    font-size: 2.5rem;
   }
 }
 
@@ -2977,4 +3026,80 @@ input:focus-visible {
     transform: translateY(120px) rotate(180deg) translateX(20px);
     opacity: 0;
   }
+}
+
+/* --- PRANK / EASTER EGG STYLES --- */
+.prank-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #000;
+  z-index: 10000; /* Highest priority */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Courier New", Courier, monospace;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease;
+}
+
+.prank-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.prank-terminal {
+  width: 90%;
+  max-width: 600px;
+  text-align: center;
+}
+
+.prank-text {
+  color: #0f0; /* Hacker Green */
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+  min-height: 60px;
+  text-shadow: 0 0 5px #0f0;
+}
+
+.prank-progress-bar {
+  width: 100%;
+  height: 20px;
+  background: #111;
+  border: 1px solid #0f0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 30px;
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+}
+
+.prank-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: #0f0;
+  transition: width 0.2s linear;
+}
+
+.prank-close-btn {
+  background: transparent;
+  border: 1px solid #fff;
+  color: #fff;
+  padding: 12px 24px;
+  font-family: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 4px;
+}
+
+.prank-close-btn:hover {
+  background: #fff;
+  color: #000;
+}
+
+.prank-close-btn.hidden {
+  display: none;
 }

@@ -91,64 +91,77 @@
       <div id="holidayBgAnim" class="holiday-bg-anim"></div>
 
       <div class="glass-card">
-        <div class="holiday-icon" id="holidayIcon"></div>
-        <h1 id="holidayTitle">Alok</h1>
-        <p id="holidayMessage">Das</p>
+        <div class="holiday-icon-wrapper">
+          <div id="holidayIcon" class="holiday-emoji">✨</div>
+        </div>
+
+        <h1 id="holidayTitle">Happy Holidays</h1>
+
         <div class="holiday-divider"></div>
-        <p id="holidaySubMessage" class="holiday-footer">
-          Not today — go enjoy life a little 😌
+
+        <p id="holidayMessage">Wishing you a wonderful break!</p>
+
+        <p id="holidaySubMessage" class="chem-note">
+          ( Chemistry Note: Take a break from the Periodic Table )
         </p>
       </div>
     </div>
 
-    <!-- Maintenance Screen -->
     <div id="maintenanceScreen" class="maintenance-overlay">
-      <div class="error-terminal">
-        <div class="terminal-header">
-          <span>System Diagnostics</span>
-          <span>UID: 0x0000F4</span>
-        </div>
-
-        <div class="error-code"><i class="fas fa-bug"></i> ERROR 503</div>
-
-        <div class="error-message">
-          <p>> CRITICAL_PROCESS_DIED</p>
-          <p>> Database connection refused.</p>
-          <p>
-            > The requested resource is currently unavailable due to a backend
-            partition failure.
-          </p>
-          <p class="blink-cursor">> Retrying connection...</p>
-        </div>
-
-        <div id="adminDiagnostics" class="admin-only hidden">
-          <div class="admin-header">
-            <i class="fas fa-user-shield"></i> ROOT ACCESS DETECTED
+      <div class="terminal-window">
+        <div class="terminal-top-bar">
+          <div class="traffic-lights">
+            <span class="light red"></span>
+            <span class="light yellow"></span>
+            <span class="light green"></span>
           </div>
-          <p class="cmd-text">>> SUDO_USER: CONFIRMED</p>
-          <p class="cmd-text">
-            >> MAINTENANCE_PROTOCOL: <span style="color: #4ade80">ACTIVE</span>
+          <div class="terminal-title">lab_admin@classnotes:~/reactor_core</div>
+        </div>
+
+        <div class="terminal-body">
+          <div class="scan-line"></div>
+
+          <p class="cmd">> sudo check_equilibrium</p>
+          <p class="output">
+            STATUS: <span class="status-blink">UNSTABLE</span><br />
+            ERROR_CODE:
+            <span class="text-yellow">ENTROPY_MAXIMIZED (ΔS > 0)</span>
           </p>
-          <p class="cmd-text">>> CORE_INTEGRITY: 100% (SAFE MODE)</p>
-          <p class="cmd-text">>> BYPASS_KEY: 0x99_A1_D4</p>
-        </div>
 
-        <div class="terminal-details">
-          Reference: #c0ffee_overload<br />
-          Timestamp: <span id="errorTime"></span>
-        </div>
+          <p class="cmd">> analyze_failure_cause</p>
+          <p class="output">
+            Detection: Covalent bonds in the backend have ruptured.<br />
+            Reason: Server exceeded Activation Energy (Ea).
+          </p>
 
-        <div class="terminal-actions">
-          <button class="retry-btn" onclick="window.location.reload()">
-            [ RETRY ]
-          </button>
+          <div class="mt-4">
+            <p class="cmd">> add_buffer_solution --fix-ph</p>
+            <div class="terminal-progress-bar">
+              <div class="terminal-progress-fill"></div>
+            </div>
+            <p class="output-dim">Re-titrating database... Please wait...</p>
+          </div>
 
-          <a
-            href="mailto:notes@alokdasofficial.in?subject=Website Error Report&body=I am seeing Error 503 on ClassNotes."
-            class="contact-btn"
-          >
-            <i class="fas fa-envelope"></i> REPORT OUTAGE
-          </a>
+          <div class="terminal-actions-row">
+            <button class="terminal-btn" onclick="window.location.reload()">
+              [ RE-CATALYZE ]
+            </button>
+            <a href="mailto:notes@alokdasofficial.in" class="terminal-link">
+              [ REPORT_LEAK ]
+            </a>
+          </div>
+
+          <div id="adminDiagnostics" class="admin-only hidden">
+            <p class="cmd">> sudo isotope_verify</p>
+            <p class="output text-yellow">
+              User: <a href="http://alokdasofficial.in">Alok Das</a><br />
+              Access: <span id="bypassKey">0x_AVOGADRO_AUTH</span>
+            </p>
+          </div>
+
+          <div class="terminal-footer-info">
+            Timestamp: <span id="errorTime"></span> | Lab Temp: 298 K
+          </div>
         </div>
       </div>
     </div>
@@ -189,10 +202,7 @@
     <header class="header">
       <div class="container">
         <div class="header-content">
-          <div
-            class="logo"
-            onclick="window.location.href = window.location.origin;"
-          >
+          <div class="logo">
             <i class="fas fa-graduation-cap"></i>
             <h1>ClassNotes</h1>
           </div>
@@ -444,6 +454,19 @@
         </p>
       </div>
     </footer>
+
+    <div id="prankOverlay" class="prank-overlay hidden">
+      <div class="prank-terminal">
+        <div id="prankText" class="prank-text">> INITIALIZING...</div>
+        <div class="prank-progress-bar">
+          <div id="prankProgress" class="prank-progress-fill"></div>
+        </div>
+        <button id="closePrankBtn" class="prank-close-btn hidden">
+          Okay, I'll go study 😭
+        </button>
+      </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>

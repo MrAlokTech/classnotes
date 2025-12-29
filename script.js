@@ -107,9 +107,18 @@ async function loadSponsoredAds() {
         snapshot.forEach(doc => {
             adDatabase[doc.id] = doc.data();
         });
+
+        // Render static slots
         renderAdSlot('slot_top', 'ad-slot-top');
         renderAdSlot('slot_middle', 'ad-slot-middle');
         renderAdSlot('slot_modal', 'ad-slot-modal');
+
+        // NEW: Force the PDF grid to re-render now that ads are ready
+        // This fixes the issue where tabs show "Advertise Here" initially
+        if (pdfDatabase.length > 0) {
+            renderPDFs();
+        }
+
     } catch (error) {
         console.error("Error loading ads:", error);
     }
@@ -254,78 +263,96 @@ function deactivateMaintenanceMode() {
 
     if (pdfDatabase.length === 0) {
         if (preloader) preloader.classList.remove('hidden');
-        loadPDFDatabase().then(() => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const pdfId = urlParams.get('pdf');
-            if (pdfId) {
-                const pdf = pdfDatabase.find(p => p.id == pdfId);
-                // Don't push history on initial load
-                if (pdf) viewPDF(pdf, false);
-            }
+        // We re-run the full load sequence if needed
+        loadSponsoredAds().then(() => {
+            loadPDFDatabase().then(() => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const pdfId = urlParams.get('pdf');
+                if (pdfId) {
+                    const pdf = pdfDatabase.find(p => p.id == pdfId);
+                    if (pdf) viewPDF(pdf, false);
+                }
+            });
         });
     }
 }
 
+// --- HOLIDAY GREETING LOGIC (WARM & FESTIVE) ---
 function checkHolidayMode() {
     const today = new Date();
-    const month = today.getMonth();
+    const month = today.getMonth(); // 0 = Jan, 11 = Dec
     const date = today.getDate();
+
     const overlay = document.getElementById('holidayOverlay');
     const title = document.getElementById('holidayTitle');
     const msg = document.getElementById('holidayMessage');
     const sub = document.getElementById('holidaySubMessage');
+    const icon = document.getElementById('holidayIcon');
 
-    const isRepublicDay = (month === 0 && date === 26);
-    const isIndependenceDay = (month === 7 && date === 15);
-    const isHoli = (month === 2 && date === 4);
-    const isDiwali = (month === 10 && (date === 8 || date === 9));
-    const isChristmas = (month === 11 && date === 25);
-    const isNewYear = (month === 11 && date === 31) || (month === 0 && date === 1);
+    // Reset basics
+    overlay.className = 'holiday-overlay hidden';
 
-    if (isRepublicDay || isIndependenceDay) {
-        overlay.classList.remove('hidden');
+    // 1. Republic Day (Jan 26) or Independence Day (Aug 15)
+    if ((month === 0 && date === 26) || (month === 7 && date === 15)) {
         overlay.classList.add('tricolor');
-        title.innerText = isRepublicDay ? "Happy Republic Day" : "Happy Independence Day";
-        msg.innerText = "Celebrating the spirit of India — unity, courage, and hope.";
-        document.body.style.overflow = 'hidden';
+        icon.innerText = "🇮🇳";
+        title.innerText = month === 0 ? "Happy Republic Day" : "Happy Independence Day";
+        msg.innerHTML = "Celebrating the spirit of unity and freedom.";
+        sub.innerHTML = "Note: Our bonds are stronger than Covalent ones today! ⚛️";
+        activateHoliday(overlay);
         return true;
     }
-    if (isHoli) {
-        overlay.classList.remove('hidden');
+
+    // 2. Holi (Approx Mar 14 in 2025)
+    if (month === 2 && date === 14) {
         overlay.classList.add('holi');
+        icon.innerText = "🎨";
         title.innerText = "Happy Holi!";
-        msg.innerText = "Wishing you colors of joy, laughter, and peace this Holi.";
-        sub.innerText = "P.S: ClassNotes will return on March 5th.";
-        document.body.style.overflow = 'hidden';
+        msg.innerHTML = "May your life be as vibrant and colorful as the spectrum.";
+        sub.innerHTML = "Note: Reaction is highly exothermic (full of energy)! 🔥";
+        activateHoliday(overlay);
         return true;
     }
-    if (isDiwali) {
-        overlay.classList.remove('hidden');
+
+    // 3. Diwali (Approx Oct 20 in 2025)
+    if (month === 9 && date === 20) {
         overlay.classList.add('diwali');
+        icon.innerText = "🪔";
         title.innerText = "Happy Diwali";
-        msg.innerText = "Shubh Deepavali!";
-        sub.innerText = "P.S: ClassNotes will resume shortly.";
-        document.body.style.overflow = 'hidden';
+        msg.innerHTML = "Wishing you a festival full of light, warmth, and prosperity.";
+        sub.innerHTML = "Note: Shine brighter than a Magnesium ribbon today! ✨";
+        activateHoliday(overlay);
         return true;
     }
-    if (isChristmas) {
-        overlay.classList.remove('hidden');
+
+    // 4. Christmas (Dec 25)
+    if (month === 11 && date === 25) {
         overlay.classList.add('christmas');
+        icon.innerText = "🎄";
         title.innerText = "Merry Christmas";
-        msg.innerText = "Wishing you calm vibes and cozy moments.";
-        sub.innerText = "P.S: Back on Dec 26th.";
-        document.body.style.overflow = 'hidden';
-        return true;
-    } else if (isNewYear) {
-        overlay.classList.remove('hidden');
-        overlay.classList.add('new-year');
-        title.innerText = "Happy New Year";
-        msg.innerText = "Wishing you a year full of peace, clarity, and good energy.";
-        sub.innerText = "Enjoy the break!";
-        document.body.style.overflow = 'hidden';
+        msg.innerHTML = "Wishing you peace, joy, and cozy moments with family.";
+        sub.innerHTML = "Note: May your days be stable and your solutions clear. 🧪";
+        activateHoliday(overlay);
         return true;
     }
+
+    // 5. New Year (Dec 31 - Jan 1)
+    if ((month === 11 && date === 31) || (month === 0 && date === 1)) {
+        overlay.classList.add('new-year');
+        icon.innerText = "🥂";
+        title.innerText = "Happy New Year!";
+        msg.innerHTML = "Here is to a fresh start and new opportunities.";
+        sub.innerHTML = "Note: Time to discover a new reaction mechanism for success! 🚀";
+        activateHoliday(overlay);
+        return true;
+    }
+
     return false;
+}
+
+function activateHoliday(overlay) {
+    overlay.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
 }
 
 // --- Initialization ---
@@ -341,8 +368,12 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     initMaintenanceListener();
-    loadSponsoredAds();
+    initPrankEasterEgg();
+
+    // FIX: Await ads BEFORE loading PDFs to ensure grid ads appear on all tabs
+    await loadSponsoredAds();
     await loadPDFDatabase();
+
     setupEventListeners();
     checkAlomolePromoState();
 
@@ -352,10 +383,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         const pdf = pdfDatabase.find(p => p.id == pdfId);
         if (pdf) {
             currentSemester = pdf.semester;
-            // 2b. FIX: Save semester if loading from URL
             localStorage.setItem('currentSemester', currentSemester);
             updateSemesterTab();
-            // Don't push history on initial load
             viewPDF(pdf, false);
         }
     }
@@ -394,7 +423,6 @@ function setupEventListeners() {
         }
     });
 
-    // 4. FIX: Handle Browser Back Button for Modal
     window.addEventListener('popstate', function (event) {
         if (pdfModal.classList.contains('active')) {
             _closeModalInternal();
@@ -435,11 +463,6 @@ function handleScroll() {
     if (goToTopBtn) handleGoToTopVisibility();
 }
 
-/**
- * 5. FIX: Universal PDF Link Handler
- * - Google Drive -> /preview
- * - Regular PDF -> Google Docs Viewer
- */
 function getEmbeddableUrl(url) {
     if (!url) return '';
     const driveRegex = /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)\//;
@@ -447,13 +470,9 @@ function getEmbeddableUrl(url) {
     if (match && match[1]) {
         return `https://drive.google.com/file/d/${match[1]}/preview`;
     }
-    // Universal Viewer for non-Drive links
     return `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(url)}`;
 }
 
-/**
- * 6. FIX: viewPDF with History Tracking
- */
 async function viewPDF(pdf, pushToHistory = true) {
     const originalPdfPath = pdf.pdfUrl;
     logInteraction('view_pdf', pdf.title, pdf.id);
@@ -479,7 +498,6 @@ async function viewPDF(pdf, pushToHistory = true) {
     await loadComments(pdf.id);
 }
 
-// 7. FIX: Semester Change with LocalStorage
 function handleSemesterChange(e) {
     currentSemester = parseInt(e.currentTarget.dataset.semester);
     localStorage.setItem('currentSemester', currentSemester);
@@ -501,6 +519,23 @@ function updateSemesterTab() {
             btn.classList.add('active');
         }
     });
+}
+
+// Helper to safely get ad data (Checks specific slot -> Generic slot -> First available)
+function getAdData(slotName) {
+    // 1. Try specific slot (e.g., slot_grid_1)
+    if (adDatabase[slotName] && adDatabase[slotName].active) {
+        return adDatabase[slotName];
+    }
+    // 2. Try generic slot (slot_grid)
+    if (adDatabase['slot_grid'] && adDatabase['slot_grid'].active) {
+        return adDatabase['slot_grid'];
+    }
+    // 3. Fallback: Return ANY active ad from the database to avoid empty boxes
+    const firstKey = Object.keys(adDatabase).find(k => adDatabase[k].active && k.includes('grid'));
+    if (firstKey) return adDatabase[firstKey];
+
+    return null;
 }
 
 function renderPDFs() {
@@ -546,19 +581,31 @@ function renderPDFs() {
 
     filteredPdfs.forEach((pdf, index) => {
         gridHTML += createPDFCard(pdf, favorites);
+
+        // Insert Ad every 4 items
         if ((index + 1) % AD_FREQUENCY === 0) {
-            let adData = adDatabase[`slot_grid_${adCounter}`];
-            if (!adData || !adData.active) adData = adDatabase['slot_grid'];
-            if (adData && adData.active) gridHTML += createAdHTML(adData);
-            else gridHTML += createFallbackHTML();
+            const adData = getAdData(`slot_grid_${adCounter}`);
+            if (adData) {
+                gridHTML += createAdHTML(adData);
+            } else {
+                gridHTML += createFallbackHTML();
+            }
             adCounter++;
         }
     });
 
+    // Logic for short lists (like Semester 2 with 1 item)
+    // We insert an ad at the end if the list is short (< 4) AND not empty
     if (filteredPdfs.length < AD_FREQUENCY && filteredPdfs.length > 0) {
-        let adData = adDatabase['slot_grid_1'] || adDatabase['slot_grid'];
-        if (adData && adData.active) gridHTML += createAdHTML(adData);
-        else gridHTML += createFallbackHTML();
+        // Forcefully try to get slot_grid_1 or generic
+        const adData = getAdData('slot_grid_1');
+
+        if (adData) {
+            gridHTML += createAdHTML(adData);
+        } else {
+            // Only show fallback if we are SURE there are no ads loaded
+            gridHTML += createFallbackHTML();
+        }
     }
 
     pdfGrid.innerHTML = gridHTML;
@@ -625,7 +672,6 @@ function updatePDFCount(count) {
     pdfCount.textContent = count;
 }
 
-// 8. FIX: Helper to close UI separate from history logic
 function _closeModalInternal() {
     pdfModal.classList.remove('active');
     pdfViewer.src = '';
@@ -635,7 +681,7 @@ function _closeModalInternal() {
 
 function closePDFModal() {
     if (isModalHistoryPushed) {
-        window.history.back(); // This triggers 'popstate', which calls _closeModalInternal
+        window.history.back();
     } else {
         const url = new URL(window.location);
         url.searchParams.delete('pdf');
@@ -699,7 +745,6 @@ function copyShareLink() {
     }
 }
 
-// 9. FIX: Download logic supporting Universal Links
 function downloadCurrentPDF() {
     if (!pdfModal.dataset.currentPdf) return;
     const pdf = JSON.parse(pdfModal.dataset.currentPdf);
@@ -733,7 +778,6 @@ function showToast(message, type = 'success') {
     setTimeout(() => { toast.classList.remove('show'); }, 3000);
 }
 
-// Copyright
 const START_YEAR = 2025;
 const CURRENT_YEAR = new Date().getFullYear();
 const copyrightElement = document.getElementById('copyright-year');
@@ -886,29 +930,25 @@ function applyTheme(theme, icon) {
 
 /* --- SEASONAL HEADER LOGIC --- */
 function initSeasonalHeader() {
-    const month = new Date().getMonth(); // 0 = Jan, 11 = Dec
+    const month = new Date().getMonth();
     const header = document.querySelector('.header');
 
     if (!header) return;
 
     let particleType = null;
-    let density = 400; // Default spawn rate (ms)
+    let density = 400;
 
-    // 1. Winter: Dec, Jan, Feb
     if (month === 11 || month === 0 || month === 1) {
         particleType = 'snow';
     }
-    // 2. Summer: Mar, Apr, May, June (Hot/Sunny)
     else if (month >= 2 && month <= 5) {
         particleType = 'summer';
-        density = 600; // Slower spawn for sun motes (less distracting)
+        density = 600;
     }
-    // 3. Monsoon: July, Aug, Sept (Rain)
     else if (month >= 6 && month <= 8) {
         particleType = 'rain';
-        density = 80; // Fast spawn for heavy rain look
+        density = 80;
     }
-    // 4. Autumn: Oct, Nov (Falling Leaves)
     else if (month >= 9 && month <= 10) {
         particleType = 'autumn';
         density = 500;
@@ -916,7 +956,6 @@ function initSeasonalHeader() {
 
     if (!particleType) return;
 
-    // Start the animation loop
     setInterval(() => {
         spawnSeasonParticle(header, particleType);
     }, density);
@@ -926,41 +965,31 @@ function spawnSeasonParticle(container, type) {
     const el = document.createElement('div');
     el.classList.add('season-particle');
 
-    // Random Horizontal Position (0% to 100%)
     const leftPos = Math.random() * 100;
     el.style.left = `${leftPos}%`;
 
     if (type === 'snow') {
         el.classList.add('snowflake');
         el.innerHTML = '❄';
-        const size = Math.random() * 10 + 10; // 10px-20px
+        const size = Math.random() * 10 + 10;
         el.style.fontSize = `${size}px`;
-        el.style.animationDuration = `${Math.random() * 3 + 3}s`; // 3-6s fall
+        el.style.animationDuration = `${Math.random() * 3 + 3}s`;
     }
     else if (type === 'summer') {
         el.classList.add('sun-mote');
-        const size = Math.random() * 4 + 2; // 2px-6px dots
+        const size = Math.random() * 4 + 2;
         el.style.width = `${size}px`;
         el.style.height = `${size}px`;
-        el.style.animationDuration = `${Math.random() * 4 + 4}s`; // Slow float up
+        el.style.animationDuration = `${Math.random() * 4 + 4}s`;
     }
     else if (type === 'rain') {
         el.classList.add('raindrop');
-
-        // Vary the height: some drops are closer (longer), some further (shorter)
-        const height = Math.random() * 15 + 15; // 15px to 30px
+        const height = Math.random() * 15 + 15;
         el.style.height = `${height}px`;
-
-        // Vary the width slightly for depth
         el.style.width = Math.random() > 0.5 ? '2px' : '1px';
-
-        // Adjust fall speed: Taller drops (closer) fall faster
-        // Range: 0.8s (fast) to 1.3s (slightly slower)
         const speed = Math.random() * 0.5 + 0.8;
         el.style.animationDuration = `${speed}s`;
-
-        // Random slight transparency variation
-        el.style.opacity = Math.random() * 0.3 + 0.6; // 0.6 to 0.9 opacity
+        el.style.opacity = Math.random() * 0.3 + 0.6;
     }
     else if (type === 'autumn') {
         el.classList.add('autumn-leaf');
@@ -968,18 +997,89 @@ function spawnSeasonParticle(container, type) {
         const randomShape = shapes[Math.floor(Math.random() * shapes.length)];
         el.innerHTML = randomShape;
         el.style.fontSize = `${Math.random() * 10 + 10}px`;
-
-        // Random Autumn Colors (Orange, Brown, Red, Gold)
         const colors = ['#eab308', '#f97316', '#ef4444', '#854d0e'];
         el.style.color = colors[Math.floor(Math.random() * colors.length)];
-
-        el.style.animationDuration = `${Math.random() * 4 + 4}s`; // 4-8s sway
+        el.style.animationDuration = `${Math.random() * 4 + 4}s`;
     }
 
     container.appendChild(el);
 
-    // Cleanup particles after they finish
     setTimeout(() => {
         el.remove();
     }, 8000);
+}
+
+// --- HILARIOUS EASTER EGG LOGIC ---
+function initPrankEasterEgg() {
+    const logo = document.querySelector('.logo'); // The ClassNotes Logo
+    const overlay = document.getElementById('prankOverlay');
+    const textEl = document.getElementById('prankText');
+    const barEl = document.getElementById('prankProgress');
+    const closeBtn = document.getElementById('closePrankBtn');
+
+    if (!logo || !overlay) return;
+
+    let clickCount = 0;
+    let clickTimer;
+
+    logo.style.cursor = "pointer"; // Make it clickable
+    logo.title = "Do not click 5 times..."; // Subtle hint
+
+    logo.addEventListener('click', (e) => {
+        // Prevent default navigation if they are just clicking rapidly
+        if (clickCount > 0) e.preventDefault();
+
+        clickCount++;
+
+        clearTimeout(clickTimer);
+        clickTimer = setTimeout(() => {
+            clickCount = 0;
+        }, 800); // Reset if they stop clicking
+
+        if (clickCount === 5) {
+            e.preventDefault(); // Stop the logo from taking them Home
+            triggerPrank(overlay, textEl, barEl, closeBtn);
+            clickCount = 0;
+        }
+    });
+
+    closeBtn.addEventListener('click', () => {
+        overlay.classList.remove('active');
+        // Reset for next time
+        setTimeout(() => {
+            textEl.innerText = "> INITIALIZING...";
+            barEl.style.width = "0%";
+            closeBtn.classList.add('hidden');
+        }, 500);
+    });
+}
+
+function triggerPrank(overlay, textEl, barEl, closeBtn) {
+    overlay.classList.add('active');
+
+    const steps = [
+        { text: "> CONNECTING TO UNIVERSITY SERVER...", progress: 10, delay: 0 },
+        { text: "> BYPASSING FIREWALL...", progress: 30, delay: 1000 },
+        { text: "> ACCESSING 'EXAM_PAPERS.PDF'...", progress: 60, delay: 2000 },
+        { text: "> DOWNLOADING ANSWERS...", progress: 85, delay: 3500 },
+        { text: "> DECRYPTING...", progress: 99, delay: 5000 },
+        { text: "❌ ERROR: SHORTCUT NOT FOUND.<br>System requires 'HARD WORK' to proceed.<br>Nice try B!TC#! 😂", progress: 0, delay: 6500, isFinal: true }
+    ];
+
+    steps.forEach(step => {
+        setTimeout(() => {
+            if (step.isFinal) {
+                textEl.innerHTML = step.text;
+                textEl.style.color = "#ff4444"; // Change to red for error
+                textEl.style.textShadow = "0 0 5px #ff4444";
+                barEl.parentElement.style.display = "none"; // Hide bar
+                closeBtn.classList.remove('hidden'); // Show close button
+            } else {
+                textEl.innerText = step.text;
+                textEl.style.color = "#0f0"; // Reset green
+                barEl.parentElement.style.display = "block";
+                barEl.style.width = step.progress + "%";
+            }
+        }, step.delay);
+    });
 }
