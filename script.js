@@ -1,10 +1,11 @@
 let pdfDatabase = [];
-let currentSemester = 1;
+let currentSemester = parseInt(localStorage.getItem('currentSemester')) || 2;
 let currentCategory = 'all';
 let isMaintenanceActive = false;
 let currentUserUID = null;
 let searchTimeout;
 let adDatabase = {};
+let isModalHistoryPushed = false;
 
 const preloader = document.getElementById('preloader');
 const pdfGrid = document.getElementById('pdfGrid');
@@ -34,67 +35,44 @@ const maintenanceScreen = document.getElementById('maintenanceScreen');
 const openCommentsBtn = document.getElementById("openCommentsBtn");
 const closeCommentsBtn = document.getElementById("closeCommentsBtn");
 
-// 1. Silently Sign In
+// --- Auth & Analytics ---
 firebase.auth().signInAnonymously()
     .then((userCredential) => {
         currentUserUID = userCredential.user.uid;
-        // console.log("Analytics: User identified.");
-
-        // Optional: Log session start in the main user doc
         updateUserMetadata();
     })
     .catch((error) => {
         console.error("Analytics Error:", error);
     });
 
-// 2. Helper to update general user info (Device, Last Active)
 function updateUserMetadata() {
     if (!currentUserUID) return;
-
     const userRef = db.collection('analytics').doc(currentUserUID);
     userRef.set({
         lastActive: firebase.firestore.FieldValue.serverTimestamp(),
-        device: getSimpleDeviceName(), // See helper function below
+        device: getSimpleDeviceName(),
         platform: navigator.platform
     }, { merge: true });
 }
 
-/**
- * Tracks interactions by updating counters inside the User's document
- */
 function logInteraction(actionType, details, pdfId = null) {
-    // Safety check: Don't log if system is down or user isn't ID'd yet
     if (!currentUserUID || isMaintenanceActive) return;
-
     const userRef = db.collection('analytics').doc(currentUserUID);
 
-    // CASE 1: PDF Interaction (View or Download) -> UPDATE COUNTER
     if (pdfId && (actionType === 'view_pdf' || actionType === 'download')) {
-        // We create/update a document specifically for THIS PDF inside the user's history
         const pdfStatsRef = userRef.collection('interactions').doc(pdfId);
-
         const updateData = {
-            title: details, // Store title so you know what 'doc123' is
+            title: details,
             lastInteraction: firebase.firestore.FieldValue.serverTimestamp()
         };
-
-        // Magic: Atomically increment the specific counter
         if (actionType === 'view_pdf') {
             updateData.viewCount = firebase.firestore.FieldValue.increment(1);
         } else if (actionType === 'download') {
             updateData.downloadCount = firebase.firestore.FieldValue.increment(1);
         }
-
-        // { merge: true } ensures we don't overwrite existing counts
         pdfStatsRef.set(updateData, { merge: true });
-
-        // Also update the main user "last active" time
         updateUserMetadata();
-    }
-
-    // CASE 2: Search or other events -> ADD TO LIST
-    // (We don't usually count searches, we just want to see the history)
-    else if (actionType === 'search') {
+    } else if (actionType === 'search') {
         userRef.collection('search_history').add({
             term: details,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
@@ -102,7 +80,6 @@ function logInteraction(actionType, details, pdfId = null) {
     }
 }
 
-// Helper to get a readable device name
 function getSimpleDeviceName() {
     const ua = navigator.userAgent;
     if (/Android/i.test(ua)) return "Android Mobile";
@@ -112,8 +89,8 @@ function getSimpleDeviceName() {
     return "Other";
 }
 
+// --- UI Helpers ---
 function handleGoToTopVisibility() {
-    // Show button if scrolled down more than 400 pixels
     if (window.scrollY > 400) {
         goToTopBtn.classList.add('show');
     } else {
@@ -121,25 +98,18 @@ function handleGoToTopVisibility() {
     }
 }
 
-/* --- SPONSORED ADS SYSTEM --- */
+// --- Ads System ---
 async function loadSponsoredAds() {
     try {
         const adsRef = db.collection('sponsors');
-        const snapshot = await adsRef.get(); // Get ALL ads
-
-        // Reset DB
+        const snapshot = await adsRef.get();
         adDatabase = {};
-
-        // Store every document found in the collection
         snapshot.forEach(doc => {
             adDatabase[doc.id] = doc.data();
         });
-
-        // Render fixed slots immediately
         renderAdSlot('slot_top', 'ad-slot-top');
         renderAdSlot('slot_middle', 'ad-slot-middle');
         renderAdSlot('slot_modal', 'ad-slot-modal');
-
     } catch (error) {
         console.error("Error loading ads:", error);
     }
@@ -148,15 +118,10 @@ async function loadSponsoredAds() {
 function renderAdSlot(dbId, elementId) {
     const container = document.getElementById(elementId);
     if (!container) return;
-
     const data = adDatabase[dbId];
-
-    // 1. If data exists and is Active -> Show Ad
     if (data && data.active) {
         container.innerHTML = createAdHTML(data);
-    }
-    // 2. If Inactive or Missing -> Show Fallback
-    else {
+    } else {
         container.innerHTML = createFallbackHTML();
     }
 }
@@ -164,8 +129,6 @@ function renderAdSlot(dbId, elementId) {
 function createAdHTML(data) {
     const link = data.link || '#';
     const target = data.link ? '_blank' : '_self';
-
-    // IMAGE TYPE
     if (data.type === 'image') {
         return `
             <a href="${link}" target="${target}" class="sponsored-card" onclick="logInteraction('ad_click', '${data.title || 'Ad'}')">
@@ -173,9 +136,7 @@ function createAdHTML(data) {
                 <img src="${data.imageUrl}" alt="${data.title || 'Advertisement'}" class="sponsored-image" loading="lazy">
             </a>
         `;
-    }
-    // TEXT / CTA TYPE
-    else {
+    } else {
         return `
             <a href="${link}" target="${target}" class="sponsored-card" onclick="logInteraction('ad_click', '${data.title || 'Ad'}')">
                 <span class="sponsored-badge">Sponsored</span>
@@ -199,39 +160,23 @@ function createFallbackHTML() {
     `;
 }
 
-
+// --- Data Loading ---
 async function loadPDFDatabase() {
-    // 1. Frontend Check: Stop if we already know we are in maintenance
-    if (isMaintenanceActive) {
-        console.warn("Maintenance active. Data load blocked by frontend.");
-        return;
-    }
-
+    if (isMaintenanceActive) return;
     try {
         const pdfsRef = db.collection('pdfs');
-
-        // Fetch data
         const snapshot = await pdfsRef.orderBy('uploadDate', 'desc').get();
-
         pdfDatabase = [];
         snapshot.forEach(doc => {
             pdfDatabase.push({ id: doc.id, ...doc.data() });
         });
-
         renderPDFs();
         hidePreloader();
-
     } catch (error) {
-        // 2. Backend Check: This catches the Firebase Rule "Permission Denied"
         console.error('Error loading PDFs:', error);
-
-        // If the error is specifically "Missing or insufficient permissions",
-        // it likely means Maintenance Mode is ON but the frontend listener hasn't fired yet.
         if (error.code === 'permission-denied') {
-            // console.log("Access denied by database. Forcing Maintenance Mode.");
             activateMaintenanceMode();
         } else {
-            // Handle other network errors
             const mainContent = document.querySelector('.main .container');
             if (mainContent) {
                 mainContent.innerHTML = `
@@ -245,53 +190,38 @@ async function loadPDFDatabase() {
         }
     }
 }
+
 function hidePreloader() {
     if (preloader) {
         preloader.classList.add('hidden');
     }
 }
 
+// --- Maintenance & Holidays ---
 function initMaintenanceListener() {
-    // 1. Define the Error Screen Element
-    const screen = document.getElementById('maintenanceScreen');
-
-    // 2. Start listening to Firestore
     db.collection('controll').doc('classNotes')
         .onSnapshot((doc) => {
             let isDown = false;
-
-            if (doc.exists) {
-                isDown = doc.data().isMaintenance === true;
-            }
-
-            if (isDown) {
-                activateMaintenanceMode();
-            } else {
-                deactivateMaintenanceMode();
-            }
+            if (doc.exists) isDown = doc.data().isMaintenance === true;
+            if (isDown) activateMaintenanceMode();
+            else deactivateMaintenanceMode();
         }, (error) => {
-            // If we can't connect to DB, assume it's actually broken (or maintenance)
             console.error("Connection failed:", error);
             activateMaintenanceMode();
         });
 }
 
 function activateMaintenanceMode() {
-    // console.log("System Status: CRITICAL");
-    isMaintenanceActive = true; // Set the flag
-
+    isMaintenanceActive = true;
     const screen = document.getElementById('maintenanceScreen');
     const mainContainer = document.querySelector('.main');
     const header = document.querySelector('header');
     const tabs = document.querySelector('.semester-tabs');
 
-    // 1. Show the overlay
     if (screen) {
         screen.classList.add('active');
         const timeSpan = document.getElementById('errorTime');
         if (timeSpan) timeSpan.innerText = new Date().toISOString();
-
-        // Check for admin (optional, based on your previous code)
         firebase.auth().onAuthStateChanged((user) => {
             if (user) {
                 const adminSection = document.getElementById('adminDiagnostics');
@@ -300,89 +230,56 @@ function activateMaintenanceMode() {
         });
     }
 
-    // 2. DATA WIPE: Clear the array from memory
     pdfDatabase = [];
-
-    // 3. DOM WIPE: Remove the actual cards from the screen
     if (pdfGrid) pdfGrid.innerHTML = '';
-
-    // 4. VISUAL HIDE: Hide the main interface elements
-    // We hide them instead of removing them so we can bring them back easily
     if (mainContainer) mainContainer.style.display = 'none';
     if (header) header.style.display = 'none';
     if (tabs) tabs.style.display = 'none';
-
     hidePreloader();
     document.body.style.overflow = 'hidden';
 }
 
 function deactivateMaintenanceMode() {
-    // console.log("System Status: OPERATIONAL");
-    isMaintenanceActive = false; // Unset the flag
-
+    isMaintenanceActive = false;
     const screen = document.getElementById('maintenanceScreen');
     const mainContainer = document.querySelector('.main');
     const header = document.querySelector('header');
     const tabs = document.querySelector('.semester-tabs');
 
-    // 1. Hide the error screen
-    if (screen) {
-        screen.classList.remove('active');
-    }
-
-    // 2. RESTORE VISUALS: Bring back the interface elements
+    if (screen) screen.classList.remove('active');
     if (mainContainer) mainContainer.style.display = 'block';
-    if (header) header.style.display = 'block'; // Check if your header is flex or block in CSS
+    if (header) header.style.display = 'block';
     if (tabs) tabs.style.display = 'block';
-
-    // 3. Unlock scrolling
     document.body.style.overflow = 'auto';
 
-    // 4. RELOAD DATA
-    // We check if the database is empty. If it is, we fetch data.
     if (pdfDatabase.length === 0) {
         if (preloader) preloader.classList.remove('hidden');
-
         loadPDFDatabase().then(() => {
             const urlParams = new URLSearchParams(window.location.search);
             const pdfId = urlParams.get('pdf');
             if (pdfId) {
                 const pdf = pdfDatabase.find(p => p.id == pdfId);
-                if (pdf) viewPDF(pdf);
+                // Don't push history on initial load
+                if (pdf) viewPDF(pdf, false);
             }
         });
     }
 }
 
 function checkHolidayMode() {
-    // Current date logic
     const today = new Date();
-    const month = today.getMonth(); // 0 = Jan, 11 = Dec
+    const month = today.getMonth();
     const date = today.getDate();
-
     const overlay = document.getElementById('holidayOverlay');
     const title = document.getElementById('holidayTitle');
     const msg = document.getElementById('holidayMessage');
     const sub = document.getElementById('holidaySubMessage');
 
-    // --- Configuration ---
-    // 1. Republic Day: Jan 26
     const isRepublicDay = (month === 0 && date === 26);
-
-    // 2. Independence Day: Aug 15
     const isIndependenceDay = (month === 7 && date === 15);
-
-    // 3. Holi: March 4, 2026 (Wednesday)
     const isHoli = (month === 2 && date === 4);
-
-    // 4. Diwali: Nov 8, 2026 (Sunday)
-    // We can show it for 2 days (Nov 8 & 9)
     const isDiwali = (month === 10 && (date === 8 || date === 9));
-
-    // Christmas: Dec 25
     const isChristmas = (month === 11 && date === 25);
-
-    // New Year: Dec 31 & Jan 1
     const isNewYear = (month === 11 && date === 31) || (month === 0 && date === 1);
 
     if (isRepublicDay || isIndependenceDay) {
@@ -393,65 +290,58 @@ function checkHolidayMode() {
         document.body.style.overflow = 'hidden';
         return true;
     }
-
     if (isHoli) {
         overlay.classList.remove('hidden');
         overlay.classList.add('holi');
         title.innerText = "Happy Holi!";
         msg.innerText = "Wishing you colors of joy, laughter, and peace this Holi.";
-        sub.innerText = "P.S: ClassNotes will return on March 5th. Have a colorful day!";
+        sub.innerText = "P.S: ClassNotes will return on March 5th.";
         document.body.style.overflow = 'hidden';
         return true;
     }
-
     if (isDiwali) {
         overlay.classList.remove('hidden');
         overlay.classList.add('diwali');
         title.innerText = "Happy Diwali";
-        msg.innerText = "Shubh Deepavali! May the festival of lights bring warmth, clarity, and new beginnings.";
-        sub.innerText = "P.S: ClassNotes will resume on Nov 10th. Enjoy the celebrations!";
+        msg.innerText = "Shubh Deepavali!";
+        sub.innerText = "P.S: ClassNotes will resume shortly.";
         document.body.style.overflow = 'hidden';
         return true;
     }
-
     if (isChristmas) {
         overlay.classList.remove('hidden');
         overlay.classList.add('christmas');
         title.innerText = "Merry Christmas";
-        msg.innerText = "Wishing you calm vibes, cozy moments, and lots of warmth with your friends and fam.";
-        sub.innerText = "P.S: ClassNotes will be back to normal on Dec 26th. Have a great & long day!";
+        msg.innerText = "Wishing you calm vibes and cozy moments.";
+        sub.innerText = "P.S: Back on Dec 26th.";
         document.body.style.overflow = 'hidden';
         return true;
-    }
-    else if (isNewYear) {
+    } else if (isNewYear) {
         overlay.classList.remove('hidden');
         overlay.classList.add('new-year');
         title.innerText = "Happy New Year";
-        msg.innerText = "Wishing you a year full of peace, clarity, and good energy. Take care and grow strong. Hope you have a great year ahead and don't forget Alok :)";
-        sub.innerText = "P.S: ClassNotes will be back to normal on Jan 2nd. Enjoy the break!";
+        msg.innerText = "Wishing you a year full of peace, clarity, and good energy.";
+        sub.innerText = "Enjoy the break!";
         document.body.style.overflow = 'hidden';
         return true;
     }
-
     return false;
 }
 
-
+// --- Initialization ---
 document.addEventListener('DOMContentLoaded', async function () {
-
     initTheme();
+    initSeasonalHeader();
+    updateSemesterTab();
 
     const isHoliday = checkHolidayMode();
     if (isHoliday) {
-        // Stop the loader from spinning forever behind the overlay
         hidePreloader();
-        return; // EXIT. Do not load PDFs, do not init listeners.
+        return;
     }
 
     initMaintenanceListener();
-
     loadSponsoredAds();
-
     await loadPDFDatabase();
     setupEventListeners();
     checkAlomolePromoState();
@@ -462,13 +352,14 @@ document.addEventListener('DOMContentLoaded', async function () {
         const pdf = pdfDatabase.find(p => p.id == pdfId);
         if (pdf) {
             currentSemester = pdf.semester;
+            // 2b. FIX: Save semester if loading from URL
+            localStorage.setItem('currentSemester', currentSemester);
             updateSemesterTab();
-            viewPDF(pdf);
+            // Don't push history on initial load
+            viewPDF(pdf, false);
         }
     }
 });
-
-
 
 function setupEventListeners() {
     searchInput.addEventListener('input', renderPDFs);
@@ -483,42 +374,36 @@ function setupEventListeners() {
 
     document.getElementById('closeModal').addEventListener('click', closePDFModal);
     document.getElementById('closeShareModal').addEventListener('click', closeShareModal);
-    // CHANGE: Listen to the new modalShareBtn
-    if (modalShareBtn) {
-        modalShareBtn.addEventListener('click', () => sharePDF());
-    }
+    if (modalShareBtn) modalShareBtn.addEventListener('click', () => sharePDF());
     document.getElementById('downloadBtn').addEventListener('click', downloadCurrentPDF);
     document.getElementById('copyLinkBtn').addEventListener('click', copyShareLink);
-
-    // NEW: Comment form submission
     commentForm.addEventListener('submit', handleCommentSubmit);
-
-    if (closeAlomolePromo) {
-        closeAlomolePromo.addEventListener('click', hideAlomolePromo);
-    }
+    if (closeAlomolePromo) closeAlomolePromo.addEventListener('click', hideAlomolePromo);
 
     pdfModal.addEventListener('click', function (e) {
         if (e.target === pdfModal) closePDFModal();
     });
-
     shareModal.addEventListener('click', function (e) {
         if (e.target === shareModal) closeShareModal();
     });
 
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
-            if (shareModal.classList.contains('active')) {
-                closeShareModal();
-            } else if (pdfModal.classList.contains('active')) {
-                closePDFModal();
-            }
+            if (shareModal.classList.contains('active')) closeShareModal();
+            else if (pdfModal.classList.contains('active')) closePDFModal();
+        }
+    });
+
+    // 4. FIX: Handle Browser Back Button for Modal
+    window.addEventListener('popstate', function (event) {
+        if (pdfModal.classList.contains('active')) {
+            _closeModalInternal();
         }
     });
 
     window.addEventListener('scroll', handleScroll);
     handleScroll();
 
-    // NEW: Go to Top Button Logic
     if (goToTopBtn) {
         window.addEventListener('scroll', handleGoToTopVisibility);
         goToTopBtn.addEventListener('click', () => {
@@ -528,13 +413,10 @@ function setupEventListeners() {
 }
 
 function checkAlomolePromoState() {
-    // Check sessionStorage instead of localStorage
     const isHiddenForSession = sessionStorage.getItem('hideAlomolePromoSession');
-
     if (alomolePromo && isHiddenForSession === 'true') {
         alomolePromo.classList.add('hidden');
     } else if (alomolePromo) {
-        // Ensure it is visible by default if the session flag is not set
         alomolePromo.classList.remove('hidden');
     }
 }
@@ -542,53 +424,38 @@ function checkAlomolePromoState() {
 function hideAlomolePromo() {
     if (alomolePromo) {
         alomolePromo.classList.add('hidden');
-        // Use sessionStorage to store the preference only for the current tab/session
         sessionStorage.setItem('hideAlomolePromoSession', 'true');
     }
 }
 
 function handleScroll() {
     const header = document.querySelector('.header');
-    if (window.scrollY > 0) {
-        header.classList.add('scrolled');
-    } else {
-        header.classList.remove('scrolled');
-    }
-
-    // NEW: Call the Go to Top handler here as well
-    if (goToTopBtn) {
-        handleGoToTopVisibility();
-    }
+    if (window.scrollY > 0) header.classList.add('scrolled');
+    else header.classList.remove('scrolled');
+    if (goToTopBtn) handleGoToTopVisibility();
 }
 
 /**
- * Converts a standard Google Drive sharing URL into an embeddable 'preview' URL.
- * @param {string} url The original URL from the database
- * @returns {string} The embeddable ('/preview') URL or the original URL
+ * 5. FIX: Universal PDF Link Handler
+ * - Google Drive -> /preview
+ * - Regular PDF -> Google Docs Viewer
  */
-function getGoogleDriveEmbedUrl(url) {
+function getEmbeddableUrl(url) {
     if (!url) return '';
-
-    // Regex to find the Google Drive file ID
-    // It looks for 'drive.google.com/file/d/' followed by the ID, and then a '/'
     const driveRegex = /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)\//;
     const match = url.match(driveRegex);
-
     if (match && match[1]) {
-        const fileId = match[1];
-        // Construct the embeddable 'preview' URL
-        return `https://drive.google.com/file/d/${fileId}/preview`;
+        return `https://drive.google.com/file/d/${match[1]}/preview`;
     }
-
-    // If it's not a matching GDrive link, return the original URL as-is
-    return url;
+    // Universal Viewer for non-Drive links
+    return `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(url)}`;
 }
 
-
-async function viewPDF(pdf) {
-    // Get the original URL from the PDF object
+/**
+ * 6. FIX: viewPDF with History Tracking
+ */
+async function viewPDF(pdf, pushToHistory = true) {
     const originalPdfPath = pdf.pdfUrl;
-
     logInteraction('view_pdf', pdf.title, pdf.id);
 
     if (!originalPdfPath) {
@@ -596,20 +463,27 @@ async function viewPDF(pdf) {
         return;
     }
 
-    const embeddablePdfPath = getGoogleDriveEmbedUrl(originalPdfPath);
-
+    const embeddablePdfPath = getEmbeddableUrl(originalPdfPath);
     modalTitle.textContent = pdf.title;
     pdfViewer.src = embeddablePdfPath;
     pdfModal.classList.add('active');
     document.body.style.overflow = 'hidden';
     pdfModal.dataset.currentPdf = JSON.stringify(pdf);
+
+    if (pushToHistory) {
+        const newUrl = `${window.location.pathname}?pdf=${pdf.id}`;
+        window.history.pushState({ modalOpen: true }, pdf.title, newUrl);
+        isModalHistoryPushed = true;
+    }
+
     await loadComments(pdf.id);
 }
 
+// 7. FIX: Semester Change with LocalStorage
 function handleSemesterChange(e) {
-    tabBtns.forEach(btn => btn.classList.remove('active'));
-    e.currentTarget.classList.add('active');
     currentSemester = parseInt(e.currentTarget.dataset.semester);
+    localStorage.setItem('currentSemester', currentSemester);
+    updateSemesterTab();
     renderPDFs();
 }
 
@@ -633,7 +507,6 @@ function renderPDFs() {
     const searchTerm = searchInput.value.toLowerCase();
     const favorites = getFavorites();
 
-    // Search Interaction Logging
     if (searchTerm.length > 2) {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
@@ -641,28 +514,23 @@ function renderPDFs() {
         }, 2000);
     }
 
-    // Filter Logic
     const filteredPdfs = pdfDatabase.filter(pdf => {
         const matchesSemester = pdf.semester === currentSemester;
         let matchesCategory = false;
-
         if (currentCategory === 'favorites') {
             matchesCategory = favorites.includes(pdf.id);
         } else {
             matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
         }
-
         const matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
             pdf.description.toLowerCase().includes(searchTerm) ||
             pdf.category.toLowerCase().includes(searchTerm) ||
             pdf.author.toLowerCase().includes(searchTerm);
-
         return matchesSemester && matchesCategory && matchesSearch;
     });
 
     updatePDFCount(filteredPdfs.length);
 
-    // Empty State
     if (filteredPdfs.length === 0) {
         pdfGrid.style.display = 'none';
         emptyState.style.display = 'block';
@@ -673,55 +541,30 @@ function renderPDFs() {
     emptyState.style.display = 'none';
 
     let gridHTML = "";
+    const AD_FREQUENCY = 4;
+    let adCounter = 1;
 
-    // --- SETTINGS ---
-    const AD_FREQUENCY = 4; // Show an ad after every 4th PDF
-    let adCounter = 1;      // Start counting from 1 (e.g., slot_grid_1)
-
-    // --- GENERATE GRID ---
     filteredPdfs.forEach((pdf, index) => {
         gridHTML += createPDFCard(pdf, favorites);
-
-        // Check if we should insert an ad here
         if ((index + 1) % AD_FREQUENCY === 0) {
-
-            // 1. Try to find a specific ad for this position (e.g., slot_grid_1)
             let adData = adDatabase[`slot_grid_${adCounter}`];
-
-            // 2. If specific ad is missing or inactive, Fallback to the generic 'slot_grid'
-            if (!adData || !adData.active) {
-                adData = adDatabase['slot_grid'];
-            }
-
-            // 3. Render whatever we found
-            if (adData && adData.active) {
-                gridHTML += createAdHTML(adData);
-            } else {
-                gridHTML += createFallbackHTML();
-            }
-
-            // 4. Increment counter for the next time (slot_grid_2)
+            if (!adData || !adData.active) adData = adDatabase['slot_grid'];
+            if (adData && adData.active) gridHTML += createAdHTML(adData);
+            else gridHTML += createFallbackHTML();
             adCounter++;
         }
     });
 
-    // Safety Net: Append ad at the end if list is short
     if (filteredPdfs.length < AD_FREQUENCY && filteredPdfs.length > 0) {
-        // Try slot_grid_1 first, then generic
         let adData = adDatabase['slot_grid_1'] || adDatabase['slot_grid'];
-
-        if (adData && adData.active) {
-            gridHTML += createAdHTML(adData);
-        } else {
-            gridHTML += createFallbackHTML();
-        }
+        if (adData && adData.active) gridHTML += createAdHTML(adData);
+        else gridHTML += createFallbackHTML();
     }
 
     pdfGrid.innerHTML = gridHTML;
 }
 
 function createPDFCard(pdf, favoritesList) {
-    // Default fallback if list isn't passed
     const favorites = favoritesList || getFavorites();
     const isFav = favorites.includes(pdf.id);
     const heartIconClass = isFav ? 'fas' : 'far';
@@ -732,77 +575,44 @@ function createPDFCard(pdf, favoritesList) {
         'Inorganic': 'fa-atom',
         'Physical': 'fa-calculator'
     };
-
     const categoryIcon = categoryIcons[pdf.category] || 'fa-file-pdf';
-
-    // Format Date
     const formattedDate = new Date(pdf.uploadDate).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
+        year: 'numeric', month: 'short', day: 'numeric'
     });
 
-    // Helper to safely highlight text matching the search term
     const escapeHtml = (text) => {
         if (!text) return '';
-        return text
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     };
 
     const highlightText = (text) => {
         const searchTerm = searchInput.value.trim();
         const safeText = escapeHtml(text);
-
         if (!searchTerm) return safeText;
-
-        // Create a regex for the search term (case insensitive)
         const regex = new RegExp(`(${searchTerm})`, 'gi');
         return safeText.replace(regex, '<span class="highlight">$1</span>');
     };
 
-    // We prepare the string, but we pass data attributes safely
-    // Note: We are using JSON.stringify for the viewPDF onclick, which is tricky.
-    // It is safer to attach the event listener in JS, but for now, we will encode quotes.
     const safePdfString = JSON.stringify(pdf).replace(/"/g, '&quot;');
 
     return `
         <div class="pdf-card" data-category="${pdf.category}">
             <div class="pdf-header">
-                <div class="pdf-icon">
-                    <i class="fas fa-file-pdf"></i>
-                </div>
-                <div class="pdf-info">
-                    <h3>${highlightText(pdf.title)}</h3>
-                </div>
+                <div class="pdf-icon"><i class="fas fa-file-pdf"></i></div>
+                <div class="pdf-info"><h3>${highlightText(pdf.title)}</h3></div>
             </div>
-
             <div class="pdf-meta">
-                <div class="pdf-category">
-                    <i class="fas ${categoryIcon}"></i>
-                    ${escapeHtml(pdf.category)}
-                </div>
-                <div class="pdf-date">
-                    <i class="fas fa-calendar"></i>
-                    ${formattedDate}
-                </div>
+                <div class="pdf-category"><i class="fas ${categoryIcon}"></i> ${escapeHtml(pdf.category)}</div>
+                <div class="pdf-date"><i class="fas fa-calendar"></i> ${formattedDate}</div>
             </div>
-
             <p class="pdf-description">${highlightText(pdf.description)}</p>
-
             <div class="pdf-actions">
                 <button class="btn btn-primary" onclick="viewPDF(${safePdfString})">
-                    <i class="fas fa-eye"></i>
-                    View
+                    <i class="fas fa-eye"></i> View
                 </button>
-                
                 <button class="btn btn-favorite ${btnActiveClass}" onclick="toggleFavorite(event, '${pdf.id}')" title="Save Note">
                     <i class="${heartIconClass} fa-heart"></i>
                 </button>
-
                 <button class="btn btn-secondary" id="shareBtn" onclick="sharePDF('${pdf.id}')">
                     <i class="fas fa-share-alt"></i>
                 </button>
@@ -815,79 +625,59 @@ function updatePDFCount(count) {
     pdfCount.textContent = count;
 }
 
-
-function closePDFModal() {
+// 8. FIX: Helper to close UI separate from history logic
+function _closeModalInternal() {
     pdfModal.classList.remove('active');
     pdfViewer.src = '';
     document.body.style.overflow = 'auto';
-
-    const url = new URL(window.location);
-    url.searchParams.delete('pdf');
-    window.history.replaceState({}, document.title, url);
+    isModalHistoryPushed = false;
 }
 
+function closePDFModal() {
+    if (isModalHistoryPushed) {
+        window.history.back(); // This triggers 'popstate', which calls _closeModalInternal
+    } else {
+        const url = new URL(window.location);
+        url.searchParams.delete('pdf');
+        window.history.replaceState({}, document.title, url);
+        _closeModalInternal();
+    }
+}
 
 function sharePDF(pdfId) {
     let pdf;
-
-    // Logic to find PDF (kept from your original code)
     if (typeof pdfId === 'string') {
         pdf = pdfDatabase.find(p => p.id === pdfId);
     } else if (pdfModal.dataset.currentPdf) {
         try { pdf = JSON.parse(pdfModal.dataset.currentPdf); } catch (e) { }
     }
-
     if (!pdf) return;
-
-    // const shareUrl = `${window.location.origin}${window.location.pathname}?pdf=${pdf.id}`;
     const shareUrl = `https://notes.alokdasofficial.in/?pdf=${pdf.id}`;
     const shareData = {
         title: `ClassNotes: ${pdf.title}`,
         text: `Check out this note: ${pdf.title} on ClassNotes`,
         url: shareUrl
     };
-
-    // 1. Try Native Share (Mobile)
     if (navigator.share) {
-        navigator.share(shareData)
-            .then(() => console.log('Shared successfully'))
-            .catch((err) => console.log('Error sharing:', err));
-    }
-    // 2. Fallback to your existing Modal (Desktop)
-    else {
-        showShareModal(pdf); // Your existing modal function
+        navigator.share(shareData).catch((err) => console.log('Error sharing:', err));
+    } else {
+        showShareModal(pdf);
     }
 }
 
-
 function showShareModal(pdfFromCard) {
     let pdf;
-
-    // Case 1: Called from the grid card (pdfFromCard is the PDF object from the home screen)
-    if (pdfFromCard && pdfFromCard.id) {
-        pdf = pdfFromCard;
-    }
-    // Case 2: Called from the modal's share button (no argument passed, so look in the dataset)
+    if (pdfFromCard && pdfFromCard.id) pdf = pdfFromCard;
     else if (pdfModal.dataset.currentPdf) {
-        // Parse the stored JSON string from the modal's dataset
-        try {
-            pdf = JSON.parse(pdfModal.dataset.currentPdf);
-        } catch (e) {
-            console.error("Error parsing current PDF data from modal dataset:", e);
-            return; // Stop if parsing fails
-        }
+        try { pdf = JSON.parse(pdfModal.dataset.currentPdf); } catch (e) { return; }
     }
-
     if (!pdf || !pdf.id) {
-        console.error("Could not find PDF data for sharing.");
-        showToast('Could not find PDF data for sharing.', 'error'); // <--- Added toast for user feedback
+        showToast('Could not find PDF data for sharing.', 'error');
         return;
     }
-
     const shareUrl = `https://notes.alokdasofficial.in/?pdf=${pdf.id}`;
     shareLink.value = shareUrl;
     shareModal.classList.add('active');
-
     document.getElementById('shareSuccess').style.display = 'none';
 }
 
@@ -898,27 +688,20 @@ function closeShareModal() {
 function copyShareLink() {
     shareLink.select();
     shareLink.setSelectionRange(0, 99999);
-
     try {
         document.execCommand('copy');
-
         const shareSuccess = document.getElementById('shareSuccess');
         shareSuccess.style.display = 'flex';
-
         showToast('Link copied to clipboard!');
-
-        setTimeout(() => {
-            shareSuccess.style.display = 'none';
-        }, 3000);
-
+        setTimeout(() => { shareSuccess.style.display = 'none'; }, 3000);
     } catch (err) {
         showToast('Failed to copy link', 'error');
     }
 }
 
+// 9. FIX: Download logic supporting Universal Links
 function downloadCurrentPDF() {
     if (!pdfModal.dataset.currentPdf) return;
-
     const pdf = JSON.parse(pdfModal.dataset.currentPdf);
     logInteraction('download', pdf.title, pdf.id);
     const originalPdfPath = pdf.pdfUrl;
@@ -929,145 +712,74 @@ function downloadCurrentPDF() {
     }
 
     let downloadUrl = originalPdfPath;
-
-    // 1. Convert Google Drive 'preview' or 'view' URL to a 'download' URL
     const driveRegex = /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)\//;
     const match = originalPdfPath.match(driveRegex);
 
     if (match) {
         const fileId = match[1];
-
-        // Use a slightly different download format: 'exports/download'
-        // This is functionally similar to 'uc?export=download' but can
-        // sometimes trick mobile browsers differently.
         downloadUrl = `https://drive.google.com/uc?id=${fileId}&export=download`;
+        showToast('Opening Google Drive... Click Download there.');
+    } else {
+        showToast('Download starting...');
     }
-
-    // 2. Trigger the download using window.open()
-    const downloadWindow = window.open(downloadUrl, '_blank');
-
-    showToast('PDF is opening in a new tab. Please use the download button inside Google Drive to download!');
-
-    // 3. Fallback/User Instruction Toast
-    // If the download fails or redirects, this instructs the user.
-    setTimeout(() => {
-        // You cannot detect if the download succeeded, so this provides context.
-        showToast("If download failed, try tapping 'Download' inside the new window.", 'error');
-    }, 5000);
+    window.open(downloadUrl, '_blank');
 }
-
 
 function showToast(message, type = 'success') {
     toastMessage.textContent = message;
-
-    if (type === 'error') {
-        toast.style.background = 'var(--error-color)';
-    } else {
-        toast.style.background = 'var(--success-color)';
-    }
-
+    if (type === 'error') toast.style.background = 'var(--error-color)';
+    else toast.style.background = 'var(--success-color)';
     toast.classList.add('show');
-
-    setTimeout(() => {
-        toast.classList.remove('show');
-    }, 3000);
+    setTimeout(() => { toast.classList.remove('show'); }, 3000);
 }
 
-// CopyRight
-// Set the initial year your project was first copyrighted
+// Copyright
 const START_YEAR = 2025;
-
-// Get the current year
 const CURRENT_YEAR = new Date().getFullYear();
-
-// Find the paragraph element by its ID
 const copyrightElement = document.getElementById('copyright-year');
-
-// Check if the element exists to prevent errors
 if (copyrightElement) {
-    // Build the year string dynamically
     let yearText = `© ${START_YEAR}`;
-
-    // If the current year is later than the start year, append the range
-    if (CURRENT_YEAR > START_YEAR) {
-        const twoDigitCurrentYear = CURRENT_YEAR.toString().slice(-2);
-        yearText += ` - ${twoDigitCurrentYear}`;
-    }
-
-    // Append the rest of your copyright text
+    if (CURRENT_YEAR > START_YEAR) yearText += ` - ${CURRENT_YEAR.toString().slice(-2)}`;
     yearText += ` ClassNotes. All rights reserved.`;
-
-    // Update the HTML content
     copyrightElement.innerHTML = yearText;
 }
 
-// --- Firebase Comment Functions ---
-
-/**
- * Loads and displays comments for a given PDF ID.
- * @param {number} pdfId 
- */
-
+// --- Comments System ---
 async function loadComments(pdfId) {
     const adSlot = document.getElementById('ad-slot-modal');
-    commentsList.innerHTML = ''; // Wipe list
-    if (adSlot) {
-        commentsList.appendChild(adSlot); // Put the ad back immediately
-    }
+    commentsList.innerHTML = '';
+    if (adSlot) commentsList.appendChild(adSlot);
     commentCount.textContent = '...';
 
     try {
         const commentsRef = db.collection('comments');
-
-        // PERMANENT FIX: The efficient, indexed query
         const snapshot = await commentsRef
             .where('pdfId', '==', pdfId)
-            .orderBy('timestamp', 'desc') // This is the line that requires the index
+            .orderBy('timestamp', 'desc')
             .get();
 
         const comments = [];
-        snapshot.forEach(doc => {
-            comments.push(doc.data());
-        });
-
+        snapshot.forEach(doc => comments.push(doc.data()));
         commentCount.textContent = comments.length;
-
-        // ... rest of the function for rendering comments ...
-        // Use 'comments' directly here, no need for the JS sort.
 
         if (comments.length === 0) {
             commentsList.innerHTML = '<p class="comment-text" style="text-align: center; color: var(--gray-400);">Be the first to comment!</p>';
             return;
         }
-
-        comments.forEach(comment => {
-            commentsList.appendChild(createCommentElement(comment));
-        });
-
+        comments.forEach(comment => commentsList.appendChild(createCommentElement(comment)));
     } catch (error) {
         console.error("Error loading comments:", error);
         commentCount.textContent = 'Error';
-        showToast('Error loading comments', 'error');
     }
 }
 
-
-/**
- * Creates the HTML element for a single comment.
- * @param {object} comment 
- * @returns {HTMLElement}
- */
 function createCommentElement(comment) {
     const item = document.createElement('div');
     item.className = 'comment-item';
-
     const author = comment.author || 'Anonymous';
     const date = new Date(comment.timestamp.toDate()).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
+        month: 'short', day: 'numeric', year: 'numeric'
     });
-
     item.innerHTML = `
         <div class="comment-header">
             <span class="comment-author">${author}</span>
@@ -1075,36 +787,18 @@ function createCommentElement(comment) {
         </div>
         <p class="comment-text">${comment.text}</p>
     `;
-
     return item;
 }
 
-/**
- * Handles the comment form submission.
- * @param {Event} e 
- */
 async function handleCommentSubmit(e) {
     e.preventDefault();
-
     const currentPdfData = pdfModal.dataset.currentPdf;
-    if (!currentPdfData) {
-        showToast('Could not find PDF context', 'error');
-        return;
-    }
-
+    if (!currentPdfData) { showToast('Could not find PDF context', 'error'); return; }
     const pdf = JSON.parse(currentPdfData);
     const text = commentInput.value.trim();
-    let author = commentAuthor.value.trim();
+    let author = commentAuthor.value.trim() || "Anonymous";
 
-    // Use a placeholder if author field is left empty
-    if (!author) {
-        author = "Anonymous";
-    }
-
-    if (text.length === 0) {
-        return; // Basic validation
-    }
-
+    if (text.length === 0) return;
     const submitBtn = document.getElementById('submitCommentBtn');
     submitBtn.disabled = true;
     const originalText = submitBtn.innerHTML;
@@ -1115,16 +809,12 @@ async function handleCommentSubmit(e) {
             pdfId: pdf.id,
             text: text,
             author: author,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp() // Use server timestamp
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
-
-        // Clear the form and reload comments
         commentInput.value = '';
         commentAuthor.value = '';
         await loadComments(pdf.id);
-
         showToast('Comment posted successfully!');
-
     } catch (error) {
         console.error("Error adding comment: ", error);
         showToast('Failed to post comment', 'error');
@@ -1134,77 +824,47 @@ async function handleCommentSubmit(e) {
     }
 }
 
-// Add close button dynamically inside header
-
 if (openCommentsBtn && commentSidebar) {
-    openCommentsBtn.addEventListener("click", () => {
-        commentSidebar.classList.add("active");
-    });
+    openCommentsBtn.addEventListener("click", () => commentSidebar.classList.add("active"));
 }
-
 if (closeCommentsBtn && commentSidebar) {
-    closeCommentsBtn.addEventListener("click", () => {
-        commentSidebar.classList.remove("active");
-    });
+    closeCommentsBtn.addEventListener("click", () => commentSidebar.classList.remove("active"));
 }
 
-// script.js - New Helper Functions
-
-// 1. Get list of favorite IDs from storage
+// --- Favorites ---
 function getFavorites() {
     const stored = localStorage.getItem('classNotesFavorites');
     return stored ? JSON.parse(stored) : [];
 }
 
-// 2. Handle the click on the heart icon
 function toggleFavorite(event, pdfId) {
-    // Stop the card click event (so it doesn't open the PDF modal)
     event.stopPropagation();
-
     let favorites = getFavorites();
-
     if (favorites.includes(pdfId)) {
-        // Remove if exists
         favorites = favorites.filter(id => id !== pdfId);
         showToast('Removed from saved notes');
     } else {
-        // Add if doesn't exist
         favorites.push(pdfId);
         showToast('Added to saved notes');
     }
-
-    // Save back to storage
     localStorage.setItem('classNotesFavorites', JSON.stringify(favorites));
-
-    // Re-render to update the UI (fill/unfill heart)
     renderPDFs();
 }
 
-// Theme
+// --- Theme ---
 function initTheme() {
     const toggleBtn = document.getElementById('themeToggleBtn');
     const icon = toggleBtn.querySelector('i');
     const html = document.documentElement;
-
-    // Check LocalStorage or System Preference
     const savedTheme = localStorage.getItem('theme');
     const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (savedTheme === 'dark' || (!savedTheme && systemDark)) applyTheme('dark', icon);
+    else applyTheme('light', icon);
 
-    // Apply Theme
-    if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
-        applyTheme('dark', icon);
-    } else {
-        applyTheme('light', icon);
-    }
-
-    // Toggle Listener
     toggleBtn.addEventListener('click', (e) => {
-        // Stop propagation if inside header to prevent other clicks
         e.stopPropagation();
-
         const currentTheme = html.getAttribute('data-theme');
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
         applyTheme(newTheme, icon);
         localStorage.setItem('theme', newTheme);
     });
@@ -1213,15 +873,113 @@ function initTheme() {
 function applyTheme(theme, icon) {
     const html = document.documentElement;
     html.setAttribute('data-theme', theme);
-
     if (theme === 'dark') {
         icon.classList.remove('fa-moon');
         icon.classList.add('fa-sun');
-        // Update meta theme-color for mobile browsers
         document.querySelector('meta[name="theme-color"]').setAttribute('content', '#121212');
     } else {
         icon.classList.remove('fa-sun');
         icon.classList.add('fa-moon');
         document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff');
     }
+}
+
+/* --- SEASONAL HEADER LOGIC --- */
+function initSeasonalHeader() {
+    const month = new Date().getMonth(); // 0 = Jan, 11 = Dec
+    const header = document.querySelector('.header');
+
+    if (!header) return;
+
+    let particleType = null;
+    let density = 400; // Default spawn rate (ms)
+
+    // 1. Winter: Dec, Jan, Feb
+    if (month === 11 || month === 0 || month === 1) {
+        particleType = 'snow';
+    }
+    // 2. Summer: Mar, Apr, May, June (Hot/Sunny)
+    else if (month >= 2 && month <= 5) {
+        particleType = 'summer';
+        density = 600; // Slower spawn for sun motes (less distracting)
+    }
+    // 3. Monsoon: July, Aug, Sept (Rain)
+    else if (month >= 6 && month <= 8) {
+        particleType = 'rain';
+        density = 80; // Fast spawn for heavy rain look
+    }
+    // 4. Autumn: Oct, Nov (Falling Leaves)
+    else if (month >= 9 && month <= 10) {
+        particleType = 'autumn';
+        density = 500;
+    }
+
+    if (!particleType) return;
+
+    // Start the animation loop
+    setInterval(() => {
+        spawnSeasonParticle(header, particleType);
+    }, density);
+}
+
+function spawnSeasonParticle(container, type) {
+    const el = document.createElement('div');
+    el.classList.add('season-particle');
+
+    // Random Horizontal Position (0% to 100%)
+    const leftPos = Math.random() * 100;
+    el.style.left = `${leftPos}%`;
+
+    if (type === 'snow') {
+        el.classList.add('snowflake');
+        el.innerHTML = '❄';
+        const size = Math.random() * 10 + 10; // 10px-20px
+        el.style.fontSize = `${size}px`;
+        el.style.animationDuration = `${Math.random() * 3 + 3}s`; // 3-6s fall
+    }
+    else if (type === 'summer') {
+        el.classList.add('sun-mote');
+        const size = Math.random() * 4 + 2; // 2px-6px dots
+        el.style.width = `${size}px`;
+        el.style.height = `${size}px`;
+        el.style.animationDuration = `${Math.random() * 4 + 4}s`; // Slow float up
+    }
+    else if (type === 'rain') {
+        el.classList.add('raindrop');
+
+        // Vary the height: some drops are closer (longer), some further (shorter)
+        const height = Math.random() * 15 + 15; // 15px to 30px
+        el.style.height = `${height}px`;
+
+        // Vary the width slightly for depth
+        el.style.width = Math.random() > 0.5 ? '2px' : '1px';
+
+        // Adjust fall speed: Taller drops (closer) fall faster
+        // Range: 0.8s (fast) to 1.3s (slightly slower)
+        const speed = Math.random() * 0.5 + 0.8;
+        el.style.animationDuration = `${speed}s`;
+
+        // Random slight transparency variation
+        el.style.opacity = Math.random() * 0.3 + 0.6; // 0.6 to 0.9 opacity
+    }
+    else if (type === 'autumn') {
+        el.classList.add('autumn-leaf');
+        const shapes = ['🍁', '🍂'];
+        const randomShape = shapes[Math.floor(Math.random() * shapes.length)];
+        el.innerHTML = randomShape;
+        el.style.fontSize = `${Math.random() * 10 + 10}px`;
+
+        // Random Autumn Colors (Orange, Brown, Red, Gold)
+        const colors = ['#eab308', '#f97316', '#ef4444', '#854d0e'];
+        el.style.color = colors[Math.floor(Math.random() * colors.length)];
+
+        el.style.animationDuration = `${Math.random() * 4 + 4}s`; // 4-8s sway
+    }
+
+    container.appendChild(el);
+
+    // Cleanup particles after they finish
+    setTimeout(() => {
+        el.remove();
+    }, 8000);
 }
