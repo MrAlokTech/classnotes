@@ -721,6 +721,7 @@ function inferLabelFromTitle(title) {
     if (t.includes("holiday")) return "holiday list";
     if (t.includes("time table") || t.includes("timetable")) return "timetable";
     if (t.includes("exam") || t.includes("question") || t.includes("QB") || t.includes("PYQ")) return "question paper";
+    if (t.includes("QB") || t.includes("question bank")) return "question bank";
     if (t.includes("assignment")) return "assignment";
 
     return "notes";
