@@ -1,3 +1,6 @@
+/* =========================================
+   1. GLOBAL VARIABLES & CONFIG
+   ========================================= */
 let pdfDatabase = [];
 let currentSemester = parseInt(localStorage.getItem('currentSemester')) || 2;
 let currentCategory = 'all';
@@ -6,7 +9,9 @@ let currentUserUID = null;
 let searchTimeout;
 let adDatabase = {};
 let isModalHistoryPushed = false;
+let db; // Defined globally, initialized later
 
+// DOM Elements
 const preloader = document.getElementById('preloader');
 const pdfGrid = document.getElementById('pdfGrid');
 const searchInput = document.getElementById('searchInput');
@@ -35,15 +40,89 @@ const maintenanceScreen = document.getElementById('maintenanceScreen');
 const openCommentsBtn = document.getElementById("openCommentsBtn");
 const closeCommentsBtn = document.getElementById("closeCommentsBtn");
 
-// --- Auth & Analytics ---
-firebase.auth().signInAnonymously()
-    .then((userCredential) => {
-        currentUserUID = userCredential.user.uid;
-        updateUserMetadata();
-    })
-    .catch((error) => {
-        console.error("Analytics Error:", error);
-    });
+/* =========================================
+   2. INITIALIZATION (OPTIMIZED)
+   ========================================= */
+document.addEventListener('DOMContentLoaded', async function () {
+    // 1. Wait for Firebase to load (deferred scripts)
+    if (typeof firebase === 'undefined') {
+        await new Promise(resolve => {
+            const check = setInterval(() => {
+                if (typeof firebase !== 'undefined') {
+                    clearInterval(check);
+                    resolve();
+                }
+            }, 50);
+        });
+    }
+
+    // 2. Initialize Firebase
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    db = firebase.firestore();
+
+    // 3. Start non-blocking tasks
+    initAuth();
+    initTheme();
+    initSeasonalHeader();
+    updateSemesterTab();
+    initMaintenanceListener();
+    initPrankEasterEgg();
+
+    // 4. Check Holiday (Synchronous check)
+    const isHoliday = checkHolidayMode();
+    if (isHoliday) {
+        hidePreloader();
+        return; // Stop loading data if holiday mode is full screen
+    }
+
+    // 5. Parallel Data Loading (The Performance Fix)
+    try {
+        await Promise.all([
+            loadSponsoredAds(),
+            loadPDFDatabase()
+        ]);
+    } catch (e) {
+        console.error("Data load error:", e);
+        // Ensure preloader hides even on error
+        hidePreloader();
+    }
+
+    // 6. Setup Interactions
+    setupEventListeners();
+    checkAlomolePromoState();
+
+    // 7. Handle Deep Links
+    const urlParams = new URLSearchParams(window.location.search);
+    const pdfId = urlParams.get('pdf');
+    if (pdfId) {
+        // Wait a tick to ensure data is ready
+        setTimeout(() => {
+            const pdf = pdfDatabase.find(p => p.id == pdfId);
+            if (pdf) {
+                currentSemester = pdf.semester;
+                localStorage.setItem('currentSemester', currentSemester);
+                updateSemesterTab();
+                viewPDF(pdf, false);
+            }
+        }, 100);
+    }
+});
+
+/* =========================================
+   3. AUTH & ANALYTICS
+   ========================================= */
+function initAuth() {
+    firebase.auth().signInAnonymously()
+        .then((userCredential) => {
+            currentUserUID = userCredential.user.uid;
+            updateUserMetadata();
+        })
+        .catch((error) => {
+            console.error("Auth/Analytics Error:", error);
+        });
+}
 
 function updateUserMetadata() {
     if (!currentUserUID) return;
@@ -89,7 +168,9 @@ function getSimpleDeviceName() {
     return "Other";
 }
 
-// --- UI Helpers ---
+/* =========================================
+   4. UI HELPERS & ADS
+   ========================================= */
 function handleGoToTopVisibility() {
     if (window.scrollY > 400) {
         goToTopBtn.classList.add('show');
@@ -98,7 +179,6 @@ function handleGoToTopVisibility() {
     }
 }
 
-// --- Ads System ---
 async function loadSponsoredAds() {
     try {
         const adsRef = db.collection('sponsors');
@@ -108,19 +188,14 @@ async function loadSponsoredAds() {
             adDatabase[doc.id] = doc.data();
         });
 
-        // Render static slots
         renderAdSlot('slot_top', 'ad-slot-top');
         renderAdSlot('slot_middle', 'ad-slot-middle');
         renderAdSlot('slot_modal', 'ad-slot-modal');
 
-        // NEW: Force the PDF grid to re-render now that ads are ready
-        // This fixes the issue where tabs show "Advertise Here" initially
-        if (pdfDatabase.length > 0) {
-            renderPDFs();
-        }
-
+        // Note: Grid ads are rendered by renderPDFs()
     } catch (error) {
-        console.error("Error loading ads:", error);
+        console.error("Error loading ads (blocker?):", error);
+        // Non-critical, continue
     }
 }
 
@@ -169,11 +244,26 @@ function createFallbackHTML() {
     `;
 }
 
-// --- Data Loading ---
+function getAdData(slotName) {
+    if (adDatabase[slotName] && adDatabase[slotName].active) {
+        return adDatabase[slotName];
+    }
+    if (adDatabase['slot_grid'] && adDatabase['slot_grid'].active) {
+        return adDatabase['slot_grid'];
+    }
+    const firstKey = Object.keys(adDatabase).find(k => adDatabase[k].active && k.includes('grid'));
+    if (firstKey) return adDatabase[firstKey];
+    return null;
+}
+
+/* =========================================
+   5. DATA LOADING
+   ========================================= */
 async function loadPDFDatabase() {
     if (isMaintenanceActive) return;
     try {
         const pdfsRef = db.collection('pdfs');
+        // Limit query size or pagination could be added here for further speed
         const snapshot = await pdfsRef.orderBy('uploadDate', 'desc').get();
         pdfDatabase = [];
         snapshot.forEach(doc => {
@@ -197,6 +287,7 @@ async function loadPDFDatabase() {
                 `;
             }
         }
+        hidePreloader(); // Ensure loader goes away even on error
     }
 }
 
@@ -206,7 +297,9 @@ function hidePreloader() {
     }
 }
 
-// --- Maintenance & Holidays ---
+/* =========================================
+   6. MAINTENANCE & HOLIDAYS
+   ========================================= */
 function initMaintenanceListener() {
     db.collection('controll').doc('classNotes')
         .onSnapshot((doc) => {
@@ -216,7 +309,7 @@ function initMaintenanceListener() {
             else deactivateMaintenanceMode();
         }, (error) => {
             console.error("Connection failed:", error);
-            activateMaintenanceMode();
+            // activateMaintenanceMode(); // Optional: Don't force maintenance on weak net
         });
 }
 
@@ -238,7 +331,6 @@ function activateMaintenanceMode() {
             }
         });
     }
-
     pdfDatabase = [];
     if (pdfGrid) pdfGrid.innerHTML = '';
     if (mainContainer) mainContainer.style.display = 'none';
@@ -262,22 +354,11 @@ function deactivateMaintenanceMode() {
     document.body.style.overflow = 'auto';
 
     if (pdfDatabase.length === 0) {
-        if (preloader) preloader.classList.remove('hidden');
-        // We re-run the full load sequence if needed
-        loadSponsoredAds().then(() => {
-            loadPDFDatabase().then(() => {
-                const urlParams = new URLSearchParams(window.location.search);
-                const pdfId = urlParams.get('pdf');
-                if (pdfId) {
-                    const pdf = pdfDatabase.find(p => p.id == pdfId);
-                    if (pdf) viewPDF(pdf, false);
-                }
-            });
-        });
+        // Reload if coming back from maintenance
+        loadPDFDatabase();
     }
 }
 
-// --- HOLIDAY GREETING LOGIC (WARM & FESTIVE) ---
 function checkHolidayMode() {
     const today = new Date();
     const month = today.getMonth(); // 0 = Jan, 11 = Dec
@@ -289,10 +370,10 @@ function checkHolidayMode() {
     const sub = document.getElementById('holidaySubMessage');
     const icon = document.getElementById('holidayIcon');
 
-    // Reset basics
+    if (!overlay) return false;
+
     overlay.className = 'holiday-overlay hidden';
 
-    // 1. Republic Day (Jan 26) or Independence Day (Aug 15)
     if ((month === 0 && date === 26) || (month === 7 && date === 15)) {
         overlay.classList.add('tricolor');
         icon.innerText = "🇮🇳";
@@ -302,51 +383,36 @@ function checkHolidayMode() {
         activateHoliday(overlay);
         return true;
     }
-
-    // 2. Holi (Approx Mar 14 in 2025)
-    if (month === 2 && date === 14) {
+    if (month === 2 && date === 14) { // Holi approx
         overlay.classList.add('holi');
         icon.innerText = "🎨";
         title.innerText = "Happy Holi!";
         msg.innerHTML = "May your life be as vibrant and colorful as the spectrum.";
-        sub.innerHTML = "Note: Reaction is highly exothermic (full of energy)! 🔥";
         activateHoliday(overlay);
         return true;
     }
-
-    // 3. Diwali (Approx Oct 20 in 2025)
-    if (month === 9 && date === 20) {
+    if (month === 9 && date === 20) { // Diwali approx
         overlay.classList.add('diwali');
         icon.innerText = "🪔";
         title.innerText = "Happy Diwali";
         msg.innerHTML = "Wishing you a festival full of light, warmth, and prosperity.";
-        sub.innerHTML = "Note: Shine brighter than a Magnesium ribbon today! ✨";
         activateHoliday(overlay);
         return true;
     }
-
-    // 4. Christmas (Dec 25)
     if (month === 11 && date === 25) {
         overlay.classList.add('christmas');
         icon.innerText = "🎄";
         title.innerText = "Merry Christmas";
-        msg.innerHTML = "Wishing you peace, joy, and cozy moments with family.";
-        sub.innerHTML = "Note: May your days be stable and your solutions clear. 🧪";
         activateHoliday(overlay);
         return true;
     }
-
-    // 5. New Year (Dec 31 - Jan 1)
     if ((month === 11 && date === 31) || (month === 0 && date === 1)) {
         overlay.classList.add('new-year');
         icon.innerText = "🥂";
         title.innerText = "Happy New Year!";
-        msg.innerHTML = "Here is to a fresh start and new opportunities.";
-        sub.innerHTML = "Note: Time to discover a new reaction mechanism for success! 🚀";
         activateHoliday(overlay);
         return true;
     }
-
     return false;
 }
 
@@ -355,41 +421,9 @@ function activateHoliday(overlay) {
     document.body.style.overflow = 'hidden';
 }
 
-// --- Initialization ---
-document.addEventListener('DOMContentLoaded', async function () {
-    initTheme();
-    initSeasonalHeader();
-    updateSemesterTab();
-
-    const isHoliday = checkHolidayMode();
-    if (isHoliday) {
-        hidePreloader();
-        return;
-    }
-
-    initMaintenanceListener();
-    initPrankEasterEgg();
-
-    // FIX: Await ads BEFORE loading PDFs to ensure grid ads appear on all tabs
-    await loadSponsoredAds();
-    await loadPDFDatabase();
-
-    setupEventListeners();
-    checkAlomolePromoState();
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const pdfId = urlParams.get('pdf');
-    if (pdfId) {
-        const pdf = pdfDatabase.find(p => p.id == pdfId);
-        if (pdf) {
-            currentSemester = pdf.semester;
-            localStorage.setItem('currentSemester', currentSemester);
-            updateSemesterTab();
-            viewPDF(pdf, false);
-        }
-    }
-});
-
+/* =========================================
+   7. EVENT LISTENERS
+   ========================================= */
 function setupEventListeners() {
     searchInput.addEventListener('input', renderPDFs);
 
@@ -429,14 +463,23 @@ function setupEventListeners() {
         }
     });
 
-    window.addEventListener('scroll', handleScroll);
+    // Passive listeners for performance
+    window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
 
     if (goToTopBtn) {
-        window.addEventListener('scroll', handleGoToTopVisibility);
+        window.addEventListener('scroll', handleGoToTopVisibility, { passive: true });
         goToTopBtn.addEventListener('click', () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
+    }
+
+    // Sidebar
+    if (openCommentsBtn && commentSidebar) {
+        openCommentsBtn.addEventListener("click", () => commentSidebar.classList.add("active"));
+    }
+    if (closeCommentsBtn && commentSidebar) {
+        closeCommentsBtn.addEventListener("click", () => commentSidebar.classList.remove("active"));
     }
 }
 
@@ -463,6 +506,9 @@ function handleScroll() {
     if (goToTopBtn) handleGoToTopVisibility();
 }
 
+/* =========================================
+   8. PDF LOGIC
+   ========================================= */
 function getEmbeddableUrl(url) {
     if (!url) return '';
     const driveRegex = /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)\//;
@@ -521,23 +567,6 @@ function updateSemesterTab() {
     });
 }
 
-// Helper to safely get ad data (Checks specific slot -> Generic slot -> First available)
-function getAdData(slotName) {
-    // 1. Try specific slot (e.g., slot_grid_1)
-    if (adDatabase[slotName] && adDatabase[slotName].active) {
-        return adDatabase[slotName];
-    }
-    // 2. Try generic slot (slot_grid)
-    if (adDatabase['slot_grid'] && adDatabase['slot_grid'].active) {
-        return adDatabase['slot_grid'];
-    }
-    // 3. Fallback: Return ANY active ad from the database to avoid empty boxes
-    const firstKey = Object.keys(adDatabase).find(k => adDatabase[k].active && k.includes('grid'));
-    if (firstKey) return adDatabase[firstKey];
-
-    return null;
-}
-
 function renderPDFs() {
     const searchTerm = searchInput.value.toLowerCase();
     const favorites = getFavorites();
@@ -582,7 +611,6 @@ function renderPDFs() {
     filteredPdfs.forEach((pdf, index) => {
         gridHTML += createPDFCard(pdf, favorites);
 
-        // Insert Ad every 4 items
         if ((index + 1) % AD_FREQUENCY === 0) {
             const adData = getAdData(`slot_grid_${adCounter}`);
             if (adData) {
@@ -594,16 +622,11 @@ function renderPDFs() {
         }
     });
 
-    // Logic for short lists (like Semester 2 with 1 item)
-    // We insert an ad at the end if the list is short (< 4) AND not empty
     if (filteredPdfs.length < AD_FREQUENCY && filteredPdfs.length > 0) {
-        // Forcefully try to get slot_grid_1 or generic
         const adData = getAdData('slot_grid_1');
-
         if (adData) {
             gridHTML += createAdHTML(adData);
         } else {
-            // Only show fallback if we are SURE there are no ads loaded
             gridHTML += createFallbackHTML();
         }
     }
@@ -788,7 +811,9 @@ if (copyrightElement) {
     copyrightElement.innerHTML = yearText;
 }
 
-// --- Comments System ---
+/* =========================================
+   9. COMMENTS
+   ========================================= */
 async function loadComments(pdfId) {
     const adSlot = document.getElementById('ad-slot-modal');
     commentsList.innerHTML = '';
@@ -868,14 +893,9 @@ async function handleCommentSubmit(e) {
     }
 }
 
-if (openCommentsBtn && commentSidebar) {
-    openCommentsBtn.addEventListener("click", () => commentSidebar.classList.add("active"));
-}
-if (closeCommentsBtn && commentSidebar) {
-    closeCommentsBtn.addEventListener("click", () => commentSidebar.classList.remove("active"));
-}
-
-// --- Favorites ---
+/* =========================================
+   10. EXTRAS (THEME, FAVORITES, EASTER EGGS)
+   ========================================= */
 function getFavorites() {
     const stored = localStorage.getItem('classNotesFavorites');
     return stored ? JSON.parse(stored) : [];
@@ -895,7 +915,6 @@ function toggleFavorite(event, pdfId) {
     renderPDFs();
 }
 
-// --- Theme ---
 function initTheme() {
     const toggleBtn = document.getElementById('themeToggleBtn');
     const icon = toggleBtn.querySelector('i');
@@ -928,7 +947,6 @@ function applyTheme(theme, icon) {
     }
 }
 
-/* --- SEASONAL HEADER LOGIC --- */
 function initSeasonalHeader() {
     const month = new Date().getMonth();
     const header = document.querySelector('.header');
@@ -984,11 +1002,16 @@ function spawnSeasonParticle(container, type) {
     }
     else if (type === 'rain') {
         el.classList.add('raindrop');
+        const shapes = ['💧'];
+        const randomShape = shapes[Math.floor(Math.random() * shapes.length)];
+        el.innerHTML = randomShape;
+        el.style.fontSize = `${Math.random() * 10 + 10}px`;
+        const colors = ['#eab308', '#f97316', '#ef4444', '#854d0e'];
+        el.style.color = colors[Math.floor(Math.random() * colors.length)];
+        el.style.animationDuration = `${Math.random() * .5 + 4}s`;
         const height = Math.random() * 15 + 15;
         el.style.height = `${height}px`;
         el.style.width = Math.random() > 0.5 ? '2px' : '1px';
-        const speed = Math.random() * 0.5 + 0.8;
-        el.style.animationDuration = `${speed}s`;
         el.style.opacity = Math.random() * 0.3 + 0.6;
     }
     else if (type === 'autumn') {
@@ -1009,9 +1032,8 @@ function spawnSeasonParticle(container, type) {
     }, 8000);
 }
 
-// --- HILARIOUS EASTER EGG LOGIC ---
 function initPrankEasterEgg() {
-    const logo = document.querySelector('.logo'); // The ClassNotes Logo
+    const logo = document.querySelector('.logo');
     const overlay = document.getElementById('prankOverlay');
     const textEl = document.getElementById('prankText');
     const barEl = document.getElementById('prankProgress');
@@ -1022,11 +1044,10 @@ function initPrankEasterEgg() {
     let clickCount = 0;
     let clickTimer;
 
-    logo.style.cursor = "pointer"; // Make it clickable
-    logo.title = "Do not click 5 times..."; // Subtle hint
+    logo.style.cursor = "pointer";
+    logo.title = "Do not click 5 times...";
 
     logo.addEventListener('click', (e) => {
-        // Prevent default navigation if they are just clicking rapidly
         if (clickCount > 0) e.preventDefault();
 
         clickCount++;
@@ -1034,10 +1055,10 @@ function initPrankEasterEgg() {
         clearTimeout(clickTimer);
         clickTimer = setTimeout(() => {
             clickCount = 0;
-        }, 800); // Reset if they stop clicking
+        }, 800);
 
         if (clickCount === 5) {
-            e.preventDefault(); // Stop the logo from taking them Home
+            e.preventDefault();
             triggerPrank(overlay, textEl, barEl, closeBtn);
             clickCount = 0;
         }
@@ -1045,7 +1066,6 @@ function initPrankEasterEgg() {
 
     closeBtn.addEventListener('click', () => {
         overlay.classList.remove('active');
-        // Reset for next time
         setTimeout(() => {
             textEl.innerText = "> INITIALIZING...";
             barEl.style.width = "0%";
@@ -1063,20 +1083,21 @@ function triggerPrank(overlay, textEl, barEl, closeBtn) {
         { text: "> ACCESSING 'EXAM_PAPERS.PDF'...", progress: 60, delay: 2000 },
         { text: "> DOWNLOADING ANSWERS...", progress: 85, delay: 3500 },
         { text: "> DECRYPTING...", progress: 99, delay: 5000 },
-        { text: "❌ ERROR: SHORTCUT NOT FOUND.<br>System requires 'HARD WORK' to proceed.<br>Nice try B!TC#! 😂", progress: 0, delay: 6500, isFinal: true }
+        // { text: "❌ ERROR: SHORTCUT NOT FOUND.<br>System requires 'HARD WORK' to proceed.<br>Nice try B!TC#! 😂", progress: 0, delay: 6500, isFinal: true }
+        { text: "Nice try B!TC#! 😂", progress: 0, delay: 6500, isFinal: true }
     ];
 
     steps.forEach(step => {
         setTimeout(() => {
             if (step.isFinal) {
                 textEl.innerHTML = step.text;
-                textEl.style.color = "#ff4444"; // Change to red for error
+                textEl.style.color = "#ff4444";
                 textEl.style.textShadow = "0 0 5px #ff4444";
-                barEl.parentElement.style.display = "none"; // Hide bar
-                closeBtn.classList.remove('hidden'); // Show close button
+                barEl.parentElement.style.display = "none";
+                closeBtn.classList.remove('hidden');
             } else {
                 textEl.innerText = step.text;
-                textEl.style.color = "#0f0"; // Reset green
+                textEl.style.color = "#0f0";
                 barEl.parentElement.style.display = "block";
                 barEl.style.width = step.progress + "%";
             }

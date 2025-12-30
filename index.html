@@ -8,31 +8,35 @@
       ClassNotes ~ MSc Chemistry | Rabindranath Tagore University (RTV)
     </title>
 
-    <!-- Favicon -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://firestore.googleapis.com" />
+    <link rel="preconnect" href="https://www.google-analytics.com" />
+
     <link rel="icon" type="image/svg+xml" href="icon.svg" />
     <link rel="apple-touch-icon" href="icon.svg" />
     <meta name="theme-color" content="#2563eb" />
-    <!-- Custom TabBar Color -->
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Bangers&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
 
-    <!-- Fonts & Icons -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
+      rel="preload"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      as="style"
+      onload="this.onload=null;this.rel='stylesheet'"
     />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      />
+    </noscript>
+
     <link rel="stylesheet" href="style.css" />
 
-    <!-- SEO Meta -->
     <meta
       name="description"
       content="Access all MSc Chemistry ClassNotes for Rabindranath Tagore University (RTV) in one place. Curated and organized by Alok Das."
@@ -46,8 +50,6 @@
       name="robots"
       content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"
     />
-
-    <!-- Open Graph / Facebook -->
     <meta property="og:title" content="ClassNotes ~ MSc Chemistry | RTV" />
     <meta
       property="og:description"
@@ -60,8 +62,6 @@
       content="https://notes.alokdasofficial.in/preview.jpg"
     />
     <meta property="og:site_name" content="ClassNotes" />
-
-    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="ClassNotes ~ MSc Chemistry | RTV" />
     <meta
@@ -73,34 +73,19 @@
       content="https://notes.alokdasofficial.in/preview.jpg"
     />
     <meta name="twitter:creator" content="@alokdasofficial" />
-
-    <!-- Canonical URL -->
     <link rel="canonical" href="https://notes.alokdasofficial.in/" />
-
-    <!-- Ads -->
-    <script
-      async
-      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6067845249311724"
-      crossorigin="anonymous"
-    ></script>
   </head>
 
   <body>
-    <!-- Holiday GRID -->
     <div id="holidayOverlay" class="holiday-overlay hidden">
       <div id="holidayBgAnim" class="holiday-bg-anim"></div>
-
       <div class="glass-card">
         <div class="holiday-icon-wrapper">
           <div id="holidayIcon" class="holiday-emoji">✨</div>
         </div>
-
         <h1 id="holidayTitle">Happy Holidays</h1>
-
         <div class="holiday-divider"></div>
-
         <p id="holidayMessage">Wishing you a wonderful break!</p>
-
         <p id="holidaySubMessage" class="chem-note">
           ( Chemistry Note: Take a break from the Periodic Table )
         </p>
@@ -165,7 +150,7 @@
         </div>
       </div>
     </div>
-    <!-- Loader Starts-->
+
     <div id="preloader">
       <div class="book">
         <div class="inner">
@@ -196,9 +181,6 @@
       </div>
       <p class="loader-text">Loading <span>ClassNotes</span></p>
     </div>
-
-    <!-- Loader End -->
-
     <header class="header">
       <div class="container">
         <div class="header-content">
@@ -206,11 +188,11 @@
             <i class="fas fa-graduation-cap"></i>
             <h1>ClassNotes</h1>
           </div>
-
           <button
             id="themeToggleBtn"
             class="btn-icon theme-toggle"
             title="Toggle Dark Mode"
+            aria-label="Toggle Dark Mode"
           >
             <i class="fas fa-moon"></i>
           </button>
@@ -222,20 +204,20 @@
       <div class="container">
         <div class="tabs-wrapper">
           <button class="tab-btn" data-semester="1">
-            <span class="tab-number">1</span>
-            <span class="tab-label">Semester</span>
+            <span class="tab-number">1</span
+            ><span class="tab-label">Semester</span>
           </button>
           <button class="tab-btn active" data-semester="2">
-            <span class="tab-number">2</span>
-            <span class="tab-label">Semester</span>
+            <span class="tab-number">2</span
+            ><span class="tab-label">Semester</span>
           </button>
           <button class="tab-btn" data-semester="3">
-            <span class="tab-number">3</span>
-            <span class="tab-label">Semester</span>
+            <span class="tab-number">3</span
+            ><span class="tab-label">Semester</span>
           </button>
           <button class="tab-btn" data-semester="4">
-            <span class="tab-number">4</span>
-            <span class="tab-label">Semester</span>
+            <span class="tab-number">4</span
+            ><span class="tab-label">Semester</span>
           </button>
         </div>
       </div>
@@ -258,30 +240,33 @@
           </div>
           <div class="filter-section">
             <button class="filter-btn active" data-category="all">
-              <i class="fas fa-th"></i>
-              All
+              <i class="fas fa-th"></i> All
             </button>
-            <button class="filter-btn" data-category="favorites">
+            <button
+              class="filter-btn"
+              data-category="favorites"
+              aria-label="Favorites"
+            >
               <i class="fas fa-heart"></i>
             </button>
-            <button class="filter-btn" data-category="General">
+            <button
+              class="filter-btn"
+              data-category="General"
+              aria-label="General"
+            >
               <i class="fas fa-gift"></i>
             </button>
             <button class="filter-btn" data-category="Organic">
-              <i class="fas fa-flask"></i>
-              Organic
+              <i class="fas fa-flask"></i> Organic
             </button>
             <button class="filter-btn" data-category="Inorganic">
-              <i class="fas fa-atom"></i>
-              Inorganic
+              <i class="fas fa-atom"></i> Inorganic
             </button>
             <button class="filter-btn" data-category="Physical">
-              <i class="fas fa-calculator"></i>
-              Physical
+              <i class="fas fa-calculator"></i> Physical
             </button>
             <button class="filter-btn" data-category="Physics">
-              <i class="fas fa-infinity"></i>
-              Physics
+              <i class="fas fa-infinity"></i> Physics
             </button>
           </div>
           <div id="ad-slot-middle" class="ad-slot-container"></div>
@@ -291,9 +276,7 @@
           <span id="pdfCount">0</span> notes available
         </div>
 
-        <div class="pdf-grid" id="pdfGrid">
-          <!-- PDF cards will be dynamically generated here -->
-        </div>
+        <div class="pdf-grid" id="pdfGrid"></div>
 
         <div class="empty-state" id="emptyState" style="display: none">
           <i class="fas fa-folder-open"></i>
@@ -303,15 +286,12 @@
       </div>
     </main>
 
-    <!-- PDF Viewer Modal -->
     <div class="modal" id="pdfModal">
       <div class="modal-content pdf-viewer-layout">
         <div class="modal-main-content">
-          <!-- Mobile Comments Button -->
           <button id="openCommentsBtn">
             <i class="fas fa-comment-dots"></i> Comments
           </button>
-
           <div class="modal-header">
             <h3 id="modalTitle">PDF Viewer</h3>
             <div class="modal-actions">
@@ -327,10 +307,15 @@
             </div>
           </div>
           <div class="modal-body">
-            <iframe id="pdfViewer" src="" width="100%" height="100%"></iframe>
+            <iframe
+              id="pdfViewer"
+              src=""
+              width="100%"
+              height="100%"
+              loading="lazy"
+            ></iframe>
           </div>
         </div>
-
         <div class="modal-sidebar" id="commentSidebar">
           <h4>
             <span>Comments (<span id="commentCount">0</span>)</span>
@@ -341,7 +326,6 @@
           <div class="comments-list" id="commentsList">
             <div id="ad-slot-modal" class="ad-slot-container mb-4"></div>
           </div>
-
           <form class="comment-form" id="commentForm">
             <textarea
               id="commentInput"
@@ -356,15 +340,13 @@
               maxlength="50"
             />
             <button type="submit" class="btn btn-primary" id="submitCommentBtn">
-              <i class="fas fa-paper-plane"></i>
-              Send
+              <i class="fas fa-paper-plane"></i> Send
             </button>
           </form>
         </div>
       </div>
     </div>
 
-    <!-- Share Modal -->
     <div class="modal" id="shareModal">
       <div class="modal-content share-modal">
         <div class="modal-header">
@@ -378,18 +360,16 @@
           <div class="share-link-container">
             <input type="text" id="shareLink" readonly />
             <button class="btn btn-primary" id="copyLinkBtn">
-              <i class="fas fa-clone"></i>
-              Copy
+              <i class="fas fa-clone"></i> Copy
             </button>
           </div>
           <div class="share-success" id="shareSuccess" style="display: none">
-            <i class="fas fa-check"></i>
-            Link copied to clipboard!
+            <i class="fas fa-check"></i> Link copied to clipboard!
           </div>
         </div>
       </div>
     </div>
-    <!-- App Promotion -->
+
     <div class="alomole-promo" id="alomolePromo">
       <button
         class="promo-close-btn"
@@ -402,32 +382,40 @@
         href="https://play.google.com/store/apps/details?id=com.alokdas.alomole"
         target="_blank"
         class="promo-link"
-        title="Download Alomole ~ Your Chemistry companion"
+        title="Download Alomole"
       >
         <img
           src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https://play.google.com/store/apps/details?id=com.alokdas.alomole"
-          alt="Download Alomole ~ Your Chemistry companion"
+          alt="QR"
           loading="lazy"
+          width="100"
+          height="100"
         />
-        <!-- Heading Text -->
         <span class="promo-text">Alomole</span>
-        <!-- Body Text -->
         <span class="promo-text-body">Download Now!</span>
       </a>
     </div>
 
-    <!-- Toast Notification -->
     <div class="toast" id="toast">
       <i class="fas fa-check"></i>
       <span id="toastMessage">Action completed!</span>
     </div>
 
-    <button class="btn-icon go-to-top" id="goToTopBtn" title="Go to top">
+    <button
+      class="btn-icon go-to-top"
+      id="goToTopBtn"
+      title="Go to top"
+      aria-label="Top"
+    >
       <i class="fas fa-arrow-up"></i>
     </button>
-    <a href="/upload/" class="btn-icon upload-btn" title="Upload Note's">
-      <i class="fa-solid fa-cloud-arrow-up"></i>
-    </a>
+    <a
+      href="/upload/"
+      class="btn-icon upload-btn"
+      title="Upload Note's"
+      aria-label="Upload"
+      ><i class="fa-solid fa-cloud-arrow-up"></i
+    ></a>
 
     <footer>
       <div class="footer-content">
@@ -462,19 +450,30 @@
           <div id="prankProgress" class="prank-progress-fill"></div>
         </div>
         <button id="closePrankBtn" class="prank-close-btn hidden">
-          Okay, I'll go study 😭
+          Okay, I'm Done 😭
         </button>
       </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script
+      src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"
+      defer
+    ></script>
+    <script
+      src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"
+      defer
+    ></script>
+    <script
+      src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"
+      defer
+    ></script>
+
     <script>
       document.getElementById("errorTime").innerText = new Date().toISOString();
     </script>
 
     <script>
+      // Init config variable but wait for library to load
       const firebaseConfig = {
         apiKey: "AIzaSyAf9MEc8495GUwWHZsE4HcvJvbtptkBfQc",
         authDomain: "alokdasofficial-69f96.firebaseapp.com",
@@ -484,11 +483,9 @@
         appId: "1:315463239297:web:c374126286d9b33f3f2f80",
         measurementId: "G-QPXHCK0R2E",
       };
-
-      // Initialize Firebase
-      firebase.initializeApp(firebaseConfig);
-      const db = firebase.firestore();
+      // Actual initialization moved to script.js event listener
     </script>
+
     <script src="script.js" defer></script>
   </body>
 </html>

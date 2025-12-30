@@ -1327,6 +1327,7 @@ input:focus-visible {
   transform-origin: 2px 2px;
   transform: rotateZ(-90deg);
   animation: book var(--duration) ease infinite;
+  will-change: transform;
 }
 .book .inner .left,
 .book .inner .right {
@@ -2979,14 +2980,14 @@ input:focus-visible {
 
 /* 3. MONSOON: RAIN */
 .raindrop {
-  background: linear-gradient(to bottom, transparent, var(--primary-color));
-  width: 10px;
+  /* background: linear-gradient(to bottom, transparent, var(--primary-color));
+  width: 1px;
   height: 20px;
-  border-radius: 4px;
+  border-radius: 4px; */
   top: -30px;
   opacity: 0.8;
   animation: rainFall linear forwards;
-  will-change: transform;
+  /* will-change: transform; */
 }
 
 @keyframes rainFall {
