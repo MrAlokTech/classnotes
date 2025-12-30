@@ -713,26 +713,72 @@ function closePDFModal() {
     }
 }
 
+// SHARE PDF
+function inferLabelFromTitle(title) {
+    const t = title.toLowerCase();
+
+    if (t.includes("syllabus")) return "syllabus";
+    if (t.includes("holiday")) return "holiday list";
+    if (t.includes("time table") || t.includes("timetable")) return "timetable";
+    if (t.includes("exam") || t.includes("question") || t.includes("QB") || t.includes("PYQ")) return "question paper";
+    if (t.includes("assignment")) return "assignment";
+
+    return "notes";
+}
+
+function isWeakTitle(title) {
+    const t = title.toLowerCase().trim();
+
+    // single-word or role-based titles
+    if (t.split(" ").length <= 1) return true;
+
+    // teacher-name patterns
+    if (t.includes("sir") || t.includes("ma'am") || t.includes("mam"))
+        return true;
+
+    return false;
+}
+
+function buildShareText(title, label) {
+    if (isWeakTitle(title)) {
+        return `Check out these ${label} on ClassNotes`;
+    }
+
+    return `Check out these ${label}: ${title} on ClassNotes`;
+}
+
 function sharePDF(pdfId) {
     let pdf;
+
     if (typeof pdfId === 'string') {
         pdf = pdfDatabase.find(p => p.id === pdfId);
     } else if (pdfModal.dataset.currentPdf) {
-        try { pdf = JSON.parse(pdfModal.dataset.currentPdf); } catch (e) { }
+        try {
+            pdf = JSON.parse(pdfModal.dataset.currentPdf);
+        } catch (e) { }
     }
+
     if (!pdf) return;
+
     const shareUrl = `https://notes.alokdasofficial.in/?pdf=${pdf.id}`;
+    const label = inferLabelFromTitle(pdf.title);
+    const text = buildShareText(pdf.title, label);
+
     const shareData = {
-        title: `ClassNotes: ${pdf.title}`,
-        text: `Check out this note: ${pdf.title} on ClassNotes`,
+        title: `ClassNotes · ${pdf.title}`,
+        text,
         url: shareUrl
     };
+
     if (navigator.share) {
-        navigator.share(shareData).catch((err) => console.log('Error sharing:', err));
+        navigator.share(shareData).catch(err =>
+            console.log('Error sharing:', err)
+        );
     } else {
         showShareModal(pdf);
     }
 }
+
 
 function showShareModal(pdfFromCard) {
     let pdf;
