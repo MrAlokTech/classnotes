@@ -78,12 +78,24 @@
 
   <body>
     <div id="holidayOverlay" class="holiday-overlay hidden">
+      <canvas id="holidayConfetti"></canvas>
       <div id="holidayBgAnim" class="holiday-bg-anim"></div>
       <div class="glass-card">
         <div class="holiday-icon-wrapper">
           <div id="holidayIcon" class="holiday-emoji">✨</div>
         </div>
         <h1 id="holidayTitle">Happy Holidays</h1>
+
+        <div id="overlayTimer" class="overlay-timer hidden">
+          <div class="ot-box"><span id="otDays">00</span><small>d</small></div>
+          <div class="ot-sep">:</div>
+          <div class="ot-box"><span id="otHours">00</span><small>h</small></div>
+          <div class="ot-sep">:</div>
+          <div class="ot-box"><span id="otMins">00</span><small>m</small></div>
+          <div class="ot-sep">:</div>
+          <div class="ot-box"><span id="otSecs">00</span><small>s</small></div>
+        </div>
+
         <div class="holiday-divider"></div>
         <p id="holidayMessage">Wishing you a wonderful break!</p>
         <p id="holidaySubMessage" class="chem-note">
@@ -298,6 +310,14 @@
               <button class="btn-icon" id="modalShareBtn" title="Share PDF">
                 <i class="fas fa-share-alt"></i>
               </button>
+              <button
+                class="btn-icon"
+                id="reportBtn"
+                title="Report Issue"
+                style="color: var(--error-color)"
+              >
+                <i class="fas fa-flag"></i>
+              </button>
               <button class="btn-icon" id="downloadBtn" title="Download PDF">
                 <i class="fas fa-download"></i>
               </button>
@@ -467,6 +487,8 @@
       src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"
       defer
     ></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
     <script>
       document.getElementById("errorTime").innerText = new Date().toISOString();

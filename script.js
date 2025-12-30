@@ -69,6 +69,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     updateSemesterTab();
     initMaintenanceListener();
     initPrankEasterEgg();
+    initNewYearCountdown();
 
     // 4. Check Holiday (Synchronous check)
     const isHoliday = checkHolidayMode();
@@ -114,14 +115,25 @@ document.addEventListener('DOMContentLoaded', async function () {
    3. AUTH & ANALYTICS
    ========================================= */
 function initAuth() {
-    firebase.auth().signInAnonymously()
-        .then((userCredential) => {
-            currentUserUID = userCredential.user.uid;
+    // Check if someone is ALREADY logged in (Student or Guest)
+    firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+            // A user is present! It might be a logged-in Student or an existing Guest.
+            // DO NOT overwrite their session. Just update analytics.
+            currentUserUID = user.uid;
             updateUserMetadata();
-        })
-        .catch((error) => {
-            console.error("Auth/Analytics Error:", error);
-        });
+        } else {
+            // No one is logged in. NOW we create a new Anonymous Guest session.
+            firebase.auth().signInAnonymously()
+                .then((userCredential) => {
+                    currentUserUID = userCredential.user.uid;
+                    updateUserMetadata();
+                })
+                .catch((error) => {
+                    console.error("Auth Error:", error);
+                });
+        }
+    });
 }
 
 function updateUserMetadata() {
@@ -257,37 +269,89 @@ function getAdData(slotName) {
 }
 
 /* =========================================
-   5. DATA LOADING
+   5. DATA LOADING WITH CACHING
    ========================================= */
 async function loadPDFDatabase() {
     if (isMaintenanceActive) return;
+
+    const CACHE_KEY = 'classnotes_db_cache';
+
     try {
+        // 1. Get the local cache
+        const cachedRaw = localStorage.getItem(CACHE_KEY);
+        let shouldUseCache = false;
+        let cachedData = [];
+
+        if (cachedRaw) {
+            const cached = JSON.parse(cachedRaw);
+            cachedData = cached.data;
+
+            // 2. ASK FIREBASE: "What is the newest PDF ID?" (Costs only 1 Read)
+            // We order by uploadDate desc and take only the first one
+            const latestSnapshot = await db.collection('pdfs')
+                .orderBy('uploadDate', 'desc')
+                .limit(1)
+                .get();
+
+            if (!latestSnapshot.empty) {
+                const serverLatestId = latestSnapshot.docs[0].id;
+                // Check if our cached data exists and has the same top ID
+                const localLatestId = cachedData.length > 0 ? cachedData[0].id : null;
+
+                if (serverLatestId === localLatestId) {
+                    console.log("Cache is valid (Matches Server) ⚡");
+                    shouldUseCache = true;
+                } else {
+                    console.log("Cache is stale (New content detected) 🔄");
+                    shouldUseCache = false;
+                }
+            } else {
+                // Server is empty, but we might have cache. Trust server (empty).
+                shouldUseCache = false;
+            }
+        }
+
+        // 3. EXECUTE: Use Cache OR Fetch New
+        if (shouldUseCache) {
+            pdfDatabase = cachedData;
+            renderPDFs();
+            hidePreloader();
+            return;
+        }
+
+        // --- FETCH FRESH DATA (Only runs if cache is missing or stale) ---
+        console.log("Fetching fresh list from Firebase 🔥");
         const pdfsRef = db.collection('pdfs');
-        // Limit query size or pagination could be added here for further speed
         const snapshot = await pdfsRef.orderBy('uploadDate', 'desc').get();
+
         pdfDatabase = [];
         snapshot.forEach(doc => {
             pdfDatabase.push({ id: doc.id, ...doc.data() });
         });
+
+        // Update Cache
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+            timestamp: new Date().getTime(),
+            data: pdfDatabase
+        }));
+
         renderPDFs();
         hidePreloader();
+
     } catch (error) {
         console.error('Error loading PDFs:', error);
-        if (error.code === 'permission-denied') {
+
+        // Fallback: If internet is dead, show whatever cache we have
+        const cachedRaw = localStorage.getItem(CACHE_KEY);
+        if (cachedRaw) {
+            const cached = JSON.parse(cachedRaw);
+            pdfDatabase = cached.data;
+            renderPDFs();
+            showToast("Offline: Showing cached notes", "error");
+        } else if (error.code === 'permission-denied') {
             activateMaintenanceMode();
-        } else {
-            const mainContent = document.querySelector('.main .container');
-            if (mainContent) {
-                mainContent.innerHTML = `
-                    <div class="empty-state" style="display: block;">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <h3>Connection Error</h3>
-                        <p>Unable to load notes.</p>
-                    </div>
-                `;
-            }
         }
-        hidePreloader(); // Ensure loader goes away even on error
+        hidePreloader();
     }
 }
 
@@ -481,6 +545,17 @@ function setupEventListeners() {
     if (closeCommentsBtn && commentSidebar) {
         closeCommentsBtn.addEventListener("click", () => commentSidebar.classList.remove("active"));
     }
+    document.getElementById('reportBtn').addEventListener('click', reportCurrentPDF);
+}
+
+function reportCurrentPDF() {
+    if (!pdfModal.dataset.currentPdf) return;
+    const pdf = JSON.parse(pdfModal.dataset.currentPdf);
+
+    const subject = encodeURIComponent(`Report: Broken Link or Issue - ${pdf.title}`);
+    const body = encodeURIComponent(`Hi Admin,\n\nI found an issue with this note:\n\nTitle: ${pdf.title}\nID: ${pdf.id}\nSemester: ${pdf.semester}\n\nIssue Description: (Link not working / Wrong file / etc.)\n`);
+
+    window.open(`mailto:notes@alokdasofficial.in?subject=${subject}&body=${body}`);
 }
 
 function checkAlomolePromoState() {
@@ -640,6 +715,14 @@ function createPDFCard(pdf, favoritesList) {
     const heartIconClass = isFav ? 'fas' : 'far';
     const btnActiveClass = isFav ? 'active' : '';
 
+    const uploadDateObj = new Date(pdf.uploadDate);
+    const timeDiff = new Date() - uploadDateObj;
+    const isNew = timeDiff < (7 * 24 * 60 * 60 * 1000); // 7 days in milliseconds
+
+    const newBadgeHTML = isNew
+        ? `<span style="background:var(--error-color); color:white; font-size:0.6rem; padding:2px 6px; border-radius:4px; margin-left:8px; vertical-align:middle;">NEW</span>`
+        : '';
+
     const categoryIcons = {
         'Organic': 'fa-flask',
         'Inorganic': 'fa-atom',
@@ -669,7 +752,7 @@ function createPDFCard(pdf, favoritesList) {
         <div class="pdf-card" data-category="${pdf.category}">
             <div class="pdf-header">
                 <div class="pdf-icon"><i class="fas fa-file-pdf"></i></div>
-                <div class="pdf-info"><h3>${highlightText(pdf.title)}</h3></div>
+                <div class="pdf-info"><h3>${highlightText(pdf.title)} ${newBadgeHTML}</h3></div>
             </div>
             <div class="pdf-meta">
                 <div class="pdf-category"><i class="fas ${categoryIcon}"></i> ${escapeHtml(pdf.category)}</div>
@@ -1150,4 +1233,145 @@ function triggerPrank(overlay, textEl, barEl, closeBtn) {
             }
         }, step.delay);
     });
+}
+
+/* =========================================
+   NEW YEAR COUNTDOWN
+   ========================================= */
+function initNewYearCountdown() {
+    // 1. Target the Overlay Elements
+    const timerContainer = document.getElementById('overlayTimer');
+    const dEl = document.getElementById('otDays');
+    const hEl = document.getElementById('otHours');
+    const mEl = document.getElementById('otMins');
+    const sEl = document.getElementById('otSecs');
+    const title = document.getElementById('holidayTitle');
+    const msg = document.getElementById('holidayMessage');
+    const sub = document.getElementById('holidaySubMessage');
+
+    if (!timerContainer) return;
+
+    // 2. Determine Next Year
+    const currentYear = new Date().getFullYear();
+    const nextYear = currentYear + 1;
+    const newYearDate = new Date(`January 1, ${nextYear} 00:00:00`).getTime();
+
+    // 3. Check if we should show the countdown (Is it Dec 31?)
+    const today = new Date();
+    if (today.getMonth() === 11 && today.getDate() === 31) {
+        // Unhide the timer inside the overlay
+        timerContainer.classList.remove('hidden');
+        if (sub) sub.style.display = 'none'; // Hide chemistry note to make space
+        if (msg) msg.innerText = "Counting down to a fresh start...";
+    } else {
+        // If it's not Dec 31, don't run the timer logic (save battery)
+        return;
+    }
+
+    // 4. Start the Interval
+    function updateTimer() {
+        const now = new Date().getTime();
+        const gap = newYearDate - now;
+
+        // HAPPY NEW YEAR MOMENT
+        if (gap <= 0) {
+            clearInterval(timerInterval);
+
+            // Update Text
+            title.innerText = `HAPPY NEW YEAR ${nextYear}!`;
+            title.style.fontSize = "3.5rem";
+            title.style.color = "#ffd700";
+            msg.innerText = "Welcome to a year of new reactions & strong bonds!";
+
+            // Hide Timer
+            timerContainer.style.display = 'none';
+
+            // Show "Enter Site" button so they aren't stuck
+            const closeBtn = document.getElementById('closeHolidayBtn');
+            if (closeBtn) {
+                closeBtn.classList.remove('hidden');
+                closeBtn.onclick = () => {
+                    document.getElementById('holidayOverlay').classList.add('hidden');
+                    document.body.style.overflow = 'auto';
+                };
+            }
+
+            // TRIGGER THE CONFETTI (High Z-Index)
+            triggerNewYearConfetti();
+            return;
+        }
+
+        // Math
+        const d = Math.floor(gap / (1000 * 60 * 60 * 24));
+        const h = Math.floor((gap % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const m = Math.floor((gap % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((gap % (1000 * 60)) / 1000);
+
+        // Update UI
+        if (dEl) dEl.innerText = d < 10 ? '0' + d : d;
+        if (hEl) hEl.innerText = h < 10 ? '0' + h : h;
+        if (mEl) mEl.innerText = m < 10 ? '0' + m : m;
+        if (sEl) sEl.innerText = s < 10 ? '0' + s : s;
+    }
+
+    updateTimer(); // Run once immediately
+    const timerInterval = setInterval(updateTimer, 1000);
+}
+
+function triggerNewYearConfetti() {
+    // 1. Target the special canvas we added to the overlay
+    const canvas = document.getElementById('holidayConfetti');
+    if (!canvas) return; // Safety check
+
+    // 2. Create a confetti instance strictly for this canvas
+    const myConfetti = confetti.create(canvas, {
+        resize: true,
+        useWorker: true
+    });
+
+    // --- YOUR PREFERRED ANIMATION LOGIC ---
+
+    // 1. School Pride / Gold Colors
+    const colors = ['#ffd700', '#ffffff', '#2563eb'];
+
+    // 2. Launch fireworks from both sides for 15 seconds
+    const duration = 15 * 1000;
+    const end = Date.now() + duration;
+
+    (function frame() {
+        // Launch fireworks from left
+        myConfetti({
+            particleCount: 5,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0 },
+            colors: colors,
+            zIndex: 300 // (This is now relative to the canvas)
+        });
+
+        // Launch fireworks from right
+        myConfetti({
+            particleCount: 5,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1 },
+            colors: colors,
+            zIndex: 300
+        });
+
+        if (Date.now() < end) {
+            requestAnimationFrame(frame);
+        }
+    }());
+
+    // 3. Big Explosion in the middle after 0.5s
+    setTimeout(() => {
+        myConfetti({
+            particleCount: 150,
+            spread: 100,
+            origin: { y: 0.6 },
+            colors: ['#FFD700', '#FF0000', '#FFFFFF'],
+            zIndex: 300
+        });
+    }, 500);
 }

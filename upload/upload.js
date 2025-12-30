@@ -1,347 +1,310 @@
 'use strict';
 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- DOM References ---
-    const loginSection = document.getElementById('loginSection');
-    const signUpSection = document.getElementById('signUpSection');
-    const uploadSection = document.getElementById('uploadSection');
-    const pendingVerificationSection = document.getElementById(
-        'pendingVerificationSection'
-    );
-    const toastContainer = document.getElementById('toastContainer');
 
-    // Toggles
-    const showSignUp = document.getElementById('showSignUp');
-    const showLogin = document.getElementById('showLogin');
+    // ==========================================
+    // 1. CONFIGURATION & STATE
+    // ==========================================
+    const CONFIG = {
+        scriptURL: "https://script.google.com/macros/s/AKfycbyBf0iOQdm6JuLlNFnjfPy87LmY8lWf6mObLHV22Ja6T-UfUwbPqs4i0bV7XyDhFwI1hA/exec", // Your GAS URL
+        maxFileSize: 25 * 1024 * 1024 // 25MB
+    };
 
-    // Login Form
-    const loginForm = document.getElementById('loginForm');
-    const loginEmail = document.getElementById('loginEmail');
-    const loginPassword = document.getElementById('loginPassword');
-    const loginBtn = document.getElementById('loginBtn');
-    const loginError = document.getElementById('loginError'); // Still used for inline errors
-    const loginPasswordToggle = document.getElementById('loginPasswordToggle');
+    // Store the real-time database listener so we can turn it off on logout
+    let userVerificationListener = null;
 
-    // Sign Up Form
-    const signUpForm = document.getElementById('signUpForm');
-    const signUpEmail = document.getElementById('signUpEmail');
-    const signUpPassword = document.getElementById('signUpPassword');
-    const signUpConfirmPassword = document.getElementById('signUpConfirmPassword');
-    const signUpBtn = document.getElementById('signUpBtn');
-    const signUpError = document.getElementById('signUpError'); // Still used for inline errors
-    const signUpPasswordToggle = document.getElementById('signUpPasswordToggle');
-    const signUpConfirmPasswordToggle = document.getElementById(
-        'signUpConfirmPasswordToggle'
-    );
+    // ==========================================
+    // 2. DOM ELEMENTS (Grouped for cleanliness)
+    // ==========================================
+    const UI = {
+        sections: {
+            login: document.getElementById('loginSection'),
+            signup: document.getElementById('signUpSection'),
+            pending: document.getElementById('pendingVerificationSection'),
+            upload: document.getElementById('uploadSection'),
+        },
+        forms: {
+            login: document.getElementById('loginForm'),
+            signup: document.getElementById('signUpForm'),
+            upload: document.getElementById('uploadForm'),
+        },
+        inputs: {
+            file: document.getElementById('fileInput'),
+            dropZone: document.getElementById('dropZone'),
+            fileName: document.getElementById('fileNameDisplay'),
+            // Upload fields
+            title: document.getElementById('pdfTitle'),
+            desc: document.getElementById('pdfDescription'),
+            author: document.getElementById('pdfAuthor'),
+            semester: document.getElementById('pdfSemester'),
+            category: document.getElementById('pdfCategory'),
+        },
+        buttons: {
+            upload: document.getElementById('uploadBtn'),
+            logout: document.querySelectorAll('#logoutBtn, #logoutBtnPending'), // Selects both
+            showSignUp: document.getElementById('showSignUp'),
+            showLogin: document.getElementById('showLogin'),
+        },
+        display: {
+            userEmail: document.getElementById('userEmail'),
+            pendingEmail: document.getElementById('pendingUserEmail'),
+            toastContainer: document.getElementById('toastContainer'),
+        }
+    };
 
-    // Upload Section
-    const logoutBtn = document.getElementById('logoutBtn');
-    const logoutBtnPending = document.getElementById('logoutBtnPending');
-    const adminEmail = document.getElementById('adminEmail');
-    const pendingAdminEmail = document.getElementById('pendingAdminEmail');
+    // ==========================================
+    // 3. UI HELPER FUNCTIONS
+    // ==========================================
 
-    // Upload Form
-    const uploadForm = document.getElementById('uploadForm');
-    const uploadBtn = document.getElementById('uploadBtn');
-    const uploadStatus = document.getElementById('uploadStatus');
-    const pdfTitle = document.getElementById('pdfTitle');
-    const pdfDescription = document.getElementById('pdfDescription');
-    const pdfAuthor = document.getElementById('pdfAuthor');
-    const pdfUrl = document.getElementById('pdfUrl');
-    const pdfSemester = document.getElementById('pdfSemester');
-    const pdfCategory = document.getElementById('pdfCategory');
-
-    // --- Helper Functions ---
-
-    /**
-     * Shows a toast notification.
-     * @param {string} message The message to display.
-     * @param {string} type 'success' or 'error'.
-     */
     const showToast = (message, type = 'success') => {
         const toast = document.createElement('div');
         toast.className = `toast custom ${type} show`;
-        toast.innerHTML = `
-      <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'
-            }"></i>
-      <span>${message}</span>
-    `;
-        toastContainer.appendChild(toast);
-
-        // Remove toast after 3 seconds
+        toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i> <span>${message}</span>`;
+        UI.display.toastContainer.appendChild(toast);
         setTimeout(() => {
             toast.classList.remove('show');
-            setTimeout(() => toast.remove(), 500); // Wait for transition
+            setTimeout(() => toast.remove(), 500);
         }, 3000);
     };
 
-    /**
-     * Toggles password visibility for a given input and toggle icon.
-     * @param {HTMLInputElement} inputEl The password input element.
-     * @param {HTMLElement} toggleEl The toggle icon element.
-     */
-    const togglePassword = (inputEl, toggleEl) => {
-        if (inputEl.type === 'password') {
-            inputEl.type = 'text';
-            toggleEl.classList.remove('fa-eye');
-            toggleEl.classList.add('fa-eye-slash');
-        } else {
-            inputEl.type = 'password';
-            toggleEl.classList.remove('fa-eye-slash');
-            toggleEl.classList.add('fa-eye');
+    // Switch between Login, Signup, Pending, Upload
+    const switchSection = (sectionName) => {
+        // 1. Hide the Initial Loader
+        const loader = document.getElementById('appLoader');
+        if (loader) loader.style.display = 'none';
+
+        // 2. Hide all other sections
+        Object.values(UI.sections).forEach(el => el.classList.add('hidden'));
+
+        // 3. Show the requested section
+        if (UI.sections[sectionName]) {
+            UI.sections[sectionName].classList.remove('hidden');
         }
     };
 
-    /**
-     * Resets all form/UI states to default (logged out).
-     */
-    const showLoggedOutState = () => {
-        loginSection.style.display = 'block';
-        signUpSection.style.display = 'none';
-        uploadSection.style.display = 'none';
-        pendingVerificationSection.style.display = 'none';
-        adminEmail.textContent = '';
-        pendingAdminEmail.textContent = '';
+    const togglePassword = (input, icon) => {
+        const isPassword = input.type === 'password';
+        input.type = isPassword ? 'text' : 'password';
+        icon.className = isPassword ? 'fas fa-eye-slash password-toggle' : 'fas fa-eye password-toggle';
     };
 
-    // --- Firebase Auth State Observer ---
-    // This is the core of the security. It checks login state AND verification.
-    auth.onAuthStateChanged(async (user) => {
+    // ==========================================
+    // 4. AUTHENTICATION LOGIC (The Fix)
+    // ==========================================
+
+    auth.onAuthStateChanged((user) => {
+        // Unsubscribe from previous listener to prevent memory leaks
+        if (userVerificationListener) {
+            userVerificationListener();
+            userVerificationListener = null;
+        }
+
         if (user) {
-            // User is logged in, now check verification status
-            try {
-                const userDocRef = db.collection('users').doc(user.uid);
-                const userDoc = await userDocRef.get();
-
-                if (userDoc.exists && userDoc.data().isVerified === true) {
-                    // User is LOGGED IN and VERIFIED
-                    loginSection.style.display = 'none';
-                    signUpSection.style.display = 'none';
-                    pendingVerificationSection.style.display = 'none';
-                    uploadSection.style.display = 'block';
-                    adminEmail.textContent = user.email;
-                } else {
-                    // User is LOGGED IN but NOT VERIFIED (or doc doesn't exist)
-                    loginSection.style.display = 'none';
-                    signUpSection.style.display = 'none';
-                    uploadSection.style.display = 'none';
-                    pendingVerificationSection.style.display = 'block';
-                    pendingAdminEmail.textContent = user.email;
-                }
-            } catch (error) {
-                console.error('Error checking user verification:', error);
-                showToast(
-                    'Could not check your verification status. Logging out.',
-                    'error'
-                );
+            // Anonymous users are not allowed
+            if (user.isAnonymous) {
                 auth.signOut();
+                return; // Stop here, the listener will trigger again with user = null
             }
+            // REAL-TIME LISTENER: This fixes the "refresh" bug
+            userVerificationListener = db.collection('users').doc(user.uid)
+                .onSnapshot((doc) => {
+                    if (doc.exists && doc.data().isVerified === true) {
+                        // User is verified
+                        UI.display.userEmail.textContent = user.email;
+                        switchSection('upload');
+                    } else {
+                        // User exists but NOT verified
+                        UI.display.pendingEmail.textContent = user.email;
+                        switchSection('pending');
+                    }
+                }, (error) => {
+                    console.error("Verification sync error:", error);
+                    auth.signOut();
+                });
         } else {
-            // User is logged out
-            showLoggedOutState();
+            switchSection('login');
         }
     });
 
-    // --- Event Listeners ---
+    // ==========================================
+    // 5. CORE FUNCTIONALITY
+    // ==========================================
 
-    // Form Toggling
-    showSignUp.addEventListener('click', (e) => {
+    // Handle Login
+    UI.forms.login.addEventListener('submit', async (e) => {
         e.preventDefault();
-        loginSection.style.display = 'none';
-        signUpSection.style.display = 'block';
-        loginError.textContent = '';
-    });
-
-    showLogin.addEventListener('click', (e) => {
-        e.preventDefault();
-        loginSection.style.display = 'block';
-        signUpSection.style.display = 'none';
-        signUpError.textContent = '';
-    });
-
-    // Password Visibility Toggles
-    loginPasswordToggle.addEventListener('click', () =>
-        togglePassword(loginPassword, loginPasswordToggle)
-    );
-    signUpPasswordToggle.addEventListener('click', () =>
-        togglePassword(signUpPassword, signUpPasswordToggle)
-    );
-    signUpConfirmPasswordToggle.addEventListener('click', () =>
-        togglePassword(signUpConfirmPassword, signUpConfirmPasswordToggle)
-    );
-
-    /**
-     * Handle Login Form Submission
-     */
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        loginBtn.disabled = true;
-        loginBtn.innerHTML =
-            '<i class="fas fa-spinner fa-spin"></i> Logging in...';
-        loginError.textContent = '';
+        const btn = e.target.querySelector('button');
+        const [email, pass] = [e.target.loginEmail.value, e.target.loginPassword.value];
 
         try {
-            const email = loginEmail.value;
-            const password = loginPassword.value;
-            await auth.signInWithEmailAndPassword(email, password);
-            // Observer will automatically handle showing the correct section
-            showToast('Login successful!', 'success');
+            setLoading(btn, true, 'Logging in...');
+            await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+            await auth.signInWithEmailAndPassword(email, pass);
+            showToast('Welcome back!');
         } catch (error) {
-            console.error('Login Error:', error);
-            loginError.textContent =
-                'Failed to log in. Please check email and password.';
-            showToast('Login failed. Check credentials.', 'error');
+            showToast(error.message, 'error');
         } finally {
-            loginBtn.disabled = false;
-            loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In';
+            setLoading(btn, false, 'Log In', 'fa-sign-in-alt');
         }
     });
 
-    /**
-     * Handle Sign Up Form Submission
-     */
-    signUpForm.addEventListener('submit', async (e) => {
+    // Handle Signup
+    UI.forms.signup.addEventListener('submit', async (e) => {
         e.preventDefault();
-        signUpBtn.disabled = true;
-        signUpBtn.innerHTML =
-            '<i class="fas fa-spinner fa-spin"></i> Signing up...';
-        signUpError.textContent = '';
+        const btn = e.target.querySelector('button');
+        const [email, pass, confirm] = [
+            e.target.signUpEmail.value,
+            e.target.signUpPassword.value,
+            e.target.signUpConfirmPassword.value
+        ];
 
-        const email = signUpEmail.value;
-        const password = signUpPassword.value;
-        const confirmPassword = signUpConfirmPassword.value;
-
-        // --- Validation ---
-        if (password !== confirmPassword) {
-            signUpError.textContent = 'Passwords do not match.';
-            showToast('Passwords do not match.', 'error');
-            signUpBtn.disabled = false;
-            signUpBtn.innerHTML = '<i class="fas fa-user-plus"></i> Sign Up';
-            return;
-        }
-
-        if (password.length < 6) {
-            signUpError.textContent = 'Password must be at least 6 characters.';
-            showToast('Password must be at least 6 characters.', 'error');
-            signUpBtn.disabled = false;
-            signUpBtn.innerHTML = '<i class="fas fa-user-plus"></i> Sign Up';
-            return;
-        }
-        // --- End Validation ---
+        if (pass !== confirm) return showToast('Passwords do not match', 'error');
 
         try {
-            // 1. Create the user in Firebase Auth
-            const userCredential = await auth.createUserWithEmailAndPassword(
-                email,
-                password
-            );
-            const user = userCredential.user;
+            setLoading(btn, true, 'Creating account...');
+            const cred = await auth.createUserWithEmailAndPassword(email, pass);
 
-            // 2. Create the user document in Firestore for verification
-            await db.collection('users').doc(user.uid).set({
-                email: user.email,
-                isVerified: false, // <-- This is the verification flag
-                joinedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            // Create user doc
+            await db.collection('users').doc(cred.user.uid).set({
+                email: email,
+                isVerified: false,
+                joinedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
 
-            // auth.onAuthStateChanged will automatically run and show the "Pending" screen.
-            showToast('Sign up successful! Please wait for verification.', 'success');
-            signUpForm.reset();
+            showToast('Account created! Wait for verification.');
+            UI.forms.signup.reset();
         } catch (error) {
-            console.error('Sign Up Error:', error);
-            if (error.code === 'auth/email-already-in-use') {
-                signUpError.textContent =
-                    'This email is already in use. Please log in.';
-                showToast('Email already in use.', 'error');
-            } else {
-                signUpError.textContent = 'Failed to sign up. Please try again.';
-                showToast('Sign up failed. Please try again.', 'error');
-            }
+            showToast(error.message, 'error');
         } finally {
-            signUpBtn.disabled = false;
-            signUpBtn.innerHTML = '<i class="fas fa-user-plus"></i> Sign Up';
+            setLoading(btn, false, 'Create Account', 'fa-user-plus');
         }
     });
 
-    /**
-     * Handle Logout Button Click (for both buttons)
-     */
-    const handleLogout = async () => {
-        try {
-            await auth.signOut();
-            // Observer will automatically handle showing the login section
-            showToast('Logged out successfully.', 'success');
-            loginForm.reset();
-            signUpForm.reset();
-        } catch (error) {
-            console.error('Logout Error:', error);
-            showToast('Failed to log out.', 'error');
-        }
-    };
-
-    logoutBtn.addEventListener('click', handleLogout);
-    logoutBtnPending.addEventListener('click', handleLogout);
-
-    /**
-     * Handle Upload Form Submission
-     */
-    uploadForm.addEventListener('submit', async (e) => {
+    // Handle File Upload (The Big Function)
+    UI.forms.upload.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const file = UI.inputs.file.files[0];
 
-        // Formated Date into String
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        const formattedDate = `${year}-${month}-${day}`;
+        if (!file) return showToast('Please select a PDF file', 'error');
 
-        // Get all form values
-        const newNote = {
-            title: pdfTitle.value.trim(),
-            description: pdfDescription.value.trim(),
-            author: pdfAuthor.value.trim(),
-            pdfUrl: pdfUrl.value.trim(),
-            semester: parseInt(pdfSemester.value, 10),
-            category: pdfCategory.value,
-            uploadDate: formattedDate,
-            uploadedBy: auth.currentUser ? auth.currentUser.email : 'Unknown',
-        };
+        setLoading(UI.buttons.upload, true, 'Uploading to Drive...');
 
-        // Simple validation
-        if (!newNote.title || !newNote.pdfUrl || !newNote.author) {
-            uploadStatus.textContent = 'Please fill out all required fields.';
-            uploadStatus.style.color = 'var(--error-color)';
-            showToast('Please fill out all required fields.', 'error');
+        try {
+            // 1. Convert to Base64
+            const base64 = await toBase64(file);
+
+            // 2. Prepare Payload
+            const payload = {
+                filename: file.name,
+                mimeType: file.type,
+                file: base64,
+                semester: UI.inputs.semester.value
+            };
+
+            // 3. Send to Google Apps Script
+            const response = await fetch(CONFIG.scriptURL, {
+                method: "POST",
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+
+            if (result.status !== 'success') throw new Error('Drive Upload Failed');
+
+            // 4. Save to Firestore
+            await db.collection('pdfs').add({
+                title: UI.inputs.title.value.trim(),
+                description: UI.inputs.desc.value.trim(),
+                author: UI.inputs.author.value.trim(),
+                pdfUrl: result.url,
+                semester: parseInt(UI.inputs.semester.value, 10),
+                category: UI.inputs.category.value,
+                uploadDate: new Date().toISOString().split('T')[0],
+                uploadedBy: auth.currentUser.email,
+                fileName: file.name
+            });
+
+            localStorage.removeItem('classnotes_db_cache');
+            showToast('Note uploaded successfully!');
+            UI.forms.upload.reset();
+            UI.inputs.fileName.style.display = 'none';
+
+        } catch (error) {
+            console.error(error);
+            showToast('Upload failed: ' + error.message, 'error');
+        } finally {
+            setLoading(UI.buttons.upload, false, 'Add to Database', 'fa-upload');
+        }
+    });
+
+    // ==========================================
+    // 6. UTILITIES & EVENT BINDINGS
+    // ==========================================
+
+    // File Drag & Drop Logic
+    const handleFile = (file) => {
+        if (!file) return;
+        if (file.size > CONFIG.maxFileSize) {
+            showToast("File too large (Max 25MB)", "error");
+            UI.inputs.file.value = "";
             return;
         }
+        UI.inputs.fileName.textContent = `Selected: ${file.name}`;
+        UI.inputs.fileName.style.display = 'block';
+    };
 
-        // Disable button and show loading state
-        uploadBtn.disabled = true;
-        uploadBtn.innerHTML =
-            '<i class="fas fa-spinner fa-spin"></i> Adding Note...';
-        uploadStatus.textContent = '';
+    UI.inputs.dropZone.addEventListener('click', () => UI.inputs.file.click());
+    UI.inputs.file.addEventListener('change', () => handleFile(UI.inputs.file.files[0]));
 
-        try {
-            // Add the newNote object as a new document to the 'pdfs' collection
-            await db.collection('pdfs').add(newNote);
+    // Drag effects
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
+        UI.inputs.dropZone.addEventListener(evt, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+    });
+    UI.inputs.dropZone.addEventListener('dragover', () => UI.inputs.dropZone.classList.add('dragover'));
+    UI.inputs.dropZone.addEventListener('dragleave', () => UI.inputs.dropZone.classList.remove('dragover'));
+    UI.inputs.dropZone.addEventListener('drop', (e) => {
+        UI.inputs.dropZone.classList.remove('dragover');
+        UI.inputs.file.files = e.dataTransfer.files;
+        handleFile(e.dataTransfer.files[0]);
+    });
 
-            // Success!
-            uploadStatus.textContent = 'Success! Your note has been added.';
-            uploadStatus.style.color = 'var(--success-color)';
-            showToast('Note added successfully!', 'success');
+    // Form Toggles
+    UI.buttons.showSignUp.addEventListener('click', () => switchSection('signup'));
+    UI.buttons.showLogin.addEventListener('click', () => switchSection('login'));
 
-            // Reset the form
-            uploadForm.reset();
-        } catch (error) {
-            console.error('Firestore Add Error:', error);
-            uploadStatus.textContent = 'Error adding note. Please try again.';
-            uploadStatus.style.color = 'var(--error-color)';
-            showToast('Error adding note.', 'error');
-        } finally {
-            // Re-enable the button
-            uploadBtn.disabled = false;
-            uploadBtn.innerHTML =
-                '<i class="fas fa-upload"></i> Add Note to Database';
+    // Logout (Handles both buttons)
+    UI.buttons.logout.forEach(btn => {
+        btn.addEventListener('click', () => {
+            auth.signOut();
+            showToast('Logged out');
+        });
+    });
+
+    // Password Toggles
+    document.querySelectorAll('.password-toggle').forEach(icon => {
+        icon.addEventListener('click', (e) => {
+            const input = e.target.previousElementSibling;
+            togglePassword(input, e.target);
+        });
+    });
+
+    // Helper: Button Loading State
+    function setLoading(btn, isLoading, text, iconClass = 'fa-spinner') {
+        btn.disabled = isLoading;
+        if (isLoading) {
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${text}`;
+        } else {
+            btn.innerHTML = `<i class="fas ${iconClass}"></i> ${text}`;
         }
+    }
+
+    // Helper: Base64 Converter
+    const toBase64 = file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
     });
 });

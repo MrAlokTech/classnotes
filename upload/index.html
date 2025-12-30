@@ -6,401 +6,305 @@
     <title>Upload Panel - ClassNotes</title>
 
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
-
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="../icon.svg" />
     <link rel="apple-touch-icon" href="../icon.svg" />
-
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <div id="toastContainer"></div>
 
     <header class="header">
-      <div class="container">
-        <div class="header-content">
-          <div class="logo">
-            <i class="fas fa-graduation-cap"></i>
-            <h1>ClassNotes</h1>
-          </div>
+      <div class="container header-content">
+        <div class="logo">
+          <i class="fas fa-graduation-cap"></i>
+          <h1>ClassNotes</h1>
         </div>
       </div>
     </header>
 
-    <main class="main">
-      <div class="container">
-        <!-- Login Section -->
-        <section id="loginSection">
-          <div class="pdf-card" style="max-width: 500px; margin: 2rem auto">
-            <h2 style="text-align: center; margin-bottom: 24px">
-              Welcome Back
-            </h2>
-            <form id="loginForm">
-              <div class="form-group">
-                <label for="loginEmail">Email Address</label>
-                <input
-                  type="email"
-                  id="loginEmail"
-                  placeholder="your.email@example.com"
-                  required
-                />
-              </div>
-              <div class="form-group">
-                <label for="loginPassword">Password</label>
-                <input
-                  type="password"
-                  id="loginPassword"
-                  placeholder="Enter your password"
-                  required
-                />
-                <i
-                  class="fas fa-eye password-toggle"
-                  id="loginPasswordToggle"
-                  title="Show password"
-                ></i>
-              </div>
-              <button type="submit" class="btn btn-primary" id="loginBtn">
-                <i class="fas fa-sign-in-alt"></i> Log In
-              </button>
-              <p class="status-message error" id="loginError"></p>
-              <p class="form-toggle-link">
-                New here? <a id="showSignUp">Create an account</a>
-              </p>
-            </form>
-          </div>
-        </section>
+    <main class="main container">
+      <div id="appLoader" class="app-loader">
+        <div class="spinner"></div>
+        <p>Verifying account...</p>
+      </div>
 
-        <!-- Sign Up Section -->
-        <section id="signUpSection" style="display: none">
-          <div class="pdf-card" style="max-width: 500px; margin: 2rem auto">
-            <h2 style="text-align: center; margin-bottom: 24px">
-              Create Account
-            </h2>
-            <form id="signUpForm">
-              <div class="signup-warning">
-                <i class="fas fa-info-circle"></i>
-                <div>
-                  <strong>Account Verification Required</strong>
-                  <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem">
-                    Your account will be reviewed and verified before you can
-                    upload notes. You'll receive access once approved.
-                  </p>
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label for="signUpEmail">Email Address</label>
-                <input
-                  type="email"
-                  id="signUpEmail"
-                  placeholder="your.email@example.com"
-                  required
-                />
-              </div>
-              <div class="form-group">
-                <label for="signUpPassword">Password</label>
-                <input
-                  type="password"
-                  id="signUpPassword"
-                  placeholder="Minimum 6 characters"
-                  required
-                />
-                <i
-                  class="fas fa-eye password-toggle"
-                  id="signUpPasswordToggle"
-                  title="Show password"
-                ></i>
-              </div>
-              <div class="form-group">
-                <label for="signUpConfirmPassword">Confirm Password</label>
-                <input
-                  type="password"
-                  id="signUpConfirmPassword"
-                  placeholder="Re-enter your password"
-                  required
-                />
-                <i
-                  class="fas fa-eye password-toggle"
-                  id="signUpConfirmPasswordToggle"
-                  title="Show password"
-                ></i>
-              </div>
-              <button type="submit" class="btn btn-primary" id="signUpBtn">
-                <i class="fas fa-user-plus"></i> Create Account
-              </button>
-              <p class="status-message error" id="signUpError"></p>
-              <p class="form-toggle-link">
-                Already have an account? <a id="showLogin">Log in</a>
-              </p>
-            </form>
-          </div>
-        </section>
-
-        <!-- Pending Verification Section -->
-        <section id="pendingVerificationSection" style="display: none">
-          <div class="pdf-card" style="max-width: 600px; margin: 2rem auto">
-            <div class="admin-header">
-              <h2>
-                Welcome,
-                <br />
-                <span
-                  id="pendingAdminEmail"
-                  style="color: var(--primary-color)"
-                ></span>
-              </h2>
-              <button class="btn btn-secondary" id="logoutBtnPending">
-                <i class="fas fa-sign-out-alt"></i> Log Out
-              </button>
+      <section id="loginSection" class="hidden">
+        <div class="pdf-card auth-card">
+          <h2 class="text-center mb-4">Welcome Back</h2>
+          <form id="loginForm">
+            <div class="form-group">
+              <label for="loginEmail">Email Address</label>
+              <input
+                type="email"
+                id="loginEmail"
+                placeholder="your.email@example.com"
+                required
+              />
             </div>
-            <div style="text-align: center; padding: 2rem 0">
+            <div class="form-group">
+              <label for="loginPassword">Password</label>
+              <input
+                type="password"
+                id="loginPassword"
+                placeholder="Enter your password"
+                required
+              />
               <i
-                class="fas fa-hourglass-half"
-                style="
-                  font-size: 3rem;
-                  color: var(--accent-color);
-                  margin-bottom: 1rem;
-                "
+                class="fas fa-eye password-toggle"
+                id="loginPasswordToggle"
+                title="Show password"
               ></i>
-              <h3
-                style="
-                  font-size: 1.25rem;
-                  margin-bottom: 0.5rem;
-                  color: var(--gray-800);
-                "
-              >
-                Account Under Review
-              </h3>
-              <p
-                style="color: var(--gray-600); max-width: 400px; margin: 0 auto"
-              >
-                Thanks for signing up! Your account has been created
-                successfully and is currently awaiting verification by
-                <a
-                  href="https://alokdasofficial.in"
-                  target="_blank"
-                  style="color: var(--primary-color)"
-                  >Alok</a
-                >. You'll be able to upload notes once approved.
-              </p>
             </div>
-          </div>
-        </section>
+            <button type="submit" class="btn btn-primary" id="loginBtn">
+              <i class="fas fa-sign-in-alt"></i>
+              <span>Log In</span>
+            </button>
+            <p class="form-toggle-link">
+              New here? <a id="showSignUp">Create an account</a>
+            </p>
+          </form>
+        </div>
+      </section>
 
-        <!-- Upload Section -->
-        <section id="uploadSection" style="display: none">
-          <div class="pdf-card" style="max-width: 800px; margin: 2rem auto">
-            <div class="admin-header">
-              <h2>
-                Welcome back,
-                <br />
-                <span
-                  id="adminEmail"
-                  style="color: var(--primary-color)"
-                ></span>
-              </h2>
-              <button class="btn btn-secondary" id="logoutBtn">
-                <i class="fas fa-sign-out-alt"></i> Log Out
-              </button>
-            </div>
-
-            <form id="uploadForm">
-              <h3 style="color: var(--gray-800); margin-bottom: 0.5rem">
-                <i
-                  class="fas fa-cloud-upload-alt"
-                  style="color: var(--primary-color)"
-                ></i>
-                Upload New Notes
-              </h3>
-              <div class="signup-warning" style="margin-bottom: 2rem">
-                <i class="fas fa-exclamation-circle"></i>
-                <div>
-                  <strong>Before You Begin: Upload PDF to Google Drive</strong>
-                  <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem">
-                    📤 <strong>Step 1:</strong> Upload your PDF file to Google
-                    Drive. <br />
-                    🔗 <strong>Step 2:</strong> Click the 3 dots (⋯) or
-                    right-click → <em>Share / Manage Access</em> →
-                    <em>General Access</em> → Change
-                    <strong>"Restricted"</strong> to
-                    <strong>"Anyone with the link"</strong>. <br />
-                    📋 <strong>Step 3:</strong> Copy the share link (on mobile,
-                    tap the 🔗 icon) and paste it below. <br /><br />
-                    <em
-                      >Thank you for your patience — improvements are on the
-                      way!</em
-                    >
-                  </p>
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label for="pdfTitle">
-                  <i
-                    class="fas fa-heading"
-                    style="color: var(--primary-color); margin-right: 4px"
-                  ></i>
-                  Note Title
-                </label>
-                <input
-                  type="text"
-                  id="pdfTitle"
-                  placeholder="e.g., Spectroscopy Fundamentals"
-                  required
-                />
-              </div>
-
-              <div class="form-group">
-                <label for="pdfDescription">
-                  <i
-                    class="fas fa-align-left"
-                    style="color: var(--primary-color); margin-right: 4px"
-                  ></i>
-                  Description
-                </label>
-                <textarea
-                  id="pdfDescription"
-                  placeholder="Brief overview of what these notes cover..."
-                  required
-                ></textarea>
-              </div>
-
-              <div class="form-group">
-                <label for="pdfAuthor">
-                  <i
-                    class="fas fa-chalkboard-teacher"
-                    style="color: var(--primary-color); margin-right: 4px"
-                  ></i>
-                  Author / Professor
-                </label>
-                <input
-                  type="text"
-                  id="pdfAuthor"
-                  placeholder="e.g., Prof. J.K. Sharma"
-                  required
-                />
-              </div>
-
-              <div class="form-group">
-                <label for="pdfUrl">
-                  <i
-                    class="fab fa-google-drive"
-                    style="color: var(--primary-color); margin-right: 4px"
-                  ></i>
-                  Google Drive Share Link
-                </label>
-                <input
-                  type="url"
-                  id="pdfUrl"
-                  placeholder="https://drive.google.com/file/d/..."
-                  required
-                />
-              </div>
-
-              <div style="display: flex; gap: 16px; flex-wrap: wrap">
-                <div class="form-group" style="flex: 1; min-width: 200px">
-                  <label for="pdfSemester">
-                    <i
-                      class="fas fa-calendar-alt"
-                      style="color: var(--primary-color); margin-right: 4px"
-                    ></i>
-                    Semester
-                  </label>
-                  <select id="pdfSemester">
-                    <option value="1">Semester 1</option>
-                    <option value="2">Semester 2</option>
-                    <option value="3">Semester 3</option>
-                    <option value="4">Semester 4</option>
-                  </select>
-                </div>
-
-                <div class="form-group" style="flex: 1; min-width: 200px">
-                  <label for="pdfCategory">
-                    <i
-                      class="fas fa-tag"
-                      style="color: var(--primary-color); margin-right: 4px"
-                    ></i>
-                    Category
-                  </label>
-                  <select id="pdfCategory">
-                    <option value="Organic">Organic Chemistry</option>
-                    <option value="Inorganic">Inorganic Chemistry</option>
-                    <option value="Physical">Physical Chemistry</option>
-                    <option value="Physics">Physics</option>
-                    <option value="General">General</option>
-                  </select>
-                </div>
-              </div>
-
-              <button type="submit" class="btn btn-primary" id="uploadBtn">
-                <i class="fas fa-upload"></i> Add to Database
-              </button>
-
-              <p class="status-message" id="uploadStatus"></p>
-
-              <div
-                style="
-                  margin-top: 2rem;
-                  padding: 1rem;
-                  background: rgba(37, 99, 235, 0.05);
-                  border-radius: var(--border-radius);
-                  border: 1px solid rgba(37, 99, 235, 0.1);
-                "
-              >
-                <p
-                  style="
-                    margin: 0;
-                    color: var(--gray-600);
-                    font-size: 0.9rem;
-                    text-align: center;
-                  "
-                >
-                  <i
-                    class="fas fa-user-shield"
-                    style="color: var(--primary-color)"
-                  ></i>
-                  <strong>Privacy Note:</strong> Your identity remains
-                  completely anonymous to all users (mostly our classmates 😊).
-                  Only the note content is shared.
+      <section id="signUpSection" class="hidden">
+        <div class="pdf-card auth-card">
+          <h2 class="text-center mb-4">Create Account</h2>
+          <form id="signUpForm">
+            <div class="alert-box warning">
+              <i class="fas fa-info-circle"></i>
+              <div>
+                <strong>Verification Required</strong>
+                <p>
+                  Your account must be approved by an admin before you can
+                  upload notes.
                 </p>
               </div>
-            </form>
+            </div>
+
+            <div class="form-group">
+              <label for="signUpEmail">Email Address</label>
+              <input
+                type="email"
+                id="signUpEmail"
+                placeholder="your.email@example.com"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="signUpPassword">Password</label>
+              <input
+                type="password"
+                id="signUpPassword"
+                placeholder="Minimum 6 characters"
+                required
+              />
+              <i
+                class="fas fa-eye password-toggle"
+                id="signUpPasswordToggle"
+              ></i>
+            </div>
+            <div class="form-group">
+              <label for="signUpConfirmPassword">Confirm Password</label>
+              <input
+                type="password"
+                id="signUpConfirmPassword"
+                placeholder="Re-enter your password"
+                required
+              />
+              <i
+                class="fas fa-eye password-toggle"
+                id="signUpConfirmPasswordToggle"
+              ></i>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="signUpBtn">
+              <i class="fas fa-user-plus"></i>
+              <span>Create Account</span>
+            </button>
+            <p class="form-toggle-link">
+              Already have an account? <a id="showLogin">Log in</a>
+            </p>
+          </form>
+        </div>
+      </section>
+
+      <section id="pendingVerificationSection" class="hidden">
+        <div class="pdf-card auth-card wide">
+          <div class="admin-header">
+            <h2>
+              Welcome,<br />
+              <span id="pendingUserEmail" class="text-primary"></span>
+            </h2>
+            <button class="btn btn-secondary" id="logoutBtnPending">
+              <i class="fas fa-sign-out-alt"></i>
+              <span>Log Out</span>
+            </button>
           </div>
-        </section>
-      </div>
+          <div class="text-center py-4">
+            <i class="fas fa-hourglass-half icon-large accent-color"></i>
+            <h3>Account Under Review</h3>
+            <p class="text-muted max-w-400">
+              Thanks for signing up! Your account is currently awaiting
+              verification. You'll be able to upload notes once approved.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="uploadSection" class="hidden">
+        <div class="pdf-card upload-card">
+          <div class="admin-header">
+            <h2>
+              Welcome back,<br />
+              <span id="userEmail" class="text-primary"></span>
+            </h2>
+            <button class="btn btn-secondary" id="logoutBtn">
+              <i class="fas fa-sign-out-alt"></i>
+              <span>Log Out</span>
+            </button>
+          </div>
+
+          <form id="uploadForm">
+            <h3 class="section-title">
+              <i class="fas fa-cloud-upload-alt"></i>
+              Upload New Notes
+            </h3>
+
+            <div class="form-group">
+              <label for="pdfTitle">
+                <i class="fas fa-heading"></i>
+                Note Title
+              </label>
+              <input
+                type="text"
+                id="pdfTitle"
+                placeholder="e.g., Spectroscopy Fundamentals"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="pdfDescription">
+                <i class="fas fa-align-left"></i>
+                Description
+              </label>
+              <textarea
+                id="pdfDescription"
+                placeholder="Brief overview of what these notes cover..."
+                required
+              ></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="pdfAuthor">
+                <i class="fas fa-chalkboard-teacher"></i>
+                Author / Professor
+              </label>
+              <input
+                type="text"
+                id="pdfAuthor"
+                placeholder="e.g., Prof. J.K. Sharma"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label>
+                <i class="fas fa-file-pdf"></i>
+                Upload PDF Document
+              </label>
+              <div id="dropZone" class="upload-area">
+                <input
+                  type="file"
+                  id="fileInput"
+                  accept="application/pdf"
+                  class="hidden-input"
+                />
+                <div class="upload-content">
+                  <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                  <p>Drag & drop your PDF here</p>
+                  <span
+                    >or
+                    <strong class="text-primary cursor-pointer"
+                      >browse files</strong
+                    ></span
+                  >
+                  <p class="file-info" id="fileNameDisplay"></p>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label for="pdfSemester">
+                  <i class="fas fa-calendar-alt"></i>
+                  Semester
+                </label>
+                <select id="pdfSemester" required>
+                  <option value="1">Semester 1</option>
+                  <option value="2">Semester 2</option>
+                  <option value="3">Semester 3</option>
+                  <option value="4">Semester 4</option>
+                </select>
+              </div>
+
+              <div class="form-group flex-1">
+                <label for="pdfCategory">
+                  <i class="fas fa-tag"></i>
+                  Category
+                </label>
+                <select id="pdfCategory" required>
+                  <option value="Organic">Organic Chemistry</option>
+                  <option value="Inorganic">Inorganic Chemistry</option>
+                  <option value="Physical">Physical Chemistry</option>
+                  <option value="Physics">Physics</option>
+                  <option value="General">General</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="uploadBtn">
+              <i class="fas fa-upload"></i>
+              <span>Add to Database</span>
+            </button>
+
+            <div class="alert-box info mt-4">
+              <i class="fas fa-user-shield"></i>
+              <p>
+                <strong>Privacy Note:</strong> Your identity remains anonymous
+                to other users. Only note content is shared.
+              </p>
+            </div>
+          </form>
+        </div>
+      </section>
     </main>
 
     <footer>
       <div class="footer-content">
         <p class="thanks-message">✨ Thanks for visiting! 🙌</p>
-        <p class="contact-info">
-          Found an issue or have feedback?
+        <p>
+          Found an issue?
           <a href="mailto:notes@alokdasofficial.in">Get in touch</a>
         </p>
         <p class="credits">
           Crafted with <span class="heart">❤️</span> by
           <a href="https://alokdasofficial.in" target="_blank">Alok Das</a>
         </p>
-        <p class="copyright-text" id="copyright-year">
-          © 2025 ClassNotes. All rights reserved.
-        </p>
-        <p class="policy-links">
-          <a
-            onclick="window.location.href = window.location.origin;"
-            style="cursor: pointer"
-            >Home</a
-          >
-          |
-          <a href="/legal/privacy-policy.html">Privacy Policy</a> |
-          <a href="/legal/terms-of-use.html">Terms of Use</a> |
-          <a href="/legal/takedown-policy.html">Takedown Policy</a>
-        </p>
+        <p class="copyright-text">© 2025 ClassNotes. All rights reserved.</p>
+        <div class="policy-links">
+          <a href="/">Home</a> |
+          <a href="/legal/privacy-policy.html">Privacy</a> |
+          <a href="/legal/terms.html">Terms</a>
+        </div>
       </div>
     </footer>
 
@@ -418,12 +322,10 @@
         appId: "1:315463239297:web:c374126286d9b33f3f2f80",
         measurementId: "G-QPXHCK0R2E",
       };
-
       firebase.initializeApp(firebaseConfig);
       const db = firebase.firestore();
       const auth = firebase.auth();
     </script>
-
     <script src="upload.js"></script>
   </body>
 </html>
