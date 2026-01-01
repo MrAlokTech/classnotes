@@ -1,0 +1,198 @@
+/* =========================================
+   1. VARIABLES & THEME CONFIGURATION
+   ========================================= */
+:root {
+  /* --- Core Colors --- */
+  --primary: #2563eb;
+  --primary-dark: #1e40af;
+  --secondary: #10b981;
+  --error: #dc2626;
+
+  /* --- Light Theme Defaults (ALWAYS DEFAULT) --- */
+  --bg-color: #fafafa;
+  --card-bg: #ffffff;
+  --text-main: #111827;
+  --text-muted: #4b5563;
+  --border-color: #e5e7eb;
+  --link-color: #2563eb;
+
+  /* --- Dimensions --- */
+  --container-width: 800px;
+  --header-height: 70px;
+}
+
+/* --- Dark Theme Overrides (ONLY via JS Attribute) --- */
+/* I removed the @media query so it never auto-switches based on OS */
+
+[data-theme="dark"] {
+  --bg-color: #121212;
+  --card-bg: #1e1e1e;
+  --text-main: #f3f4f6;
+  --text-muted: #9ca3af;
+  --border-color: #374151;
+  --link-color: #60a5fa;
+}
+
+/* =========================================
+   2. BASE TYPOGRAPHY
+   ========================================= */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: background-color 0.3s ease, color 0.3s ease; /* Added smooth transition */
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: "Poppins", sans-serif;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+  margin-bottom: 1rem;
+}
+
+h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin: 0;
+}
+h2 {
+  font-size: 2rem;
+  color: var(--primary);
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 2.5rem;
+}
+
+p {
+  margin-bottom: 1.25rem;
+  color: var(--text-muted);
+}
+
+a {
+  color: var(--link-color);
+  text-decoration: none;
+  font-weight: 500;
+  transition: opacity 0.2s;
+}
+a:hover {
+  text-decoration: underline;
+  opacity: 0.8;
+}
+
+ul,
+ol {
+  margin-bottom: 1.5rem;
+  padding-left: 1.5rem;
+  color: var(--text-muted);
+}
+li {
+  margin-bottom: 0.5rem;
+}
+
+/* =========================================
+   3. LAYOUT & COMPONENTS
+   ========================================= */
+
+/* --- Header --- */
+.header {
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border-color);
+  height: var(--header-height);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.container {
+  max-width: var(--container-width);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  width: 100%;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--text-main);
+  text-decoration: none !important;
+}
+
+.logo i {
+  font-size: 1.75rem;
+  color: var(--primary);
+}
+
+.logo h1 {
+  font-size: 1.375rem;
+  margin: 0;
+}
+
+/* --- Main Content --- */
+.main-policy {
+  flex: 1;
+  padding: 4rem 0;
+}
+
+/* --- Footer --- */
+footer {
+  background: var(--card-bg);
+  border-top: 1px solid var(--border-color);
+  padding: 3rem 0;
+  text-align: center;
+  margin-top: auto;
+  font-size: 0.9rem;
+}
+
+.footer-content p {
+  margin-bottom: 0.75rem;
+}
+
+.thanks-message {
+  font-size: 1rem;
+  color: var(--text-main);
+  font-weight: 500;
+}
+
+.heart {
+  color: var(--error);
+}
+
+.policy-links {
+  margin-top: 1.5rem;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.policy-links a {
+  margin: 0 0.5rem;
+  color: var(--text-muted);
+}

@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Upload Panel - ClassNotes</title>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700&display=swap"
       rel="stylesheet"
     />
     <link
@@ -22,11 +24,23 @@
     <div id="toastContainer"></div>
 
     <header class="header">
-      <div class="container header-content">
+      <div
+        class="container header-content"
+        style="justify-content: space-between"
+      >
         <div class="logo">
           <i class="fas fa-graduation-cap"></i>
           <h1>ClassNotes</h1>
         </div>
+
+        <button
+          id="themeToggleBtn"
+          class="btn btn-secondary"
+          style="width: auto; padding: 0.5rem"
+          title="Toggle Theme"
+        >
+          <i class="fas fa-moon"></i>
+        </button>
       </div>
     </header>
 
@@ -63,6 +77,46 @@
                 title="Show password"
               ></i>
             </div>
+
+            <div
+              class="form-group"
+              style="
+                display: flex;
+                gap: 10px;
+                align-items: flex-start;
+                margin-bottom: 1.5rem;
+              "
+            >
+              <input
+                type="checkbox"
+                id="loginTerms"
+                required
+                style="
+                  width: 20px;
+                  height: 20px;
+                  margin-top: 3px;
+                  cursor: pointer;
+                "
+              />
+              <label
+                for="loginTerms"
+                style="
+                  font-weight: 400;
+                  font-size: 0.9rem;
+                  line-height: 1.4;
+                  cursor: pointer;
+                "
+              >
+                I agree to the
+                <a
+                  href="/legal/terms-of-use.html"
+                  target="_blank"
+                  class="text-primary"
+                  >Terms of Use</a
+                >.
+              </label>
+            </div>
+
             <button type="submit" class="btn btn-primary" id="loginBtn">
               <i class="fas fa-sign-in-alt"></i>
               <span>Log In</span>
@@ -90,14 +144,25 @@
             </div>
 
             <div class="form-group">
+              <label for="signUpName">Full Name</label>
+              <input
+                type="text"
+                id="signUpName"
+                placeholder="e.g. Alok Das"
+                required
+              />
+            </div>
+
+            <div class="form-group">
               <label for="signUpEmail">Email Address</label>
               <input
                 type="email"
                 id="signUpEmail"
-                placeholder="your.email@example.com"
+                placeholder="e.g. notes@alokdasofficial.in"
                 required
               />
             </div>
+
             <div class="form-group">
               <label for="signUpPassword">Password</label>
               <input
@@ -111,6 +176,7 @@
                 id="signUpPasswordToggle"
               ></i>
             </div>
+
             <div class="form-group">
               <label for="signUpConfirmPassword">Confirm Password</label>
               <input
@@ -125,10 +191,57 @@
               ></i>
             </div>
 
+            <div
+              class="form-group"
+              style="
+                display: flex;
+                gap: 10px;
+                align-items: flex-start;
+                margin-bottom: 1.5rem;
+              "
+            >
+              <input
+                type="checkbox"
+                id="signUpTerms"
+                required
+                style="
+                  width: 20px;
+                  height: 20px;
+                  margin-top: 3px;
+                  cursor: pointer;
+                "
+              />
+              <label
+                for="signUpTerms"
+                style="
+                  font-weight: 400;
+                  font-size: 0.9rem;
+                  line-height: 1.4;
+                  cursor: pointer;
+                "
+              >
+                I agree to the
+                <a
+                  href="/legal/terms-of-use.html"
+                  target="_blank"
+                  class="text-primary"
+                  >Terms of Use</a
+                >
+                &
+                <a
+                  href="/legal/privacy-policy.html"
+                  target="_blank"
+                  class="text-primary"
+                  >Privacy Policy</a
+                >.
+              </label>
+            </div>
+
             <button type="submit" class="btn btn-primary" id="signUpBtn">
               <i class="fas fa-user-plus"></i>
               <span>Create Account</span>
             </button>
+
             <p class="form-toggle-link">
               Already have an account? <a id="showLogin">Log in</a>
             </p>
@@ -143,7 +256,7 @@
               Welcome,<br />
               <span id="pendingUserEmail" class="text-primary"></span>
             </h2>
-            <button class="btn btn-secondary" id="logoutBtnPending">
+            <button class="btn logoutBtn btn-secondary" id="logoutBtnPending">
               <i class="fas fa-sign-out-alt"></i>
               <span>Log Out</span>
             </button>
@@ -164,7 +277,7 @@
           <div class="admin-header">
             <h2>
               Welcome back,<br />
-              <span id="userEmail" class="text-primary"></span>
+              <span id="userName" class="text-primary"></span>
             </h2>
             <button class="btn btn-secondary" id="logoutBtn">
               <i class="fas fa-sign-out-alt"></i>
@@ -177,6 +290,32 @@
               <i class="fas fa-cloud-upload-alt"></i>
               Upload New Notes
             </h3>
+
+            <div class="form-group">
+              <label>
+                <i class="fas fa-file-pdf"></i>
+                Upload PDF
+              </label>
+              <div id="dropZone" class="upload-area">
+                <input
+                  type="file"
+                  id="fileInput"
+                  accept="application/pdf"
+                  class="hidden-input"
+                />
+                <div class="upload-content">
+                  <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                  <p>Drag & drop your PDF here</p>
+                  <span
+                    >or
+                    <strong class="text-primary cursor-pointer"
+                      >Browse files</strong
+                    ></span
+                  >
+                  <p class="file-info" id="fileNameDisplay"></p>
+                </div>
+              </div>
+            </div>
 
             <div class="form-group">
               <label for="pdfTitle">
@@ -216,32 +355,6 @@
               />
             </div>
 
-            <div class="form-group">
-              <label>
-                <i class="fas fa-file-pdf"></i>
-                Upload PDF Document
-              </label>
-              <div id="dropZone" class="upload-area">
-                <input
-                  type="file"
-                  id="fileInput"
-                  accept="application/pdf"
-                  class="hidden-input"
-                />
-                <div class="upload-content">
-                  <i class="fas fa-cloud-upload-alt upload-icon"></i>
-                  <p>Drag & drop your PDF here</p>
-                  <span
-                    >or
-                    <strong class="text-primary cursor-pointer"
-                      >browse files</strong
-                    ></span
-                  >
-                  <p class="file-info" id="fileNameDisplay"></p>
-                </div>
-              </div>
-            </div>
-
             <div class="form-row">
               <div class="form-group flex-1">
                 <label for="pdfSemester">
@@ -270,10 +383,48 @@
                 </select>
               </div>
             </div>
-
+            <div
+              class="form-group"
+              style="
+                display: flex;
+                gap: 10px;
+                align-items: flex-start;
+                margin-bottom: 1.5rem;
+              "
+            >
+              <input
+                type="checkbox"
+                id="termsCheckbox"
+                required
+                style="
+                  width: 20px;
+                  height: 20px;
+                  margin-top: 3px;
+                  cursor: pointer;
+                "
+              />
+              <label
+                for="termsCheckbox"
+                style="
+                  font-weight: 400;
+                  font-size: 0.9rem;
+                  line-height: 1.4;
+                  cursor: pointer;
+                "
+              >
+                I agree to the
+                <a
+                  href="/legal/terms-of-use.html"
+                  target="_blank"
+                  class="text-primary"
+                  >Terms of Use</a
+                >
+                and confirm that I have the right to share this content.
+              </label>
+            </div>
             <button type="submit" class="btn btn-primary" id="uploadBtn">
               <i class="fas fa-upload"></i>
-              <span>Add to Database</span>
+              <span>Add Note</span>
             </button>
 
             <div class="alert-box info mt-4">
@@ -299,7 +450,9 @@
           Crafted with <span class="heart">❤️</span> by
           <a href="https://alokdasofficial.in" target="_blank">Alok Das</a>
         </p>
-        <p class="copyright-text">© 2025 ClassNotes. All rights reserved.</p>
+        <p class="copyright-text" id="copyright-year">
+          © 2025 ClassNotes. All rights reserved.
+        </p>
         <div class="policy-links">
           <a href="/">Home</a> |
           <a href="/legal/privacy-policy.html">Privacy</a> |

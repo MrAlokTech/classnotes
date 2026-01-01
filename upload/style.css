@@ -1,21 +1,107 @@
 :root {
+  /* --- Core Colors --- */
   --primary: #2563eb;
   --primary-dark: #1e40af;
   --primary-light: #60a5fa;
   --secondary: #10b981;
   --accent: #f59e0b;
-  --error: #dc2626;
-  --success: #059669;
 
+  /* --- Functional Colors (with Aliases for Script Compatibility) --- */
+  --error: #dc2626;
+  --error-color: var(--error); /* Script.js expects this name */
+
+  --success: #059669;
+  --success-color: var(--success); /* Script.js expects this name */
+
+  /* --- Light Theme Defaults --- */
   --bg-color: #fafafa;
   --card-bg: #ffffff;
   --text-main: #111827;
   --text-muted: #6b7280;
   --border-color: #e5e7eb;
 
+  /* --- UI Elements --- */
   --radius: 12px;
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Dark Theme Overrides (Matches Main Site) --- */
+[data-theme="dark"] {
+  --primary: #3b82f6; /* Lighter blue for better contrast on dark */
+  --primary-dark: #1d4ed8;
+
+  --bg-color: #121212; /* Deep dark background */
+  --card-bg: #1e1e1e; /* Slightly lighter for cards */
+
+  --text-main: #f3f4f6; /* Off-white text */
+  --text-muted: #9ca3af; /* Light gray muted text */
+
+  --border-color: #374151; /* Dark gray borders */
+
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+}
+
+/* --- Dark Mode Specific Element Fixes --- */
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select,
+[data-theme="dark"] .upload-area {
+  background-color: #27272a; /* Dark input background */
+  color: var(--text-main);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .upload-area:hover {
+  background-color: #2e2e33;
+}
+
+[data-theme="dark"] select {
+  /* Updates dropdown arrow to white in dark mode */
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%239ca3af' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+/* --- Fix for Buttons in Dark Mode --- */
+[data-theme="dark"] .btn-secondary {
+  background-color: transparent; /* Makes it blend with the dark card */
+  border-color: var(--border-color);
+  color: var(--text-main);
+}
+
+[data-theme="dark"] .btn-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.1); /* Subtle white tint on hover */
+  border-color: var(--text-muted);
+  color: #ffffff;
+}
+
+/* Optional: Make the Logout button stand out a bit more */
+[data-theme="dark"] #logoutBtn,
+[data-theme="dark"] #logoutBtnPending {
+  border: 1px solid var(--error);
+  color: var(--error);
+}
+
+[data-theme="dark"] #logoutBtn:hover,
+[data-theme="dark"] #logoutBtnPending:hover {
+  background-color: var(--error);
+  color: #ffffff;
+}
+
+/* --- Fix for Toast Notifications in Dark Mode --- */
+[data-theme="dark"] .toast {
+  background-color: var(--card-bg); /* Uses the dark card color (#1e1e1e) */
+  color: var(--text-main); /* Uses the light text color */
+  border: 1px solid var(--border-color); /* Adds a subtle border for visibility */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5); /* Stronger shadow so it pops */
+}
+
+/* Ensure the success/error icons stand out */
+[data-theme="dark"] .toast.success i {
+  color: var(--success); /* Green */
+}
+
+[data-theme="dark"] .toast.error i {
+  color: var(--error); /* Red */
 }
 
 /* --- Base Reset & Layout --- */
@@ -26,7 +112,7 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI",
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
   background-color: var(--bg-color);
   color: var(--text-main);
@@ -34,7 +120,24 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  transition: background-color 0.3s ease, color 0.3s ease; /* Smooth Theme Transition */
   -webkit-font-smoothing: antialiased;
+}
+
+/* 2. Apply Poppins to Key UI Elements */
+h1, h2, h3, h4,
+.logo h1,          /* The "ClassNotes" text in header */
+.section-title,    /* "Upload New Notes" title */
+.btn,              /* Buttons look great in Poppins */
+.toast,            /* Pop-up messages */
+.admin-header h2 {
+  font-family: "Poppins", sans-serif;
+  letter-spacing: -0.02em; /* Poppins often looks better slightly tightened */
+}
+
+/* Optional: Make the logo slightly heavier to stand out */
+.logo h1 {
+  font-weight: 700;
 }
 
 .container {
@@ -96,7 +199,6 @@ body {
 .accent-color {
   color: var(--accent);
 }
-
 /* --- Header --- */
 .header {
   background: var(--card-bg);
@@ -245,7 +347,7 @@ select {
 .password-toggle {
   position: absolute;
   right: 0.875rem;
-  top: 2.375rem;
+  top: 2.75rem;
   cursor: pointer;
   color: var(--text-muted);
   font-size: 0.875rem;

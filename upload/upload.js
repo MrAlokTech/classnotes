@@ -6,12 +6,45 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. CONFIGURATION & STATE
     // ==========================================
     const CONFIG = {
-        scriptURL: "https://script.google.com/macros/s/AKfycbyBf0iOQdm6JuLlNFnjfPy87LmY8lWf6mObLHV22Ja6T-UfUwbPqs4i0bV7XyDhFwI1hA/exec", // Your GAS URL
+        scriptURL: "https://script.google.com/macros/s/AKfycbzOkHDEIYzECrLfjL6P3PmFdU0L0ixSlrsTx5OorXrvm-q8plMGh0l_Epc6RHc7N1Hsqg/exec", // Your GAS URL
         maxFileSize: 25 * 1024 * 1024 // 25MB
     };
 
     // Store the real-time database listener so we can turn it off on logout
     let userVerificationListener = null;
+
+    // ==========================================
+    // 1.1 THEME INITIALIZATION (NEW)
+    // ==========================================
+    const initTheme = () => {
+        const savedTheme = localStorage.getItem('theme');
+        const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        // Check saved preference OR system preference
+        if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            updateThemeIcon(true);
+        } else {
+            document.documentElement.setAttribute('data-theme', 'light');
+            updateThemeIcon(false);
+        }
+    };
+
+    const updateThemeIcon = (isDark) => {
+        const toggleBtn = document.getElementById('themeToggleBtn');
+        if (!toggleBtn) return;
+        const icon = toggleBtn.querySelector('i');
+        if (isDark) {
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+        } else {
+            icon.classList.remove('fa-sun');
+            icon.classList.add('fa-moon');
+        }
+    };
+
+    // Run immediately
+    initTheme();
 
     // ==========================================
     // 2. DOM ELEMENTS (Grouped for cleanliness)
@@ -41,13 +74,17 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         buttons: {
             upload: document.getElementById('uploadBtn'),
-            logout: document.querySelectorAll('#logoutBtn, #logoutBtnPending'), // Selects both
+            logout: document.querySelectorAll('#logoutBtn, #logoutBtnPending'),
             showSignUp: document.getElementById('showSignUp'),
             showLogin: document.getElementById('showLogin'),
         },
         display: {
-            userEmail: document.getElementById('userEmail'),
-            pendingEmail: document.getElementById('pendingUserEmail'),
+            userName: document.getElementById('userName'),
+            userEmail: document.getElementById('userEmailDisplay'),
+
+            pendingUserName: document.getElementById('pendingUserName'),
+            pendingUserEmail: document.getElementById('pendingUserEmail'),
+
             toastContainer: document.getElementById('toastContainer'),
         }
     };
@@ -66,6 +103,16 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => toast.remove(), 500);
         }, 3000);
     };
+
+    const START_YEAR = 2025;
+    const CURRENT_YEAR = new Date().getFullYear();
+    const copyrightElement = document.getElementById('copyright-year');
+    if (copyrightElement) {
+        let yearText = `© ${START_YEAR}`;
+        if (CURRENT_YEAR > START_YEAR) yearText += ` - ${CURRENT_YEAR.toString().slice(-2)}`;
+        yearText += ` ClassNotes. All rights reserved.`;
+        copyrightElement.innerHTML = yearText;
+    }
 
     // Switch between Login, Signup, Pending, Upload
     const switchSection = (sectionName) => {
@@ -89,32 +136,49 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ==========================================
-    // 4. AUTHENTICATION LOGIC (The Fix)
+    // 4. AUTHENTICATION LOGIC (Updated for Names)
     // ==========================================
-
     auth.onAuthStateChanged((user) => {
-        // Unsubscribe from previous listener to prevent memory leaks
+        // Unsubscribe from previous listener
         if (userVerificationListener) {
             userVerificationListener();
             userVerificationListener = null;
         }
 
         if (user) {
-            // Anonymous users are not allowed
             if (user.isAnonymous) {
                 auth.signOut();
-                return; // Stop here, the listener will trigger again with user = null
+                return;
             }
-            // REAL-TIME LISTENER: This fixes the "refresh" bug
+
+            // REAL-TIME LISTENER
             userVerificationListener = db.collection('users').doc(user.uid)
                 .onSnapshot((doc) => {
-                    if (doc.exists && doc.data().isVerified === true) {
-                        // User is verified
-                        UI.display.userEmail.textContent = user.email;
-                        switchSection('upload');
+                    // 1. Get Name & Email
+                    // Use database name, or auth name, or email prefix
+                    let displayName = user.displayName || user.email.split('@')[0];
+                    const displayEmail = user.email;
+
+                    if (doc.exists) {
+                        const data = doc.data();
+                        if (data.displayName) displayName = data.displayName;
+
+                        // 2. Check Verification Status
+                        if (data.isVerified === true) {
+                            // --- UPLOAD SECTION ---
+                            if (UI.display.userName) UI.display.userName.textContent = displayName;
+                            if (UI.display.userEmail) UI.display.userEmail.textContent = displayEmail;
+                            switchSection('upload');
+                        } else {
+                            // --- PENDING SECTION ---
+                            if (UI.display.pendingUserName) UI.display.pendingUserName.textContent = displayName;
+                            if (UI.display.pendingUserEmail) UI.display.pendingUserEmail.textContent = displayEmail;
+                            switchSection('pending');
+                        }
                     } else {
-                        // User exists but NOT verified
-                        UI.display.pendingEmail.textContent = user.email;
+                        // Fallback if doc is missing
+                        if (UI.display.pendingUserName) UI.display.pendingUserName.textContent = displayName;
+                        if (UI.display.pendingUserEmail) UI.display.pendingUserEmail.textContent = displayEmail;
                         switchSection('pending');
                     }
                 }, (error) => {
@@ -130,9 +194,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // 5. CORE FUNCTIONALITY
     // ==========================================
 
+
     // Handle Login
     UI.forms.login.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        // 1. Validate Terms Checkbox
+        const termsBox = document.getElementById('loginTerms');
+        if (!termsBox.checked) {
+            showToast('Please agree to the Terms of Use to login.', 'error');
+            return;
+        }
+
         const btn = e.target.querySelector('button');
         const [email, pass] = [e.target.loginEmail.value, e.target.loginPassword.value];
 
@@ -148,27 +221,44 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+
     // Handle Signup
     UI.forms.signup.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const btn = e.target.querySelector('button');
-        const [email, pass, confirm] = [
-            e.target.signUpEmail.value,
-            e.target.signUpPassword.value,
-            e.target.signUpConfirmPassword.value
-        ];
 
+        // 1. Validate Terms Checkbox
+        const termsBox = document.getElementById('signUpTerms');
+        if (!termsBox.checked) {
+            showToast('You must agree to the Terms & Privacy Policy.', 'error');
+            return;
+        }
+
+        const btn = e.target.querySelector('button');
+
+        // 2. Get Form Values (Including Name)
+        const name = document.getElementById('signUpName').value.trim();
+        const email = e.target.signUpEmail.value.trim();
+        const pass = e.target.signUpPassword.value;
+        const confirm = e.target.signUpConfirmPassword.value;
+
+        if (name.length < 2) return showToast('Please enter a valid name', 'error');
         if (pass !== confirm) return showToast('Passwords do not match', 'error');
 
         try {
             setLoading(btn, true, 'Creating account...');
             const cred = await auth.createUserWithEmailAndPassword(email, pass);
 
-            // Create user doc
+            // 3. Save User Data (Now includes displayName)
             await db.collection('users').doc(cred.user.uid).set({
+                displayName: name,
                 email: email,
                 isVerified: false,
                 joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            // Optional: Update the Auth Profile too (Standard Practice)
+            await cred.user.updateProfile({
+                displayName: name
             });
 
             showToast('Account created! Wait for verification.');
@@ -180,20 +270,56 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Handle File Upload (The Big Function)
+    // Handle File Upload (Button Progress Bar Version)
     UI.forms.upload.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        // 1. Validation
+        const termsCheckbox = document.getElementById('termsCheckbox');
+        if (!termsCheckbox.checked) {
+            showToast('You must agree to the Terms of Use.', 'error');
+            return;
+        }
+
         const file = UI.inputs.file.files[0];
+        if (!file) return showToast('Please select a file', 'error');
 
-        if (!file) return showToast('Please select a PDF file', 'error');
+        // 2. Setup UI
+        const uploadBtn = UI.buttons.upload;
+        const originalBtnText = uploadBtn.innerHTML; // Save original icon/text
 
-        setLoading(UI.buttons.upload, true, 'Uploading to Drive...');
+        // Lock button interactions but keep it colorful
+        uploadBtn.style.pointerEvents = 'none';
+
+        // Reset Progress
+        let currentProgress = 0;
+
+        // Helper to update button look
+        const updateButtonProgress = (percent, text) => {
+            // Gradient: Left side = Darker Blue (Progress), Right side = Original Blue (Remaining)
+            // You can change 'var(--primary-dark)' to 'var(--success)' if you want a green bar!
+            uploadBtn.style.background = `linear-gradient(to right, var(--primary-dark) ${percent}%, var(--primary) ${percent}%)`;
+            uploadBtn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> ${text} (${percent}%)`;
+        };
+
+        // --- 3. START FAKE PROGRESS ANIMATION ---
+        const progressInterval = setInterval(() => {
+            if (currentProgress < 90) {
+                // Move fast at first, then slow down
+                const increment = currentProgress < 30 ? 5 : (currentProgress < 70 ? 2 : 0.5);
+                currentProgress += increment;
+
+                let statusText = "Uploading";
+                if (currentProgress > 50) statusText = "Converting";
+
+                updateButtonProgress(Math.floor(currentProgress), statusText);
+            }
+        }, 300);
 
         try {
-            // 1. Convert to Base64
+            // 4. Heavy Lifting
             const base64 = await toBase64(file);
 
-            // 2. Prepare Payload
             const payload = {
                 filename: file.name,
                 mimeType: file.type,
@@ -201,16 +327,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 semester: UI.inputs.semester.value
             };
 
-            // 3. Send to Google Apps Script
             const response = await fetch(CONFIG.scriptURL, {
                 method: "POST",
                 body: JSON.stringify(payload)
             });
             const result = await response.json();
 
-            if (result.status !== 'success') throw new Error('Drive Upload Failed');
+            if (result.status !== 'success') {
+                console.log("Server Error Details:", result); // Print full error to console
+                throw new Error('Server Error: ' + result.message); // Show actual error in Toast
+            }
 
-            // 4. Save to Firestore
+            // --- 5. FINISH PROGRESS ---
+            clearInterval(progressInterval);
+
+            // Show 100% Success State (Green)
+            uploadBtn.style.background = `var(--success)`;
+            uploadBtn.innerHTML = `<i class="fas fa-check"></i> Done!`;
+
+            // Prepare Filename for DB (Ensure .pdf extension)
+            let finalFileName = file.name;
+            if (finalFileName.match(/\.(ppt|pptx)$/i)) {
+                finalFileName = finalFileName.replace(/\.(ppt|pptx)$/i, '.pdf');
+            }
+
+            // 6. Save to Firestore
             await db.collection('pdfs').add({
                 title: UI.inputs.title.value.trim(),
                 description: UI.inputs.desc.value.trim(),
@@ -220,19 +361,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 category: UI.inputs.category.value,
                 uploadDate: new Date().toISOString().split('T')[0],
                 uploadedBy: auth.currentUser.email,
-                fileName: file.name
+                uploadedByName: auth.currentUser.displayName || auth.currentUser.email.split('@')[0],
+                fileName: finalFileName
             });
 
             localStorage.removeItem('classnotes_db_cache');
             showToast('Note uploaded successfully!');
-            UI.forms.upload.reset();
-            UI.inputs.fileName.style.display = 'none';
+
+            // 7. Cleanup & Reset Button after delay
+            setTimeout(() => {
+                UI.forms.upload.reset();
+                UI.inputs.fileName.style.display = 'none';
+
+                // Restore Button Style
+                uploadBtn.style.background = ''; // Removes inline gradient
+                uploadBtn.style.pointerEvents = 'auto'; // Re-enable clicks
+                uploadBtn.innerHTML = originalBtnText; // Restore original text
+            }, 2000);
 
         } catch (error) {
+            clearInterval(progressInterval);
             console.error(error);
             showToast('Upload failed: ' + error.message, 'error');
-        } finally {
-            setLoading(UI.buttons.upload, false, 'Add to Database', 'fa-upload');
+
+            // Reset Button Immediately on Error
+            uploadBtn.style.background = ''; // Removes inline gradient, falls back to CSS
+            uploadBtn.style.backgroundColor = 'var(--error)'; // Show Red for a moment
+            uploadBtn.innerHTML = `<i class="fas fa-times"></i> Failed`;
+
+            setTimeout(() => {
+                uploadBtn.style.backgroundColor = ''; // Clear red
+                uploadBtn.style.pointerEvents = 'auto';
+                uploadBtn.innerHTML = originalBtnText;
+            }, 2000);
         }
     });
 
@@ -243,11 +404,28 @@ document.addEventListener('DOMContentLoaded', () => {
     // File Drag & Drop Logic
     const handleFile = (file) => {
         if (!file) return;
+
+        // --- 1. NEW VALIDATION: Check for PDF Type ---
+        if (file.type !== 'application/pdf') {
+            showToast("Invalid file format. Only PDFs are allowed.", "error");
+
+            // Clear the input so they can't upload the wrong file
+            UI.inputs.file.value = "";
+
+            // Hide the 'Selected: filename' text if it was previously shown
+            UI.inputs.fileName.style.display = 'none';
+            return;
+        }
+
+        // 2. Check File Size
         if (file.size > CONFIG.maxFileSize) {
             showToast("File too large (Max 25MB)", "error");
             UI.inputs.file.value = "";
+            UI.inputs.fileName.style.display = 'none';
             return;
         }
+
+        // 3. Success
         UI.inputs.fileName.textContent = `Selected: ${file.name}`;
         UI.inputs.fileName.style.display = 'block';
     };
@@ -290,6 +468,41 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Theme Toggle Listener
+    const themeBtn = document.getElementById('themeToggleBtn');
+    if (themeBtn) {
+        themeBtn.addEventListener('click', () => {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme); // This saves it for the main site too!
+            updateThemeIcon(newTheme === 'dark');
+        });
+    }
+
+
+    // Toggle Upload Button based on Terms Checkbox
+    const termsCheckbox = document.getElementById('termsCheckbox');
+    if (termsCheckbox) {
+        // Initial state
+        UI.buttons.upload.disabled = true;
+        UI.buttons.upload.style.opacity = "0.6";
+        UI.buttons.upload.style.cursor = "not-allowed";
+
+        termsCheckbox.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                UI.buttons.upload.disabled = false;
+                UI.buttons.upload.style.opacity = "1";
+                UI.buttons.upload.style.cursor = "pointer";
+            } else {
+                UI.buttons.upload.disabled = true;
+                UI.buttons.upload.style.opacity = "0.6";
+                UI.buttons.upload.style.cursor = "not-allowed";
+            }
+        });
+    }
     // Helper: Button Loading State
     function setLoading(btn, isLoading, text, iconClass = 'fa-spinner') {
         btn.disabled = isLoading;

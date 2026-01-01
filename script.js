@@ -470,7 +470,8 @@ function checkHolidayMode() {
         activateHoliday(overlay);
         return true;
     }
-    if ((month === 11 && date === 31) || (month === 0 && date === 1)) {
+    if ((month === 11 && date === 31)) {
+        // if ((month === 11 && date === 31) || (month === 0 && date === 1)) {
         overlay.classList.add('new-year');
         icon.innerText = "🥂";
         title.innerText = "Happy New Year!";
