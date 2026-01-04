@@ -691,6 +691,50 @@ footer {
   gap: calc(var(--spacing) * 1);
 }
 
+/* --- GitHub Open Source Badge --- */
+.github-link {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  gap: 8px;
+  background: var(--gray-100);
+  color: var(--gray-700);
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--gray-200);
+  margin-top: calc(var(--spacing) * 1);
+  margin-bottom: calc(var(--spacing) * 0.5);
+  transition: var(--transition);
+}
+
+.github-link i {
+  font-size: 1rem;
+}
+
+.github-link:hover {
+  background: #24292e; /* GitHub Brand Black */
+  color: white;
+  border-color: #24292e;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Dark Mode Overrides for the Badge */
+[data-theme="dark"] .github-link {
+  background: var(--gray-100); /* Dark gray background */
+  color: var(--gray-500);
+  border-color: var(--gray-200);
+}
+
+[data-theme="dark"] .github-link:hover {
+  background: white;
+  color: black;
+  border-color: white;
+}
+
 .thanks-message {
   font-size: 0.875rem;
   color: var(--gray-400);
