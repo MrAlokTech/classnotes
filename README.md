@@ -1,4 +1,4 @@
-# 🧪 ClassNotes ~ MSc Chemistry
+# ClassNotes ~ MSc Chemistry
 
 ![Website](https://img.shields.io/website?url=https://notes.alokdasofficial.in&style=flat-square&label=Live%20Site) ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square) ![Maintained](https://img.shields.io/badge/Maintained%3F-yes-green.svg?style=flat-square)
 
@@ -8,7 +8,9 @@
 
 **ClassNotes** is a modern Single Page Application (SPA) designed to solve the chaos of sharing study materials. Unlike static file lists, it provides a rich user experience with real-time search, category filtering, and a custom PDF viewer.
 
-It runs on a **Serverless Architecture**, utilizing **Firebase** for the database and **Google Apps Script** as a backend API to handle file uploads, bug reports, and email notifications without a dedicated server.
+It runs on a **serverless architecture**, utilizing **Firebase** for the database and **Google Apps Script(GAS)** as a backend API to handle file uploads, bug reports, and email notifications without a dedicated server.
+
+Checkout [Live Site](https://notes.alokdasofficial.in) to know more.
 
 ## ✨ Key Features
 
@@ -26,6 +28,17 @@ It runs on a **Serverless Architecture**, utilizing **Firebase** for the databas
 - **Automated Moderation:** Google Apps Script filters and emails admin upon new uploads/reports.
 - **Analytics:** Anonymous tracking of search gaps (what students look for but don't find).
 
+## 🔐 Security Model
+
+ClassNotes is not an open upload platform.
+
+- Anyone can view and read notes
+- Only verified users can upload PDFs
+- Upload permissions are enforced via Firestore Security Rules
+- Client-side code is never trusted for security decisions
+
+Even if the frontend is modified, unauthorized uploads are blocked at the database level.
+
 ## 🛠️ Tech Stack
 
 | Component    | Technology         | Description                                    |
@@ -35,14 +48,13 @@ It runs on a **Serverless Architecture**, utilizing **Firebase** for the databas
 | **Auth**     | Firebase Auth      | Anonymous authentication for session tracking  |
 | **Backend**  | Google Apps Script | Handles uploads (`doPost`), emails, and config |
 | **Storage**  | Google Drive       | Hosts the actual PDF files                     |
-| **Hosting**  | GitHub Pages       | Fast, free static hosting                      |
 
 ## 🚀 Installation & Setup
 
 1. **Clone the Repository**
 
    ```bash
-   git clone https://github.com/yourusername/classnotes.git
+   git clone https://github.com/MrAlokTech/classnotes.git
    cd classnotes
    ```
 
@@ -109,15 +121,35 @@ It runs on a **Serverless Architecture**, utilizing **Firebase** for the databas
 - **The Terminal:** Try finding the hidden "Maintenance Mode" screen.
 - **Prank Mode:** Don't click the logo too many times... you've been warned.
 
+## 🧠 Open Source Scope
+
+This repository contains the client-side source code only.
+
+It does not include:
+
+- PDF notes or educational content
+- Firebase data or credentials
+- Admin or verification access
+- Private Google Apps Script source code
+
+Educational content on the live site is not open source unless explicitly stated.
+
+## 🔐 Security
+
+Security is taken seriously in this project.
+
+If you discover a security issue (for example, upload bypass, Firestore rule issues, or backend misuse),
+**do not open a public GitHub issue**.
+
+Please report security vulnerabilities responsibly.
+See [SECURITY.md](./SECURITY.md) for full details.
+
 ## 🤝 Contributing
 
-Contributions are welcome!
+Contributions are welcome, but this project follows a **serverless Firebase architecture** with strict security boundaries.
 
-1. Fork the project.
-2. Create your feature branch (`git checkout -b feature/NewFeature`).
-3. Commit your changes (`git commit -m 'Add NewFeature'`).
-4. Push to the branch (`git push origin feature/NewFeature`).
-5. Open a Pull Request.
+Please read [CONTRIBUTING.md](./CONTRIBUTING.md) before submitting a pull request.
+Pull requests that weaken security or bypass verification rules may be rejected.
 
 ## 📄 License
 
