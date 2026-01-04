@@ -77,6 +77,14 @@
   </head>
 
   <body>
+    <!-- MARQUEE -->
+    <div id="announcementBar" class="announcement-bar hidden">
+      <div class="container announcement-content">
+        <span id="announcementText">Loading updates...</span>
+        <button id="closeAnnouncement" aria-label="Close">&times;</button>
+      </div>
+    </div>
+    <!-- HOLIDAY -->
     <div id="holidayOverlay" class="holiday-overlay hidden">
       <canvas id="holidayConfetti"></canvas>
       <div id="holidayBgAnim" class="holiday-bg-anim"></div>
@@ -463,6 +471,7 @@
       </div>
     </footer>
 
+    <!-- FUN PRANK -->
     <div id="prankOverlay" class="prank-overlay hidden">
       <div class="prank-terminal">
         <div id="prankText" class="prank-text">> INITIALIZING...</div>
@@ -472,6 +481,34 @@
         <button id="closePrankBtn" class="prank-close-btn hidden">
           Okay, I'm Done 😭
         </button>
+      </div>
+    </div>
+
+    <!-- MARKETING -->
+    <div id="emailModal" class="modal-overlay hidden">
+      <div class="modal-content email-modal">
+        <button class="modal-close" id="closeEmailModal" aria-label="Close">
+          ✕
+        </button>
+
+        <div class="modal-icon">🔔</div>
+
+        <h3 class="modal-title">Never Miss a Note</h3>
+        <p class="modal-subtitle">
+          Get instant email alerts whenever new semester notes are uploaded.
+        </p>
+
+        <form id="emailCaptureForm" class="email-form">
+          <input
+            type="email"
+            id="captureEmailInput"
+            placeholder="notes@alokdasofficial.in"
+            required
+          />
+          <button type="submit">Notify Me</button>
+        </form>
+
+        <p class="modal-footer">No spam. Unsubscribe anytime.</p>
       </div>
     </div>
 
@@ -488,14 +525,7 @@
       defer
     ></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
     <script>
-      document.getElementById("errorTime").innerText = new Date().toISOString();
-    </script>
-
-    <script>
-      // Init config variable but wait for library to load
       const firebaseConfig = {
         apiKey: "AIzaSyAf9MEc8495GUwWHZsE4HcvJvbtptkBfQc",
         authDomain: "alokdasofficial-69f96.firebaseapp.com",
@@ -505,7 +535,6 @@
         appId: "1:315463239297:web:c374126286d9b33f3f2f80",
         measurementId: "G-QPXHCK0R2E",
       };
-      // Actual initialization moved to script.js event listener
     </script>
 
     <script src="script.js" defer></script>

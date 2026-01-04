@@ -1,141 +1,126 @@
-# ClassNotes
+# 🧪 ClassNotes ~ MSc Chemistry
 
-A modern, responsive website for sharing and viewing PDFs with classmates, designed for GitHub Pages hosting.
+![Website](https://img.shields.io/website?url=https://notes.alokdasofficial.in&style=flat-square&label=Live%20Site) ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square) ![Maintained](https://img.shields.io/badge/Maintained%3F-yes-green.svg?style=flat-square)
 
-## Features
+![ClassNotes Preview](https://notes.alokdasofficial.in/preview.jpg)
 
-- 📚 Browse PDFs by category (Math, Science, History, English)
-- 🔍 Search functionality across titles, descriptions, and authors
-- 👀 Built-in PDF viewer modal
-- 🔗 Generate shareable links for individual PDFs
-- 📱 Fully responsive design for mobile and desktop
-- 🎨 Modern, clean UI with smooth animations
-- 📋 One-click link copying to clipboard
+## 📖 Overview
 
-## Setup Instructions
+**ClassNotes** is a modern Single Page Application (SPA) designed to solve the chaos of sharing study materials. Unlike static file lists, it provides a rich user experience with real-time search, category filtering, and a custom PDF viewer.
 
-### 1. Fork/Clone this repository
+It runs on a **Serverless Architecture**, utilizing **Firebase** for the database and **Google Apps Script** as a backend API to handle file uploads, bug reports, and email notifications without a dedicated server.
 
-### 2. Add your PDF files
+## ✨ Key Features
 
-- Create a `pdf` folder in your repository root
-- Upload all your PDF files to this folder
-- Make sure filenames match what you specify in the database
+### 🎓 For Students
 
-### 3. Update the PDF database
+- **Smart Search:** Instantly filter notes by title, professor, or subject (e.g., "Organic", "Spectroscopy").
+- **Built-in PDF Viewer:** Read notes directly without downloading them first.
+- **Seasonal Themes:** The UI reacts to holidays (Diwali, Christmas, Holi) and seasons (Snow in winter, Rain in monsoon).
+- **Deep Linking:** Share a specific note with a direct URL (e.g., `/?pdf=123`).
+- **Dark Mode:** Fully supported system-wide dark theme.
 
-Open `script.js` and update the `pdfDatabase` array with your PDFs:
+### 🛡️ For Admins
 
-```javascript
-const pdfDatabase = [
-  {
-    id: 1,
-    title: "Your PDF Title",
-    filename: "your-pdf-file.pdf", // Must match actual filename in /pdf/ folder
-    category: "math", // math, science, history, english
-    description: "Brief description of the PDF content",
-    uploadDate: "2025-01-15", // YYYY-MM-DD format
-    author: "Author Name",
-  },
-  // Add more PDFs here...
-];
-```
+- **Maintenance Terminal:** A hidden, CLI-style interface for system diagnostics (Easter Egg 🥚).
+- **Automated Moderation:** Google Apps Script filters and emails admin upon new uploads/reports.
+- **Analytics:** Anonymous tracking of search gaps (what students look for but don't find).
 
-### 4. Deploy to GitHub Pages
+## 🛠️ Tech Stack
 
-1. Go to your repository settings
-2. Navigate to "Pages" section
-3. Select "Deploy from a branch"
-4. Choose "main" branch and "/ (root)" folder
-5. Click "Save"
+| Component    | Technology         | Description                                    |
+| ------------ | ------------------ | ---------------------------------------------- |
+| **Frontend** | HTML5, CSS3, JS    | Vanilla JS (ES6+), CSS Variables, Flexbox/Grid |
+| **Database** | Firebase Firestore | Stores PDF metadata, comments, and analytics   |
+| **Auth**     | Firebase Auth      | Anonymous authentication for session tracking  |
+| **Backend**  | Google Apps Script | Handles uploads (`doPost`), emails, and config |
+| **Storage**  | Google Drive       | Hosts the actual PDF files                     |
+| **Hosting**  | GitHub Pages       | Fast, free static hosting                      |
 
-Your site will be available at: `https://yourusername.github.io/your-repo-name`
+## 🚀 Installation & Setup
 
-## Adding New PDFs
+1. **Clone the Repository**
 
-To add a new PDF:
+   ```bash
+   git clone https://github.com/yourusername/classnotes.git
+   cd classnotes
+   ```
 
-1. Upload the PDF file to the `/pdf/` folder in your repository
-2. Add a new entry to the `pdfDatabase` array in `script.js`
-3. Commit and push your changes
+2. **Configure Firebase**
 
-The website will automatically update with the new PDF.
+   1. Go to [Firebase Console](https://console.firebase.google.com/) and create a project.
+   2. Enable **Firestore Database** and **Authentication** (Anonymous Sign-in).
+   3. Copy your web app configuration.
+   4. Update `index.html` (bottom script section):
 
-## Categories
+      ```javascript
+      const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT.firebaseapp.com",
+        projectId: "YOUR_PROJECT_ID",
+        // ... other keys
+      };
+      ```
 
-The platform supports these categories:
+3. **Setup Google Apps Script (Backend)**
 
-- **Math** - Mathematics, Algebra, Calculus, etc.
-- **Science** - Biology, Chemistry, Physics, etc.
-- **History** - Historical documents, timelines, etc.
-- **English** - Literature, Grammar, Writing, etc.
+   1. Create a new Google Sheet.
+   2. Go to **Extensions > Apps Script**.
+   3. Paste the backend code (handles `doPost` for uploads/reports).
+   4. **Deploy** as a Web App (Access: _Anyone_).
+   5. Update `script.js` and `upload.js`:
 
-You can easily add new categories by:
+      ```javascript
+      const GAS_URL =
+        "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
+      ```
 
-1. Adding them to the navigation in `index.html`
-2. Adding corresponding icons in the `categoryIcons` object in `script.js`
+4. **Run Locally**
 
-## Sharing PDFs
+   You can use any static server. For example, with Python:
 
-Each PDF gets a unique shareable link in the format:
-`https://yourdomain.com?pdf=ID`
+   ```bash
+   python -m http.server 8000
+   ```
 
-When someone visits this link, the PDF will automatically open in the viewer.
+   Visit `http://localhost:8000` in your browser.
 
-## Mobile Support
+## 📂 Project Structure
 
-The website is fully responsive and works great on:
-
-- Desktop computers
-- Tablets
-- Mobile phones
-
-## Browser Support
-
-Works on all modern browsers:
-
-- Chrome
-- Firefox
-- Safari
-- Edge
-
-## File Structure
-
-```
-├── index.html          # Main webpage
-├── style.css           # All styling
-├── script.js           # JavaScript functionality
-├── pdf/                # PDF files directory
-│   ├── file1.pdf
-│   ├── file2.pdf
-│   └── ...
+```text
+├── index.html          # Main application (Search, Grid, Viewer)
+├── style.css           # Global styles, variables, and animations
+├── script.js           # Core logic, Firebase init, UI events
+├── upload/
+│   ├── index.html      # Upload form interface
+│   ├── style.css       # upload Standalone styling
+│   └── upload.js       # File encoding & GAS submission logic
+├── legal/
+│   ├── privacy-policy.html
+│   ├── takedown-policy.html
+│   ├── terms-of-use.html
+│   ├── legal.css
+│   └── legal.js
 └── README.md           # This file
 ```
 
-## Customization
+## 🥚 Easter Eggs
 
-You can customize:
+- **The Terminal:** Try finding the hidden "Maintenance Mode" screen.
+- **Prank Mode:** Don't click the logo too many times... you've been warned.
 
-- **Colors**: Update CSS variables in `:root` section of `style.css`
-- **Categories**: Add new categories in navigation and JavaScript
-- **Styling**: Modify the CSS to match your preferred design
-- **Functionality**: Add new features by extending the JavaScript
+## 🤝 Contributing
 
-## Tips
+Contributions are welcome!
 
-- Keep PDF filenames simple (no spaces, special characters)
-- Use descriptive titles and descriptions for better searchability
-- Organize PDFs by subject for easier navigation
-- Update the database regularly when adding new content
+1. Fork the project.
+2. Create your feature branch (`git checkout -b feature/NewFeature`).
+3. Commit your changes (`git commit -m 'Add NewFeature'`).
+4. Push to the branch (`git push origin feature/NewFeature`).
+5. Open a Pull Request.
 
-## Support
+## 📄 License
 
-If you encounter any issues:
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
 
-1. Check that PDF filenames in the database match actual files
-2. Ensure all files are properly uploaded to the `/pdf/` folder
-3. Verify GitHub Pages is enabled and working
-
-## License
-
-This project is open source and available under the MIT License.
+Made with ❤️ by [Alok Das](https://alokdasofficial.in)

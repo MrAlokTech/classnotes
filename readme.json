@@ -1,0 +1,136 @@
+{
+  "filename": "README.md",
+  "content": {
+    "title": "🧪 ClassNotes ~ MSc Chemistry",
+    "description": "A robust, serverless study companion for MSc Chemistry students at Rabindranath Tagore University (RTV). Built with precision, powered by Chemistry.",
+    "badges": [
+      {
+        "alt": "Website",
+        "image": "https://img.shields.io/website?url=https%3A%2F%2Fnotes.alokdasofficial.in&style=flat-square&label=Live%20Site",
+        "link": "https://notes.alokdasofficial.in"
+      },
+      {
+        "alt": "License: MIT",
+        "image": "https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square",
+        "link": "./LICENSE"
+      },
+      {
+        "alt": "Maintained",
+        "image": "https://img.shields.io/badge/Maintained%3F-yes-green.svg?style=flat-square",
+        "link": "https://github.com/alokdasofficial"
+      }
+    ],
+    "header_image": "https://notes.alokdasofficial.in/preview.jpg",
+    "sections": [
+      {
+        "header": "📖 Overview",
+        "body": "**ClassNotes** is a modern Single Page Application (SPA) designed to solve the chaos of sharing study materials. Unlike static file lists, it provides a rich user experience with real-time search, category filtering, and a custom PDF viewer.\n\nIt runs on a **Serverless Architecture**, utilizing **Firebase** for the database and **Google Apps Script** as a backend API to handle file uploads, bug reports, and email notifications without a dedicated server."
+      },
+      {
+        "header": "✨ Key Features",
+        "subsections": [
+          {
+            "header": "🎓 For Students",
+            "items": [
+              "**Smart Search:** Instantly filter notes by title, professor, or subject (e.g., \"Organic\", \"Spectroscopy\").",
+              "**Built-in PDF Viewer:** Read notes directly without downloading them first.",
+              "**Seasonal Themes:** The UI reacts to holidays (Diwali, Christmas, Holi) and seasons (Snow in winter, Rain in monsoon).",
+              "**Deep Linking:** Share a specific note with a direct URL (e.g., `/?pdf=123`).",
+              "**Dark Mode:** Fully supported system-wide dark theme."
+            ]
+          },
+          {
+            "header": "🛡️ For Admins",
+            "items": [
+              "**Maintenance Terminal:** A hidden, CLI-style interface for system diagnostics (Easter Egg 🥚).",
+              "**Automated Moderation:** Google Apps Script filters and emails admin upon new uploads/reports.",
+              "**Analytics:** Anonymous tracking of search gaps (what students look for but don't find)."
+            ]
+          }
+        ]
+      },
+      {
+        "header": "🛠️ Tech Stack",
+        "table": {
+          "headers": ["Component", "Technology", "Description"],
+          "rows": [
+            [
+              "**Frontend**",
+              "HTML5, CSS3, JS",
+              "Vanilla JS (ES6+), CSS Variables, Flexbox/Grid"
+            ],
+            [
+              "**Database**",
+              "Firebase Firestore",
+              "Stores PDF metadata, comments, and analytics"
+            ],
+            [
+              "**Auth**",
+              "Firebase Auth",
+              "Anonymous authentication for session tracking"
+            ],
+            [
+              "**Backend**",
+              "Google Apps Script",
+              "Handles uploads (`doPost`), emails, and config"
+            ],
+            ["**Storage**", "Google Drive", "Hosts the actual PDF files"],
+            ["**Hosting**", "GitHub Pages", "Fast, free static hosting"]
+          ]
+        }
+      },
+      {
+        "header": "🚀 Installation & Setup",
+        "steps": [
+          {
+            "title": "1. Clone the Repository",
+            "code": "git clone https://github.com/yourusername/classnotes.git\ncd classnotes",
+            "language": "bash"
+          },
+          {
+            "title": "2. Configure Firebase",
+            "content": "1. Go to [Firebase Console](https://console.firebase.google.com/) and create a project.\n2. Enable **Firestore Database** and **Authentication** (Anonymous Sign-in).\n3. Copy your web app configuration.\n4. Update `index.html` (bottom script section):",
+            "code": "const firebaseConfig = {\n  apiKey: \"YOUR_API_KEY\",\n  authDomain: \"YOUR_PROJECT.firebaseapp.com\",\n  projectId: \"YOUR_PROJECT_ID\",\n  // ... other keys\n};",
+            "language": "javascript"
+          },
+          {
+            "title": "3. Setup Google Apps Script (Backend)",
+            "content": "1. Create a new Google Sheet.\n2. Go to **Extensions > Apps Script**.\n3. Paste the backend code (handles `doPost` for uploads/reports).\n4. **Deploy** as a Web App (Access: *Anyone*).\n5. Update `script.js` and `upload.js`:",
+            "code": "const GAS_URL = \"https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec\";",
+            "language": "javascript"
+          },
+          {
+            "title": "4. Run Locally",
+            "content": "You can use any static server. For example, with Python:",
+            "code": "python -m http.server 8000",
+            "language": "bash",
+            "footer": "Visit `http://localhost:8000` in your browser."
+          }
+        ]
+      },
+      {
+        "header": "📂 Project Structure",
+        "code": "├── index.html          # Main application (Search, Grid, Viewer)\n├── style.css           # Global styles, variables, and animations\n├── script.js           # Core logic, Firebase init, UI events\n├── upload/\n│   ├── index.html      # Upload form interface\n│   └── upload.js       # File encoding & GAS submission logic\n└── README.md           # This file",
+        "language": "text"
+      },
+      {
+        "header": "🥚 Easter Eggs",
+        "items": [
+          "**The Terminal:** Try finding the hidden \"Maintenance Mode\" screen.",
+          "**Prank Mode:** Don't click the logo too many times... you've been warned."
+        ]
+      },
+      {
+        "header": "🤝 Contributing",
+        "content": "Contributions are welcome!\n1. Fork the project.\n2. Create your feature branch (`git checkout -b feature/NewFeature`).\n3. Commit your changes (`git commit -m 'Add NewFeature'`).\n4. Push to the branch (`git push origin feature/NewFeature`).\n5. Open a Pull Request."
+      },
+      {
+        "header": "📄 License",
+        "content": "This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details."
+      }
+    ],
+    "footer": {
+      "text": "Made with ❤️ by [Alok Das](https://alokdasofficial.in)"
+    }
+  }
+}

@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. CONFIGURATION & STATE
     // ==========================================
     const CONFIG = {
-        scriptURL: "https://script.google.com/macros/s/AKfycbzOkHDEIYzECrLfjL6P3PmFdU0L0ixSlrsTx5OorXrvm-q8plMGh0l_Epc6RHc7N1Hsqg/exec", // Your GAS URL
+        GAS_UPLOAD_ENDPOINT: "https://script.google.com/macros/s/AKfycbzOkHDEIYzECrLfjL6P3PmFdU0L0ixSlrsTx5OorXrvm-q8plMGh0l_Epc6RHc7N1Hsqg/exec",
         maxFileSize: 25 * 1024 * 1024 // 25MB
     };
 
@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await auth.signInWithEmailAndPassword(email, pass);
             showToast('Welcome back!');
         } catch (error) {
-            showToast(error.message, 'error');
+            showToast("Check email or password", 'error');
         } finally {
             setLoading(btn, false, 'Log In', 'fa-sign-in-alt');
         }
@@ -321,13 +321,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const base64 = await toBase64(file);
 
             const payload = {
+                action: 'upload',
                 filename: file.name,
                 mimeType: file.type,
                 file: base64,
                 semester: UI.inputs.semester.value
             };
 
-            const response = await fetch(CONFIG.scriptURL, {
+            const response = await fetch(CONFIG.GAS_UPLOAD_ENDPOINT, {
                 method: "POST",
                 body: JSON.stringify(payload)
             });

@@ -3136,3 +3136,172 @@ input:focus-visible {
 .prank-close-btn.hidden {
   display: none;
 }
+
+/* --- Announcement Marquee --- */
+.announcement-bar {
+  background-color: var(--primary-color);
+  color: white;
+  font-size: 0.9rem;
+  padding: 10px 0;
+  position: relative;
+  z-index: 1020;
+  transition: all 0.3s ease;
+}
+.announcement-bar.hidden {
+  display: none;
+}
+.announcement-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  text-align: center;
+}
+.announcement-bar a {
+  color: white;
+  text-decoration: underline;
+  font-weight: 600;
+}
+#closeAnnouncement {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.2rem;
+  cursor: pointer;
+  position: absolute;
+  right: 0;
+}
+#closeAnnouncement:hover {
+  color: white;
+}
+/* Overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease;
+}
+
+.modal-overlay:not(.hidden) {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Modal Card */
+.email-modal {
+  position: relative;
+  width: 92%;
+  max-width: 420px;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 28px 22px 26px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+  text-align: center;
+  animation: modalPop 0.3s ease;
+}
+
+/* Close Button */
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: #888;
+}
+
+.modal-close:hover {
+  color: #000;
+}
+
+/* Icon */
+.modal-icon {
+  font-size: 2.4rem;
+  margin-bottom: 10px;
+}
+
+/* Text */
+.modal-title {
+  font-size: 1.35rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.modal-subtitle {
+  font-size: 0.95rem;
+  color: #666;
+  margin-bottom: 18px;
+}
+
+/* Form */
+.email-form {
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+}
+
+.email-form input {
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  outline: none;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+
+.email-form input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* Button */
+.email-form button {
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: #fff;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.email-form button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+}
+
+/* Footer */
+.modal-footer {
+  font-size: 0.75rem;
+  color: #999;
+  margin-top: 12px;
+}
+
+/* Animation */
+@keyframes modalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Responsive tweak (very small devices) */
+@media (max-width: 360px) {
+  .modal-title {
+    font-size: 1.2rem;
+  }
+}

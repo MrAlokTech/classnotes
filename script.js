@@ -11,6 +11,8 @@ let adDatabase = {};
 let isModalHistoryPushed = false;
 let db; // Defined globally, initialized later
 
+// GAS
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzQD--G7aJpKSCW5b72PpMC_F7ZT8-7jwYTiwsJ339oFgusflxGLvb1Ge9WlBqcIB7j/exec"
 // DOM Elements
 const preloader = document.getElementById('preloader');
 const pdfGrid = document.getElementById('pdfGrid');
@@ -56,6 +58,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         });
     }
 
+    document.getElementById("errorTime").innerText = new Date().toISOString();
+
     // 2. Initialize Firebase
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
@@ -70,6 +74,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     initMaintenanceListener();
     initPrankEasterEgg();
     initNewYearCountdown();
+    initMarquee();
+    setTimeout(checkEmailCapture, 15000);
 
     // 4. Check Holiday (Synchronous check)
     const isHoliday = checkHolidayMode();
@@ -299,10 +305,10 @@ async function loadPDFDatabase() {
                 const localLatestId = cachedData.length > 0 ? cachedData[0].id : null;
 
                 if (serverLatestId === localLatestId) {
-                    console.log("Cache is valid (Matches Server) ⚡");
+                    // console.log("Cache is valid (Matches Server) ⚡"); // UNCOMMENT DURING TESTING (IF REQUIRED)
                     shouldUseCache = true;
                 } else {
-                    console.log("Cache is stale (New content detected) 🔄");
+                    // console.log("Cache is stale (New content detected) 🔄"); // UNCOMMENT DURING TESTING (IF REQUIRED)
                     shouldUseCache = false;
                 }
             } else {
@@ -320,7 +326,7 @@ async function loadPDFDatabase() {
         }
 
         // --- FETCH FRESH DATA (Only runs if cache is missing or stale) ---
-        console.log("Fetching fresh list from Firebase 🔥");
+        // console.log("Fetching fresh list from Firebase 🔥"); // UNCOMMENT DURING TESTING (IF REQUIRED)
         const pdfsRef = db.collection('pdfs');
         const snapshot = await pdfsRef.orderBy('uploadDate', 'desc').get();
 
@@ -553,10 +559,22 @@ function reportCurrentPDF() {
     if (!pdfModal.dataset.currentPdf) return;
     const pdf = JSON.parse(pdfModal.dataset.currentPdf);
 
-    const subject = encodeURIComponent(`Report: Broken Link or Issue - ${pdf.title}`);
-    const body = encodeURIComponent(`Hi Admin,\n\nI found an issue with this note:\n\nTitle: ${pdf.title}\nID: ${pdf.id}\nSemester: ${pdf.semester}\n\nIssue Description: (Link not working / Wrong file / etc.)\n`);
+    const issue = prompt(`Describe the issue with "${pdf.title}":\n(e.g., Broken link, Wrong semester)`);
+    if (!issue) return;
 
-    window.open(`mailto:notes@alokdasofficial.in?subject=${subject}&body=${body}`);
+    showToast("Sending report...", "info");
+
+    fetch(GAS_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify({
+            action: 'report',
+            pdfId: pdf.id,
+            title: pdf.title,
+            issue: issue
+        })
+    }).then(() => showToast("Report sent! We'll check it."))
+        .catch(() => showToast("Connection failed", "error"));
 }
 
 function checkAlomolePromoState() {
@@ -674,6 +692,25 @@ function renderPDFs() {
     if (filteredPdfs.length === 0) {
         pdfGrid.style.display = 'none';
         emptyState.style.display = 'block';
+
+        // NEW: Log the failure to Google Sheets
+        // We use a timeout to ensure we don't log while they are still typing "Org... Organ... Organic"
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            if (searchTerm.length > 3) {
+                fetch(GAS_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify({
+                        action: 'log_search',
+                        term: searchTerm,
+                        device: navigator.userAgent
+                    })
+                });
+                // console.log("Logged missing content:", searchTerm); // UNCOMMENT DURING TESTING (IF REQUIRED)
+            }
+        }, 2000); // Wait 2 seconds after typing stops
+
         return;
     }
 
@@ -1011,6 +1048,18 @@ async function handleCommentSubmit(e) {
             author: author,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
+        // --- NOTIFICATION ---
+        fetch(GAS_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({
+                action: 'notify_comment',
+                pdfTitle: pdf.title,
+                pdfId: pdf.id,
+                text: text,
+                author: author
+            })
+        });
         commentInput.value = '';
         commentAuthor.value = '';
         await loadComments(pdf.id);
@@ -1296,9 +1345,6 @@ function initNewYearCountdown() {
                     document.body.style.overflow = 'auto';
                 };
             }
-
-            // TRIGGER THE CONFETTI (High Z-Index)
-            triggerNewYearConfetti();
             return;
         }
 
@@ -1319,60 +1365,112 @@ function initNewYearCountdown() {
     const timerInterval = setInterval(updateTimer, 1000);
 }
 
-function triggerNewYearConfetti() {
-    // 1. Target the special canvas we added to the overlay
-    const canvas = document.getElementById('holidayConfetti');
-    if (!canvas) return; // Safety check
 
-    // 2. Create a confetti instance strictly for this canvas
-    const myConfetti = confetti.create(canvas, {
-        resize: true,
-        useWorker: true
+/* =========================================
+   11. ROBUST FEATURES (GAS INTEGRATION)
+   ========================================= */
+
+// --- 1. Marquee Logic ---
+function initMarquee() {
+    fetch(GAS_URL) // This triggers doGet()
+        .then(res => res.json())
+        .then(data => {
+            if (data.isActive) {
+                const bar = document.getElementById('announcementBar');
+                const text = document.getElementById('announcementText');
+
+                if (data.color) bar.style.backgroundColor = data.color;
+
+                if (data.link && data.link !== '#') {
+                    text.innerHTML = `<a href="${data.link}">${data.message}</a>`;
+                } else {
+                    text.textContent = data.message;
+                }
+
+                bar.classList.remove('hidden');
+
+                // Handle Close
+                document.getElementById('closeAnnouncement').addEventListener('click', () => {
+                    bar.classList.add('hidden');
+                    sessionStorage.setItem('marqueeDismissed', 'true');
+                });
+            }
+        })
+        .catch(e => console.log("Marquee skipped (offline/error)"));
+}
+
+// --- 2. Email Capture Logic ---
+function checkEmailCapture() {
+    const MODAL_KEY = 'emailModalSeenAt';
+    const COOLDOWN_DAYS = 7;
+
+    const lastSeen = localStorage.getItem(MODAL_KEY);
+    if (lastSeen) {
+        const daysPassed =
+            (Date.now() - parseInt(lastSeen, 10)) / (1000 * 60 * 60 * 24);
+        if (daysPassed < COOLDOWN_DAYS) return;
+    }
+
+    const modal = document.getElementById('emailModal');
+    if (!modal) return;
+
+    // Gentle delay (UX courtesy)
+    setTimeout(() => {
+        modal.classList.remove('hidden');
+    }, 1200);
+
+    const closeModal = () => {
+        modal.classList.add('hidden');
+        localStorage.setItem(MODAL_KEY, Date.now().toString());
+    };
+
+    // Close button
+    const closeBtn = document.getElementById('closeEmailModal');
+    closeBtn.onclick = closeModal;
+
+    // Close on overlay click
+    modal.onclick = (e) => {
+        if (e.target === modal) closeModal();
+    };
+
+    // Close on ESC
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeModal();
     });
 
-    // --- YOUR PREFERRED ANIMATION LOGIC ---
+    // Form submit
+    const form = document.getElementById('emailCaptureForm');
+    const input = document.getElementById('captureEmailInput');
+    const button = form.querySelector('button');
 
-    // 1. School Pride / Gold Colors
-    const colors = ['#ffd700', '#ffffff', '#2563eb'];
+    form.onsubmit = async (e) => {
+        e.preventDefault();
 
-    // 2. Launch fireworks from both sides for 15 seconds
-    const duration = 15 * 1000;
-    const end = Date.now() + duration;
-
-    (function frame() {
-        // Launch fireworks from left
-        myConfetti({
-            particleCount: 5,
-            angle: 60,
-            spread: 55,
-            origin: { x: 0 },
-            colors: colors,
-            zIndex: 300 // (This is now relative to the canvas)
-        });
-
-        // Launch fireworks from right
-        myConfetti({
-            particleCount: 5,
-            angle: 120,
-            spread: 55,
-            origin: { x: 1 },
-            colors: colors,
-            zIndex: 300
-        });
-
-        if (Date.now() < end) {
-            requestAnimationFrame(frame);
+        if (!input.checkValidity()) {
+            input.focus();
+            return;
         }
-    }());
 
-    // 3. Big Explosion in the middle after 0.5s
-    setTimeout(() => {
-        myConfetti({
-            particleCount: 150,
-            spread: 100,
-            origin: { y: 0.6 },
-            colors: ['#FFD700', '#FF0000', '#FFFFFF'],
-            zIndex: 300
-        });
-    }, 500);
+        const email = input.value.trim();
+        button.disabled = true;
+        button.innerText = "Subscribing…";
+
+        try {
+            await fetch(GAS_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify({
+                    action: 'capture_email',
+                    email
+                })
+            });
+
+            showToast("You're subscribed 🎉");
+            closeModal();
+        } catch (err) {
+            showToast("Something went wrong. Try again.", "error");
+            button.disabled = false;
+            button.innerText = "Notify Me";
+        }
+    };
 }
