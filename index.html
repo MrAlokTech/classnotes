@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -26,7 +26,10 @@
       rel="preload"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
       as="style"
-      onload="this.onload=null;this.rel='stylesheet'"
+      onload="
+        this.onload = null;
+        this.rel = 'stylesheet';
+      "
     />
     <noscript>
       <link
@@ -74,478 +77,493 @@
     />
     <meta name="twitter:creator" content="@alokdasofficial" />
     <link rel="canonical" href="https://notes.alokdasofficial.in/" />
+
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap");
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Poppins", sans-serif;
+        min-height: 100vh;
+        background: #0f0e17;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
+      }
+
+      /* ===== Floating Particles ===== */
+      .particles {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .particle {
+        position: absolute;
+        border-radius: 50%;
+        opacity: 0;
+        animation: drift var(--dur) ease-in-out infinite;
+        animation-delay: var(--delay);
+      }
+
+      .particle:nth-child(1) {
+        width: 6px;
+        height: 6px;
+        background: #7c3aed;
+        top: 10%;
+        left: 15%;
+        --dur: 6s;
+        --delay: 0s;
+      }
+      .particle:nth-child(2) {
+        width: 4px;
+        height: 4px;
+        background: #a78bfa;
+        top: 20%;
+        left: 75%;
+        --dur: 8s;
+        --delay: 1s;
+      }
+      .particle:nth-child(3) {
+        width: 8px;
+        height: 8px;
+        background: #67e8f9;
+        top: 70%;
+        left: 20%;
+        --dur: 7s;
+        --delay: 2s;
+      }
+      .particle:nth-child(4) {
+        width: 5px;
+        height: 5px;
+        background: #f472b6;
+        top: 80%;
+        left: 80%;
+        --dur: 9s;
+        --delay: 0.5s;
+      }
+      .particle:nth-child(5) {
+        width: 3px;
+        height: 3px;
+        background: #7c3aed;
+        top: 50%;
+        left: 50%;
+        --dur: 5s;
+        --delay: 3s;
+      }
+      .particle:nth-child(6) {
+        width: 7px;
+        height: 7px;
+        background: #a3e635;
+        top: 35%;
+        left: 40%;
+        --dur: 10s;
+        --delay: 1.5s;
+      }
+      .particle:nth-child(7) {
+        width: 4px;
+        height: 4px;
+        background: #f97316;
+        top: 60%;
+        left: 10%;
+        --dur: 6.5s;
+        --delay: 2.5s;
+      }
+      .particle:nth-child(8) {
+        width: 5px;
+        height: 5px;
+        background: #67e8f9;
+        top: 15%;
+        left: 60%;
+        --dur: 7.5s;
+        --delay: 0.8s;
+      }
+
+      @keyframes drift {
+        0%,
+        100% {
+          opacity: 0;
+          transform: translateY(0) scale(0.5);
+        }
+        20% {
+          opacity: 1;
+        }
+        80% {
+          opacity: 0.6;
+        }
+        50% {
+          transform: translateY(-40px) scale(1);
+        }
+      }
+
+      /* ===== Ambient Glow ===== */
+      .glow {
+        position: fixed;
+        border-radius: 50%;
+        filter: blur(100px);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .glow-1 {
+        width: 400px;
+        height: 400px;
+        background: rgba(124, 58, 237, 0.15);
+        top: -100px;
+        left: -100px;
+        animation: pulse 8s ease-in-out infinite;
+      }
+
+      .glow-2 {
+        width: 350px;
+        height: 350px;
+        background: rgba(103, 232, 249, 0.1);
+        bottom: -100px;
+        right: -100px;
+        animation: pulse 10s ease-in-out infinite 2s;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 0.6;
+        }
+        50% {
+          transform: scale(1.2);
+          opacity: 1;
+        }
+      }
+
+      /* ===== Main Card ===== */
+      .card {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+        padding: 60px 40px;
+        max-width: 520px;
+        width: 90%;
+      }
+
+      /* ===== App Icon ===== */
+      .app-icon {
+        width: 88px;
+        height: 88px;
+        margin: 0 auto 28px;
+        border-radius: 24px;
+        background: linear-gradient(135deg, #7c3aed, #a78bfa);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        box-shadow: 0 8px 30px rgba(124, 58, 237, 0.4);
+        animation: iconBounce 2s ease-in-out infinite;
+      }
+
+      @keyframes iconBounce {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-6px);
+        }
+      }
+
+      /* ===== Tag ===== */
+      .tag {
+        display: inline-block;
+        font-family: "Space Mono", monospace;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 2.5px;
+        color: #67e8f9;
+        background: rgba(103, 232, 249, 0.1);
+        border: 1px solid rgba(103, 232, 249, 0.25);
+        padding: 6px 14px;
+        border-radius: 30px;
+        margin-bottom: 24px;
+        animation: tagPulse 3s ease-in-out infinite;
+      }
+
+      @keyframes tagPulse {
+        0%,
+        100% {
+          box-shadow: 0 0 0 0 rgba(103, 232, 249, 0.3);
+        }
+        50% {
+          box-shadow: 0 0 12px 2px rgba(103, 232, 249, 0.15);
+        }
+      }
+
+      /* ===== Heading ===== */
+      .card h1 {
+        font-size: 2.4rem;
+        font-weight: 700;
+        line-height: 1.2;
+        margin-bottom: 16px;
+        opacity: 0;
+        animation: fadeUp 0.6s ease forwards 0.3s;
+      }
+
+      .card h1 .highlight {
+        background: linear-gradient(135deg, #7c3aed, #a78bfa, #67e8f9);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      /* ===== Description ===== */
+      .card p {
+        font-size: 1rem;
+        color: rgba(255, 255, 255, 0.55);
+        line-height: 1.7;
+        max-width: 400px;
+        margin: 0 auto 36px;
+        opacity: 0;
+        animation: fadeUp 0.6s ease forwards 0.5s;
+      }
+
+      /* ===== Redirect Button ===== */
+      .btn-wrap {
+        opacity: 0;
+        animation: fadeUp 0.6s ease forwards 0.7s;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: linear-gradient(135deg, #7c3aed, #6d28d9);
+        color: #fff;
+        font-family: "Poppins", sans-serif;
+        font-size: 0.95rem;
+        font-weight: 600;
+        padding: 14px 32px;
+        border: none;
+        border-radius: 14px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .btn::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, #a78bfa, #7c3aed);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      .btn:hover::before {
+        opacity: 1;
+      }
+
+      .btn span,
+      .btn .arrow {
+        position: relative;
+        z-index: 1;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(124, 58, 237, 0.5);
+      }
+
+      .arrow {
+        font-size: 18px;
+        transition: transform 0.3s ease;
+      }
+
+      .btn:hover .arrow {
+        transform: translateX(4px);
+      }
+
+      /* ===== Auto-redirect bar ===== */
+      .redirect-info {
+        margin-top: 28px;
+        opacity: 0;
+        animation: fadeUp 0.6s ease forwards 0.9s;
+      }
+
+      .redirect-info p {
+        font-size: 0.78rem;
+        color: rgba(255, 255, 255, 0.3);
+        margin: 0 0 10px;
+        animation: none;
+        opacity: 1;
+      }
+
+      .progress-bar {
+        width: 200px;
+        height: 3px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 99px;
+        margin: 0 auto;
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #7c3aed, #67e8f9);
+        border-radius: 99px;
+        transition: width 0.1s linear;
+      }
+
+      /* ===== Footer ===== */
+      .footer-text {
+        position: fixed;
+        bottom: 24px;
+        left: 0;
+        width: 100%;
+        text-align: center;
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.18);
+        z-index: 1;
+      }
+
+      .footer-text a {
+        color: rgba(124, 167, 250, 0.5);
+        text-decoration: none;
+      }
+
+      .footer-text a:hover {
+        color: #a78bfa;
+      }
+
+      /* ===== Animations ===== */
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* ===== Responsive ===== */
+      @media (max-width: 480px) {
+        .card {
+          padding: 40px 24px;
+        }
+
+        .card h1 {
+          font-size: 1.8rem;
+        }
+      }
+    </style>
   </head>
-
   <body>
-    <!-- MARQUEE -->
-    <div id="announcementBar" class="announcement-bar hidden">
-      <div class="container announcement-content">
-        <span id="announcementText">Loading updates...</span>
-        <button id="closeAnnouncement" aria-label="Close">&times;</button>
-      </div>
-    </div>
-    <!-- HOLIDAY -->
-    <div id="holidayOverlay" class="holiday-overlay hidden">
-      <canvas id="holidayConfetti"></canvas>
-      <div id="holidayBgAnim" class="holiday-bg-anim"></div>
-      <div class="glass-card">
-        <div class="holiday-icon-wrapper">
-          <div id="holidayIcon" class="holiday-emoji">✨</div>
-        </div>
-        <h1 id="holidayTitle">Happy Holidays</h1>
-
-        <div id="overlayTimer" class="overlay-timer hidden">
-          <div class="ot-box"><span id="otDays">00</span><small>d</small></div>
-          <div class="ot-sep">:</div>
-          <div class="ot-box"><span id="otHours">00</span><small>h</small></div>
-          <div class="ot-sep">:</div>
-          <div class="ot-box"><span id="otMins">00</span><small>m</small></div>
-          <div class="ot-sep">:</div>
-          <div class="ot-box"><span id="otSecs">00</span><small>s</small></div>
-        </div>
-
-        <div class="holiday-divider"></div>
-        <p id="holidayMessage">Wishing you a wonderful break!</p>
-        <p id="holidaySubMessage" class="chem-note">
-          ( Chemistry Note: Take a break from the Periodic Table )
-        </p>
-      </div>
+    <!-- Particles -->
+    <div class="particles">
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
     </div>
 
-    <div id="maintenanceScreen" class="maintenance-overlay">
-      <div class="terminal-window">
-        <div class="terminal-top-bar">
-          <div class="traffic-lights">
-            <span class="light red"></span>
-            <span class="light yellow"></span>
-            <span class="light green"></span>
-          </div>
-          <div class="terminal-title">lab_admin@classnotes:~/reactor_core</div>
-        </div>
+    <!-- Ambient Glow -->
+    <div class="glow glow-1"></div>
+    <div class="glow glow-2"></div>
 
-        <div class="terminal-body">
-          <div class="scan-line"></div>
+    <!-- Main Card -->
+    <div class="card">
+      <!-- Change emoji per app: 🧪 Alomole | 📚 ClassNotes | ⏰ Tickly -->
+      <div class="app-icon">📚</div>
 
-          <p class="cmd">> sudo check_equilibrium</p>
-          <p class="output">
-            STATUS: <span class="status-blink">UNSTABLE</span><br />
-            ERROR_CODE:
-            <span class="text-yellow">ENTROPY_MAXIMIZED (ΔS > 0)</span>
-          </p>
+      <div class="tag">We've Moved</div>
 
-          <p class="cmd">> analyze_failure_cause</p>
-          <p class="output">
-            Detection: Covalent bonds in the backend have ruptured.<br />
-            Reason: Server exceeded Activation Energy (Ea).
-          </p>
+      <!-- Change app name in h1 -->
+      <h1>Thanks for using <span class="highlight">ClassNotes</span></h1>
 
-          <div class="mt-4">
-            <p class="cmd">> add_buffer_solution --fix-ph</p>
-            <div class="terminal-progress-bar">
-              <div class="terminal-progress-fill"></div>
-            </div>
-            <p class="output-dim">Re-titrating database... Please wait...</p>
-          </div>
+      <p>
+        We're growing! To give you a better experience,
+        <strong style="color: rgba(255, 255, 255, 0.75)">ClassNotes</strong> has
+        moved to our new home. Support us by visiting the new link below 🚀
+      </p>
 
-          <div class="terminal-actions-row">
-            <button class="terminal-btn" onclick="window.location.reload()">
-              [ RE-CATALYZE ]
-            </button>
-            <a href="mailto:notes@alokdasofficial.in" class="terminal-link">
-              [ REPORT_LEAK ]
-            </a>
-          </div>
-
-          <div id="adminDiagnostics" class="admin-only hidden">
-            <p class="cmd">> sudo isotope_verify</p>
-            <p class="output text-yellow">
-              User: <a href="http://alokdasofficial.in">Alok Das</a><br />
-              Access: <span id="bypassKey">0x_AVOGADRO_AUTH</span>
-            </p>
-          </div>
-
-          <div class="terminal-footer-info">
-            Timestamp: <span id="errorTime"></span> | Lab Temp: 298 K
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="preloader">
-      <div class="book">
-        <div class="inner">
-          <div class="left"></div>
-          <div class="middle"></div>
-          <div class="right"></div>
-        </div>
-        <ul>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-        </ul>
-      </div>
-      <p class="loader-text">Loading <span>ClassNotes</span></p>
-    </div>
-    <header class="header">
-      <div class="container">
-        <div class="header-content">
-          <div class="logo">
-            <i class="fas fa-graduation-cap"></i>
-            <h1>ClassNotes</h1>
-          </div>
-          <button
-            id="themeToggleBtn"
-            class="btn-icon theme-toggle"
-            title="Toggle Dark Mode"
-            aria-label="Toggle Dark Mode"
-          >
-            <i class="fas fa-moon"></i>
-          </button>
-        </div>
-      </div>
-    </header>
-
-    <div class="semester-tabs">
-      <div class="container">
-        <div class="tabs-wrapper">
-          <button class="tab-btn" data-semester="1">
-            <span class="tab-number">1</span
-            ><span class="tab-label">Semester</span>
-          </button>
-          <button class="tab-btn active" data-semester="2">
-            <span class="tab-number">2</span
-            ><span class="tab-label">Semester</span>
-          </button>
-          <button class="tab-btn" data-semester="3">
-            <span class="tab-number">3</span
-            ><span class="tab-label">Semester</span>
-          </button>
-          <button class="tab-btn" data-semester="4">
-            <span class="tab-number">4</span
-            ><span class="tab-label">Semester</span>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div class="container">
-      <div id="ad-slot-top" class="ad-slot-container"></div>
-    </div>
-
-    <main class="main">
-      <div class="container">
-        <div class="controls-section">
-          <div class="search-box">
-            <i class="fas fa-search"></i>
-            <input
-              type="text"
-              id="searchInput"
-              placeholder="Search notes by title, teacher, or subject..."
-            />
-          </div>
-          <div class="filter-section">
-            <button class="filter-btn active" data-category="all">
-              <i class="fas fa-th"></i> All
-            </button>
-            <button
-              class="filter-btn"
-              data-category="favorites"
-              aria-label="Favorites"
-            >
-              <i class="fas fa-heart"></i>
-            </button>
-            <button
-              class="filter-btn"
-              data-category="General"
-              aria-label="General"
-            >
-              <i class="fas fa-gift"></i>
-            </button>
-            <button class="filter-btn" data-category="Organic">
-              <i class="fas fa-flask"></i> Organic
-            </button>
-            <button class="filter-btn" data-category="Inorganic">
-              <i class="fas fa-atom"></i> Inorganic
-            </button>
-            <button class="filter-btn" data-category="Physical">
-              <i class="fas fa-calculator"></i> Physical
-            </button>
-            <button class="filter-btn" data-category="Physics">
-              <i class="fas fa-infinity"></i> Physics
-            </button>
-          </div>
-          <div id="ad-slot-middle" class="ad-slot-container"></div>
-        </div>
-
-        <div class="stats-bar">
-          <span id="pdfCount">0</span> notes available
-        </div>
-
-        <div class="pdf-grid" id="pdfGrid"></div>
-
-        <div class="empty-state" id="emptyState" style="display: none">
-          <i class="fas fa-folder-open"></i>
-          <h3>No notes found</h3>
-          <p>Try adjusting your search or filter</p>
-        </div>
-      </div>
-    </main>
-
-    <div class="modal" id="pdfModal">
-      <div class="modal-content pdf-viewer-layout">
-        <div class="modal-main-content">
-          <button id="openCommentsBtn">
-            <i class="fas fa-comment-dots"></i> Comments
-          </button>
-          <div class="modal-header">
-            <h3 id="modalTitle">PDF Viewer</h3>
-            <div class="modal-actions">
-              <button class="btn-icon" id="modalShareBtn" title="Share PDF">
-                <i class="fas fa-share-alt"></i>
-              </button>
-              <button
-                class="btn-icon"
-                id="reportBtn"
-                title="Report Issue"
-                style="color: var(--error-color)"
-              >
-                <i class="fas fa-flag"></i>
-              </button>
-              <button class="btn-icon" id="downloadBtn" title="Download PDF">
-                <i class="fas fa-download"></i>
-              </button>
-              <button class="btn-icon" id="closeModal" title="Close">
-                <i class="fas fa-times"></i>
-              </button>
-            </div>
-          </div>
-          <div class="modal-body">
-            <iframe
-              id="pdfViewer"
-              src=""
-              width="100%"
-              height="100%"
-              loading="lazy"
-            ></iframe>
-          </div>
-        </div>
-        <div class="modal-sidebar" id="commentSidebar">
-          <h4>
-            <span>Comments (<span id="commentCount">0</span>)</span>
-            <button id="closeCommentsBtn" class="drawer-close" type="button">
-              <i class="fas fa-times"></i>
-            </button>
-          </h4>
-          <div class="comments-list" id="commentsList">
-            <div id="ad-slot-modal" class="ad-slot-container mb-4"></div>
-          </div>
-          <form class="comment-form" id="commentForm">
-            <textarea
-              id="commentInput"
-              placeholder="Add a comment... (Max 200 chars)"
-              maxlength="200"
-              required
-            ></textarea>
-            <input
-              type="text"
-              id="commentAuthor"
-              placeholder="Your Name (Optional)"
-              maxlength="50"
-            />
-            <button type="submit" class="btn btn-primary" id="submitCommentBtn">
-              <i class="fas fa-paper-plane"></i> Send
-            </button>
-          </form>
-        </div>
-      </div>
-    </div>
-
-    <div class="modal" id="shareModal">
-      <div class="modal-content share-modal">
-        <div class="modal-header">
-          <h3>Share this PDF</h3>
-          <button class="btn-icon" id="closeShareModal">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-        <div class="modal-body">
-          <p>Share this link with your classmates:</p>
-          <div class="share-link-container">
-            <input type="text" id="shareLink" readonly />
-            <button class="btn btn-primary" id="copyLinkBtn">
-              <i class="fas fa-clone"></i> Copy
-            </button>
-          </div>
-          <div class="share-success" id="shareSuccess" style="display: none">
-            <i class="fas fa-check"></i> Link copied to clipboard!
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="alomole-promo" id="alomolePromo">
-      <button
-        class="promo-close-btn"
-        id="closeAlomolePromo"
-        title="Hide Promotion"
-      >
-        <i class="fas fa-times"></i>
-      </button>
-      <a
-        href="https://play.google.com/store/apps/details?id=com.alokdas.alomole"
-        target="_blank"
-        class="promo-link"
-        title="Download Alomole"
-      >
-        <img
-          src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https://play.google.com/store/apps/details?id=com.alokdas.alomole"
-          alt="QR"
-          loading="lazy"
-          width="100"
-          height="100"
-        />
-        <span class="promo-text">Alomole</span>
-        <span class="promo-text-body">Download Now!</span>
-      </a>
-    </div>
-
-    <div class="toast" id="toast">
-      <i class="fas fa-check"></i>
-      <span id="toastMessage">Action completed!</span>
-    </div>
-
-    <button
-      class="btn-icon go-to-top"
-      id="goToTopBtn"
-      title="Go to top"
-      aria-label="Top"
-    >
-      <i class="fas fa-arrow-up"></i>
-    </button>
-    <a
-      href="/upload/"
-      class="btn-icon upload-btn"
-      title="Upload Note's"
-      aria-label="Upload"
-      ><i class="fa-solid fa-cloud-arrow-up"></i
-    ></a>
-
-    <footer>
-      <div class="footer-content">
-        <p class="thanks-message">
-          ✨ Heartfelt thanks to all the amazing friends who shared their notes
-          🙌
-        </p>
-        <p class="contact-info">
-          Found an issue? Email us at
-          <a href="mailto:notes@alokdasofficial.in">notes@alokdasofficial.in</a>
-        </p>
-        <p class="credits">
-          Made with <span class="heart">❤️</span> by
-          <a href="https://alokdasofficial.in" target="_blank">Alok Das</a>
-        </p>
-
+      <!-- Change href to your new app URL -->
+      <div class="btn-wrap">
         <a
-          href="https://github.com/MrAlokTech/classnotes"
-          target="_blank"
-          class="github-link"
-          title="View Source Code"
+          href="https://alokdasofficial.in/classnotes"
+          class="btn"
+          id="redirectBtn"
         >
-          <i class="fab fa-github"></i> Open Sourced on GitHub
+          <span>Visit New Site</span>
+          <span class="arrow">→</span>
         </a>
-        <p class="copyright-text" id="copyright-year">
-          © 2025 ClassNotes. All rights reserved.
-        </p>
-        <p class="policy-links">
-          <a href="/upload/">Upload Note</a> |
-          <a href="/legal/privacy-policy.html">Privacy Policy</a> |
-          <a href="/legal/terms-of-use.html">Terms of Use</a> |
-          <a href="/legal/takedown-policy.html">Takedown Policy</a>
-        </p>
       </div>
-    </footer>
 
-    <!-- FUN PRANK -->
-    <div id="prankOverlay" class="prank-overlay hidden">
-      <div class="prank-terminal">
-        <div id="prankText" class="prank-text">> INITIALIZING...</div>
-        <div class="prank-progress-bar">
-          <div id="prankProgress" class="prank-progress-fill"></div>
+      <!-- Auto-redirect progress bar -->
+      <div class="redirect-info">
+        <p>Auto-redirecting in <strong id="countdown">5</strong>s...</p>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
         </div>
-        <button id="closePrankBtn" class="prank-close-btn hidden">
-          Okay, I'm Done 😭
-        </button>
       </div>
     </div>
 
-    <!-- MARKETING -->
-    <div id="emailModal" class="modal-overlay hidden">
-      <div class="modal-content email-modal">
-        <button class="modal-close" id="closeEmailModal" aria-label="Close">
-          ✕
-        </button>
-
-        <div class="modal-icon">🔔</div>
-
-        <h3 class="modal-title">Never Miss a Note</h3>
-        <p class="modal-subtitle">
-          Get instant email alerts whenever new semester notes are uploaded.
-        </p>
-
-        <form id="emailCaptureForm" class="email-form">
-          <input
-            type="email"
-            id="captureEmailInput"
-            placeholder="notes@alokdasofficial.in"
-            required
-          />
-          <button type="submit">Notify Me</button>
-        </form>
-
-        <p class="modal-footer">No spam. Unsubscribe anytime.</p>
-      </div>
+    <!-- Footer -->
+    <div class="footer-text">
+      Built with ❤️ by
+      <a href="https://alokdasofficial.in" target="_blank">Alok Das</a>
     </div>
-
-    <script
-      src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"
-      defer
-    ></script>
-    <script
-      src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"
-      defer
-    ></script>
-    <script
-      src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"
-      defer
-    ></script>
 
     <script>
-      const firebaseConfig = {
-        apiKey: "AIzaSyAf9MEc8495GUwWHZsE4HcvJvbtptkBfQc",
-        authDomain: "alokdasofficial-69f96.firebaseapp.com",
-        projectId: "alokdasofficial",
-        storageBucket: "alokdasofficial.firebasestorage.app",
-        messagingSenderId: "315463239297",
-        appId: "1:315463239297:web:c374126286d9b33f3f2f80",
-        measurementId: "G-QPXHCK0R2E",
-      };
-    </script>
+      // ===== CONFIG — Change these per app =====
+      const REDIRECT_URL = "https://alokdasofficial.in/classnotes";
+      const COUNTDOWN_SECONDS = 8;
+      // ==========================================
 
-    <script src="script.js" defer></script>
+      const countdown = document.getElementById("countdown");
+      const progressFill = document.getElementById("progressFill");
+
+      let remaining = COUNTDOWN_SECONDS;
+      const interval = 100; // update every 100ms
+      const totalSteps = (COUNTDOWN_SECONDS * 1000) / interval;
+      let step = 0;
+
+      const timer = setInterval(() => {
+        step++;
+        const percent = (step / totalSteps) * 100;
+        progressFill.style.width = percent + "%";
+
+        // Update countdown number every second
+        const newRemaining = Math.ceil(
+          COUNTDOWN_SECONDS - (step * interval) / 1000,
+        );
+        if (newRemaining !== remaining) {
+          remaining = newRemaining;
+          countdown.textContent = remaining;
+        }
+
+        // Redirect when done
+        if (step >= totalSteps) {
+          clearInterval(timer);
+          window.location.href = REDIRECT_URL;
+        }
+      }, interval);
+    </script>
   </body>
 </html>
