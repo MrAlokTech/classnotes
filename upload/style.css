@@ -112,7 +112,11 @@
 }
 
 body {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
     sans-serif;
   background-color: var(--bg-color);
   color: var(--text-main);
@@ -120,7 +124,9 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  transition: background-color 0.3s ease, color 0.3s ease; /* Smooth Theme Transition */
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease; /* Smooth Theme Transition */
   -webkit-font-smoothing: antialiased;
 }
 
@@ -633,4 +639,146 @@ footer a:hover {
     right: 20px;
     max-width: none;
   }
+}
+
+/* =========================================
+   SKELETON LOADING (Auth/Upload)
+   ========================================= */
+.skeleton {
+  background: #e1e4e8;
+  position: relative;
+  overflow: hidden;
+  border-radius: 6px;
+}
+
+[data-theme="dark"] .skeleton {
+  background: #2d2d30;
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.2) 20%,
+    rgba(255, 255, 255, 0.5) 60%,
+    rgba(255, 255, 255, 0)
+  );
+  animation: shimmer 2s infinite;
+}
+
+[data-theme="dark"] .skeleton::after {
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.05) 20%,
+    rgba(255, 255, 255, 0.1) 60%,
+    rgba(255, 255, 255, 0)
+  );
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Skeleton Card Layout */
+.skeleton-card-auth {
+  width: 100%;
+  max-width: 440px;
+  background: var(--card-bg);
+  padding: 2rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.sk-title {
+  height: 32px;
+  width: 60%;
+  margin: 0 auto;
+}
+.sk-input {
+  height: 48px;
+  width: 100%;
+}
+.sk-btn {
+  height: 48px;
+  width: 100%;
+  margin-top: 0.5rem;
+  border-radius: var(--radius);
+}
+.sk-text {
+  height: 16px;
+  width: 40%;
+  margin: 0 auto;
+}
+
+/* =========================================
+   "OBVIOUS" UPLOAD ZONE STYLES
+   ========================================= */
+.upload-area {
+  border: 2px dashed var(--primary-light); /* More visible border color */
+  background: rgba(37, 99, 235, 0.02);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Pulsing Invite Animation when idle */
+@keyframes softPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.1);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(37, 99, 235, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+  }
+}
+
+.upload-area:not(.dragover) {
+  animation: softPulse 3s infinite;
+}
+
+.upload-area:hover {
+  border-color: var(--primary);
+  background: rgba(37, 99, 235, 0.06);
+  transform: translateY(-2px);
+}
+
+.upload-icon {
+  font-size: 3rem; /* Bigger icon */
+  color: var(--primary); /* Blue instead of muted */
+  margin-bottom: 0.5rem;
+  transition: transform 0.3s ease;
+}
+
+.upload-area:hover .upload-icon {
+  transform: scale(1.1) rotate(-5deg); /* Fun bounce on hover */
+}
+
+/* Make "Browse files" look like a button */
+.upload-content strong {
+  display: inline-block;
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--primary);
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin: 0 4px;
+  transition: all 0.2s ease;
+}
+
+.upload-content strong:hover {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 2px 5px rgba(37, 99, 235, 0.3);
 }

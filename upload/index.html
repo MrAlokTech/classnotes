@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -45,9 +45,14 @@
     </header>
 
     <main class="main container">
-      <div id="appLoader" class="app-loader">
-        <div class="spinner"></div>
-        <p>Verifying account...</p>
+      <div id="appSkeleton" class="app-loader">
+        <div class="skeleton-card-auth">
+          <div class="skeleton sk-title"></div>
+          <div class="skeleton sk-input"></div>
+          <div class="skeleton sk-input"></div>
+          <div class="skeleton sk-btn"></div>
+          <div class="skeleton sk-text"></div>
+        </div>
       </div>
 
       <section id="loginSection" class="hidden">
@@ -355,6 +360,26 @@
               />
             </div>
 
+            <div class="form-group">
+              <label for="pdfClass">Class / Degree</label>
+              <select id="pdfClass" required>
+                <option value="" disabled selected>Select a class</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+
+            <div id="newClassGroup" class="form-group hidden">
+              <label for="newClassName">New Class Name</label>
+              <input
+                type="text"
+                id="newClassName"
+                placeholder="e.g., BSc Physics"
+              />
+              <small id="typoWarning" class="text-error hidden"
+                >Similar class already exists!</small
+              >
+            </div>
+
             <div class="form-row">
               <div class="form-group flex-1">
                 <label for="pdfSemester">
@@ -366,21 +391,29 @@
                   <option value="2">Semester 2</option>
                   <option value="3">Semester 3</option>
                   <option value="4">Semester 4</option>
+                  <option value="5">Semester 5</option>
+                  <option value="6">Semester 6</option>
+                  <option value="7">Semester 7</option>
+                  <option value="8">Semester 8</option>
                 </select>
               </div>
 
               <div class="form-group flex-1">
                 <label for="pdfCategory">
                   <i class="fas fa-tag"></i>
-                  Category
+                  Category / Subject
                 </label>
                 <select id="pdfCategory" required>
-                  <option value="Organic">Organic Chemistry</option>
-                  <option value="Inorganic">Inorganic Chemistry</option>
-                  <option value="Physical">Physical Chemistry</option>
-                  <option value="Physics">Physics</option>
-                  <option value="General">General</option>
+                  <option value="" disabled selected>Select Category</option>
                 </select>
+
+                <input
+                  type="text"
+                  id="newCategoryInput"
+                  class="hidden mt-2"
+                  placeholder="Enter new subject name (e.g. Modern History)"
+                  style="margin-top: 10px"
+                />
               </div>
             </div>
             <div

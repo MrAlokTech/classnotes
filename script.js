@@ -2,6 +2,8 @@
    1. GLOBAL VARIABLES & CONFIG
    ========================================= */
 let pdfDatabase = [];
+let currentClass = localStorage.getItem('currentClass') || 'MSc Chemistry';
+let availableClasses = [];
 let currentSemester = parseInt(localStorage.getItem('currentSemester')) || 2;
 let currentCategory = 'all';
 let isMaintenanceActive = false;
@@ -12,7 +14,7 @@ let isModalHistoryPushed = false;
 let db; // Defined globally, initialized later
 
 // GAS
-const GAS_URL = "https://script.google.com/macros/s/AKfycbzQD--G7aJpKSCW5b72PpMC_F7ZT8-7jwYTiwsJ339oFgusflxGLvb1Ge9WlBqcIB7j/exec"
+const GAS_URL = "https://script.google.com/macros/s/AKfycby2lW5QdidC7o_JX0jlXa59uAjmmpFzOx-rye0N1x0r6hoYu-1CB65YrM1wPr7h-tZu/exec"
 // DOM Elements
 const preloader = document.getElementById('preloader');
 const pdfGrid = document.getElementById('pdfGrid');
@@ -41,7 +43,62 @@ const goToTopBtn = document.getElementById('goToTopBtn');
 const maintenanceScreen = document.getElementById('maintenanceScreen');
 const openCommentsBtn = document.getElementById("openCommentsBtn");
 const closeCommentsBtn = document.getElementById("closeCommentsBtn");
+const classSelect = document.getElementById('classSelect');
+const categoryIcons = {
+    'Organic': 'fa-flask',
+    'Inorganic': 'fa-atom',
+    'Physical': 'fa-calculator',
+    'Physics': 'fa-infinity',
+    'Math': 'fa-square-root-alt',
+    'Biology': 'fa-dna',
+    'History': 'fa-landmark',
+    'General': 'fa-globe',
+    'Syllabus': 'fa-list-alt'
+};
 
+function renderCategoryFilters() {
+    const container = document.getElementById('categoryFilters');
+    if (!container) return;
+
+    // 1. Get unique categories for the CURRENT Class
+    const classPdfs = pdfDatabase.filter(pdf => pdf.class === currentClass);
+    let uniqueCategories = [...new Set(classPdfs.map(pdf => pdf.category))].sort();
+
+    // Default: Always show 'All' and 'Favorites'
+    let html = `
+        <button class="filter-btn ${currentCategory === 'all' ? 'active' : ''}" 
+                onclick="setCategory('all')">
+            <i class="fas fa-th"></i> All
+        </button>
+        <button class="filter-btn ${currentCategory === 'favorites' ? 'active' : ''}" 
+                onclick="setCategory('favorites')">
+            <i class="fas fa-heart"></i>
+        </button>
+    `;
+
+    // 2. Generate buttons for each category
+    uniqueCategories.forEach(cat => {
+        const icon = categoryIcons[cat] || 'fa-tag'; // Default icon if unknown
+        html += `
+            <button class="filter-btn ${currentCategory === cat ? 'active' : ''}" 
+                    onclick="setCategory('${cat}')">
+                <i class="fas ${icon}"></i> ${cat}
+            </button>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+// Helper to switch categories
+window.setCategory = function (cat) {
+    currentCategory = cat;
+    // Update active visual state manually for instant feedback
+    document.querySelectorAll('#categoryFilters .filter-btn').forEach(btn => btn.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+
+    renderPDFs();
+};
 /* =========================================
    2. INITIALIZATION (OPTIMIZED)
    ========================================= */
@@ -70,6 +127,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     initAuth();
     initTheme();
     initSeasonalHeader();
+    initDailyCatalyst();
     updateSemesterTab();
     initMaintenanceListener();
     initPrankEasterEgg();
@@ -87,7 +145,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     // 5. Parallel Data Loading (The Performance Fix)
     try {
         await Promise.all([
-            loadSponsoredAds(),
+            // loadSponsoredAds(),
             loadPDFDatabase()
         ]);
     } catch (e) {
@@ -277,13 +335,91 @@ function getAdData(slotName) {
 /* =========================================
    5. DATA LOADING WITH CACHING
    ========================================= */
+function renderSemesterTabs() {
+    const container = document.getElementById('semesterTabsContainer');
+    if (!container) return;
+
+    // 1. Find all unique semesters for the CURRENT class
+    // We filter notes by class, then map to semester, then get unique values
+    const classPdfs = pdfDatabase.filter(pdf => pdf.class === currentClass);
+    const uniqueSemesters = [...new Set(classPdfs.map(pdf => pdf.semester))].sort((a, b) => a - b);
+
+    // Default fallback: If no data exists yet (fresh class), show Semesters 1-2
+    if (uniqueSemesters.length === 0) {
+        uniqueSemesters.push(1, 2);
+    }
+
+    // 2. Safety Check: If currentSemester isn't in the new list, switch to the first one
+    if (!uniqueSemesters.includes(currentSemester)) {
+        currentSemester = uniqueSemesters[0];
+        localStorage.setItem('currentSemester', currentSemester);
+    }
+
+    // 3. Generate HTML
+    container.innerHTML = uniqueSemesters.map(sem => `
+        <button class="tab-btn ${sem === currentSemester ? 'active' : ''}" 
+                onclick="changeSemester(${sem})">
+            <span class="tab-number">${sem}</span>
+            <span class="tab-label">Semester</span>
+        </button>
+    `).join('');
+}
+
+// Helper function to handle clicks (replaces your old event listeners)
+window.changeSemester = function (sem) {
+    currentSemester = sem;
+    localStorage.setItem('currentSemester', currentSemester);
+
+    // Update visual active state
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+        // Check if the button's number matches the new semester
+        if (parseInt(btn.querySelector('.tab-number').textContent) === sem) {
+            btn.classList.add('active');
+        }
+    });
+
+    renderPDFs();
+};
+
+async function syncClassSwitcher() {
+    const classSelect = document.getElementById('classSelect');
+    if (!classSelect) return;
+
+    // 1. Extract unique classes
+    const uniqueClasses = [...new Set(pdfDatabase.map(pdf => pdf.class).filter(Boolean))].sort();
+
+    // 2. Populate Dropdown
+    if (uniqueClasses.length > 0) {
+        classSelect.innerHTML = uniqueClasses.map(cls =>
+            `<option value="${cls}" ${cls === currentClass ? 'selected' : ''}>${cls}</option>`
+        ).join('');
+
+        // 3. Safety Check: If currentClass is invalid, switch to the first available one
+        if (!uniqueClasses.includes(currentClass)) {
+            currentClass = uniqueClasses[0];
+            localStorage.setItem('currentClass', currentClass);
+            classSelect.value = currentClass; // visual update
+            renderSemesterTabs();
+            renderCategoryFilters();
+            renderPDFs(); // re-render grid
+        }
+    } else {
+        classSelect.innerHTML = '<option disabled>No classes found</option>';
+    }
+
+    // 4. Listener is already attached in setupEventListeners, but we ensure value is consistent
+    classSelect.value = currentClass;
+    renderSemesterTabs();
+}
+
 async function loadPDFDatabase() {
     if (isMaintenanceActive) return;
 
+    showSkeletons();
     const CACHE_KEY = 'classnotes_db_cache';
 
     try {
-        // 1. Get the local cache
         const cachedRaw = localStorage.getItem(CACHE_KEY);
         let shouldUseCache = false;
         let cachedData = [];
@@ -291,9 +427,6 @@ async function loadPDFDatabase() {
         if (cachedRaw) {
             const cached = JSON.parse(cachedRaw);
             cachedData = cached.data;
-
-            // 2. ASK FIREBASE: "What is the newest PDF ID?" (Costs only 1 Read)
-            // We order by uploadDate desc and take only the first one
             const latestSnapshot = await db.collection('pdfs')
                 .orderBy('uploadDate', 'desc')
                 .limit(1)
@@ -301,32 +434,23 @@ async function loadPDFDatabase() {
 
             if (!latestSnapshot.empty) {
                 const serverLatestId = latestSnapshot.docs[0].id;
-                // Check if our cached data exists and has the same top ID
                 const localLatestId = cachedData.length > 0 ? cachedData[0].id : null;
-
-                if (serverLatestId === localLatestId) {
-                    // console.log("Cache is valid (Matches Server) ⚡"); // UNCOMMENT DURING TESTING (IF REQUIRED)
-                    shouldUseCache = true;
-                } else {
-                    // console.log("Cache is stale (New content detected) 🔄"); // UNCOMMENT DURING TESTING (IF REQUIRED)
-                    shouldUseCache = false;
-                }
-            } else {
-                // Server is empty, but we might have cache. Trust server (empty).
-                shouldUseCache = false;
+                if (serverLatestId === localLatestId) shouldUseCache = true;
             }
         }
 
-        // 3. EXECUTE: Use Cache OR Fetch New
         if (shouldUseCache) {
             pdfDatabase = cachedData;
+            // --- FIX: CALL THIS TO POPULATE UI ---
+            syncClassSwitcher();
+            renderSemesterTabs();
+            renderCategoryFilters();
             renderPDFs();
             hidePreloader();
             return;
         }
 
-        // --- FETCH FRESH DATA (Only runs if cache is missing or stale) ---
-        // console.log("Fetching fresh list from Firebase 🔥"); // UNCOMMENT DURING TESTING (IF REQUIRED)
+        // Fetch Fresh
         const pdfsRef = db.collection('pdfs');
         const snapshot = await pdfsRef.orderBy('uploadDate', 'desc').get();
 
@@ -335,28 +459,18 @@ async function loadPDFDatabase() {
             pdfDatabase.push({ id: doc.id, ...doc.data() });
         });
 
-        // Update Cache
         localStorage.setItem(CACHE_KEY, JSON.stringify({
             timestamp: new Date().getTime(),
             data: pdfDatabase
         }));
 
+        // --- FIX: CALL THIS TO POPULATE UI ---
+        syncClassSwitcher();
         renderPDFs();
         hidePreloader();
 
     } catch (error) {
         console.error('Error loading PDFs:', error);
-
-        // Fallback: If internet is dead, show whatever cache we have
-        const cachedRaw = localStorage.getItem(CACHE_KEY);
-        if (cachedRaw) {
-            const cached = JSON.parse(cachedRaw);
-            pdfDatabase = cached.data;
-            renderPDFs();
-            showToast("Offline: Showing cached notes", "error");
-        } else if (error.code === 'permission-denied') {
-            activateMaintenanceMode();
-        }
         hidePreloader();
     }
 }
@@ -553,6 +667,21 @@ function setupEventListeners() {
         closeCommentsBtn.addEventListener("click", () => commentSidebar.classList.remove("active"));
     }
     document.getElementById('reportBtn').addEventListener('click', reportCurrentPDF);
+
+    // CLASS SELECTOR
+    if (classSelect) {
+        // Set initial value from storage
+        classSelect.value = currentClass;
+
+        classSelect.addEventListener('change', (e) => {
+            currentClass = e.target.value;
+            localStorage.setItem('currentClass', currentClass);
+
+            // Reload database or filter for the new class
+            showToast(`Switching to ${e.target.options[e.target.selectedIndex].text}`);
+            loadPDFDatabase();
+        });
+    }
 }
 
 function reportCurrentPDF() {
@@ -661,6 +790,44 @@ function updateSemesterTab() {
     });
 }
 
+function showSkeletons() {
+    const grid = document.getElementById('pdfGrid');
+    const pdfCountEl = document.getElementById('pdfCount');
+    const emptyState = document.getElementById('emptyState');
+
+    if (!grid) return;
+
+    // Hide empty state if visible
+    if (emptyState) emptyState.style.display = 'none';
+
+    // Set a temporary count text
+    if (pdfCountEl) pdfCountEl.textContent = "...";
+
+    // Create 6 dummy cards
+    let skeletonHTML = '';
+    for (let i = 0; i < 6; i++) {
+        skeletonHTML += `
+            <div class="skeleton-card">
+                <div class="skeleton-header">
+                    <div class="skeleton skeleton-icon"></div>
+                    <div class="skeleton-title-group">
+                        <div class="skeleton skeleton-title"></div>
+                        <div class="skeleton skeleton-tag"></div>
+                    </div>
+                </div>
+                <div class="skeleton skeleton-body"></div>
+                <div class="skeleton-footer">
+                    <div class="skeleton skeleton-btn"></div>
+                    <div class="skeleton skeleton-btn"></div>
+                </div>
+            </div>
+        `;
+    }
+
+    grid.style.display = 'grid';
+    grid.innerHTML = skeletonHTML;
+}
+
 function renderPDFs() {
     const searchTerm = searchInput.value.toLowerCase();
     const favorites = getFavorites();
@@ -672,19 +839,28 @@ function renderPDFs() {
         }, 2000);
     }
 
+    // Locate renderPDFs() in script.js and update the filter section
     const filteredPdfs = pdfDatabase.filter(pdf => {
         const matchesSemester = pdf.semester === currentSemester;
+
+        // NEW: Check if the PDF class matches the UI's current class selection
+        // Note: If old documents don't have this field, they will be hidden.
+        const matchesClass = pdf.class === currentClass;
+
         let matchesCategory = false;
         if (currentCategory === 'favorites') {
             matchesCategory = favorites.includes(pdf.id);
         } else {
             matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
         }
+
         const matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
             pdf.description.toLowerCase().includes(searchTerm) ||
             pdf.category.toLowerCase().includes(searchTerm) ||
             pdf.author.toLowerCase().includes(searchTerm);
-        return matchesSemester && matchesCategory && matchesSearch;
+
+        // Update return statement to include matchesClass
+        return matchesSemester && matchesClass && matchesCategory && matchesSearch;
     });
 
     updatePDFCount(filteredPdfs.length);
@@ -722,32 +898,33 @@ function renderPDFs() {
     let adCounter = 1;
 
     filteredPdfs.forEach((pdf, index) => {
-        gridHTML += createPDFCard(pdf, favorites);
+        gridHTML += createPDFCard(pdf, favorites, index);
 
-        if ((index + 1) % AD_FREQUENCY === 0) {
-            const adData = getAdData(`slot_grid_${adCounter}`);
-            if (adData) {
-                gridHTML += createAdHTML(adData);
-            } else {
-                gridHTML += createFallbackHTML();
-            }
-            adCounter++;
-        }
+        // if ((index + 1) % AD_FREQUENCY === 0) {
+        //     const adData = getAdData(`slot_grid_${adCounter}`);
+        //     if (adData) {
+        //         gridHTML += createAdHTML(adData);
+        //     } else {
+        //         gridHTML += createFallbackHTML();
+        //     }
+        //     adCounter++;
+        // }
     });
 
-    if (filteredPdfs.length < AD_FREQUENCY && filteredPdfs.length > 0) {
-        const adData = getAdData('slot_grid_1');
-        if (adData) {
-            gridHTML += createAdHTML(adData);
-        } else {
-            gridHTML += createFallbackHTML();
-        }
-    }
+    // if (filteredPdfs.length < AD_FREQUENCY && filteredPdfs.length > 0) {
+    //     const adData = getAdData('slot_grid_1');
+    //     if (adData) {
+    //         gridHTML += createAdHTML(adData);
+    //     } else {
+    //         gridHTML += createFallbackHTML();
+    //     }
+    // }
 
     pdfGrid.innerHTML = gridHTML;
 }
 
-function createPDFCard(pdf, favoritesList) {
+// UPDATE THE FUNCTION SIGNATURE to include "index = 0"
+function createPDFCard(pdf, favoritesList, index = 0) {
     const favorites = favoritesList || getFavorites();
     const isFav = favorites.includes(pdf.id);
     const heartIconClass = isFav ? 'fas' : 'far';
@@ -755,7 +932,7 @@ function createPDFCard(pdf, favoritesList) {
 
     const uploadDateObj = new Date(pdf.uploadDate);
     const timeDiff = new Date() - uploadDateObj;
-    const isNew = timeDiff < (7 * 24 * 60 * 60 * 1000); // 7 days in milliseconds
+    const isNew = timeDiff < (7 * 24 * 60 * 60 * 1000); // 7 days
 
     const newBadgeHTML = isNew
         ? `<span style="background:var(--error-color); color:white; font-size:0.6rem; padding:2px 6px; border-radius:4px; margin-left:8px; vertical-align:middle;">NEW</span>`
@@ -764,9 +941,12 @@ function createPDFCard(pdf, favoritesList) {
     const categoryIcons = {
         'Organic': 'fa-flask',
         'Inorganic': 'fa-atom',
-        'Physical': 'fa-calculator'
+        'Physical': 'fa-calculator',
+        'Physics': 'fa-infinity' // Ensure Physics icon is mapped if used
     };
     const categoryIcon = categoryIcons[pdf.category] || 'fa-file-pdf';
+
+    // Formatting Date
     const formattedDate = new Date(pdf.uploadDate).toLocaleDateString('en-US', {
         year: 'numeric', month: 'short', day: 'numeric'
     });
@@ -777,7 +957,7 @@ function createPDFCard(pdf, favoritesList) {
     };
 
     const highlightText = (text) => {
-        const searchTerm = searchInput.value.trim();
+        const searchTerm = document.getElementById('searchInput').value.trim(); // Ensure direct access or pass it in
         const safeText = escapeHtml(text);
         if (!searchTerm) return safeText;
         const regex = new RegExp(`(${searchTerm})`, 'gi');
@@ -786,11 +966,14 @@ function createPDFCard(pdf, favoritesList) {
 
     const safePdfString = JSON.stringify(pdf).replace(/"/g, '&quot;');
 
+    // --- NEW: Calculate Stagger Delay ---
+    // Cap at 1s (20 items) so the list doesn't feel unresponsive
+    const delay = Math.min(index * 0.05, 1);
+
     return `
-        <div class="pdf-card" data-category="${pdf.category}">
+        <div class="pdf-card" data-category="${pdf.category}" style="animation-delay: ${delay}s">
             <div class="pdf-header">
-                <div class="pdf-icon"><i class="fas fa-file-pdf"></i></div>
-                <div class="pdf-info"><h3>${highlightText(pdf.title)} ${newBadgeHTML}</h3></div>
+                <div class="pdf-icon"><i class="fas ${categoryIcon}"></i></div> <div class="pdf-info"><h3>${highlightText(pdf.title)} ${newBadgeHTML}</h3></div>
             </div>
             <div class="pdf-meta">
                 <div class="pdf-category"><i class="fas ${categoryIcon}"></i> ${escapeHtml(pdf.category)}</div>
@@ -983,9 +1166,9 @@ if (copyrightElement) {
    9. COMMENTS
    ========================================= */
 async function loadComments(pdfId) {
-    const adSlot = document.getElementById('ad-slot-modal');
+    // const adSlot = document.getElementById('ad-slot-modal');
     commentsList.innerHTML = '';
-    if (adSlot) commentsList.appendChild(adSlot);
+    // if (adSlot) commentsList.appendChild(adSlot);
     commentCount.textContent = '...';
 
     try {
@@ -1083,6 +1266,12 @@ function getFavorites() {
 
 function toggleFavorite(event, pdfId) {
     event.stopPropagation();
+    // Add Pop Animation
+    const btn = event.currentTarget;
+    btn.classList.add('popping');
+    setTimeout(() => btn.classList.remove('popping'), 300); // Remove after animation
+
+
     let favorites = getFavorites();
     if (favorites.includes(pdfId)) {
         favorites = favorites.filter(id => id !== pdfId);
@@ -1126,6 +1315,56 @@ function applyTheme(theme, icon) {
         document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff');
     }
 }
+
+/* =========================================
+   FRIENDLY FEATURES
+   ========================================= */
+function initDailyCatalyst() {
+    // 1. Check if user dismissed it recently (Session storage resets on tab close)
+    if (sessionStorage.getItem('catalystDismissed')) return;
+
+    const catalyst = document.getElementById('dailyCatalyst');
+    const titleEl = document.getElementById('greetingTitle');
+    const quoteEl = document.getElementById('greetingQuote');
+    const closeBtn = document.getElementById('closeCatalyst');
+
+    if (!catalyst) return;
+
+    // 2. Determine Time of Day
+    const hour = new Date().getHours();
+    let timeGreeting = "Hello!";
+    if (hour < 12) timeGreeting = "Good Morning! ☀️";
+    else if (hour < 18) timeGreeting = "Good Afternoon! 🌤️";
+    else timeGreeting = "Good Evening! 🌙";
+
+    // 3. Chemistry Puns & Tips
+    const quotes = [
+        "Remember: The mole is a unit, not a spy. 🕵️‍♂️",
+        "Be like a proton—always positive! ⚛️",
+        "Technically, alcohol is a solution. 🧪",
+        "Don't trust atoms, they make up everything.",
+        "Chemistry is like cooking, just don't lick the spoon.",
+        "Organic Chemistry is difficult. Those who pass it have alkynes of trouble.",
+        "Reviewing notes today? You're in your element!",
+        "Double check your bonds before you break them."
+    ];
+    const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+
+    // 4. Render
+    titleEl.textContent = timeGreeting;
+    quoteEl.textContent = randomQuote;
+    catalyst.classList.remove('hidden');
+
+    // 5. Close Handler
+    closeBtn.addEventListener('click', () => {
+        catalyst.style.opacity = '0';
+        setTimeout(() => {
+            catalyst.classList.add('hidden');
+            sessionStorage.setItem('catalystDismissed', 'true');
+        }, 300);
+    });
+}
+
 
 function initSeasonalHeader() {
     const month = new Date().getMonth();

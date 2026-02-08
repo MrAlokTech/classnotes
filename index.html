@@ -211,6 +211,11 @@
             <i class="fas fa-graduation-cap"></i>
             <h1>ClassNotes</h1>
           </div>
+          <div class="class-switcher">
+            <select id="classSelect" aria-label="Select Class">
+              <option value="" disabled selected>Loading Classes...</option>
+            </select>
+          </div>
           <button
             id="themeToggleBtn"
             class="btn-icon theme-toggle"
@@ -225,33 +230,44 @@
 
     <div class="semester-tabs">
       <div class="container">
-        <div class="tabs-wrapper">
-          <button class="tab-btn" data-semester="1">
-            <span class="tab-number">1</span
-            ><span class="tab-label">Semester</span>
-          </button>
-          <button class="tab-btn active" data-semester="2">
-            <span class="tab-number">2</span
-            ><span class="tab-label">Semester</span>
-          </button>
-          <button class="tab-btn" data-semester="3">
-            <span class="tab-number">3</span
-            ><span class="tab-label">Semester</span>
-          </button>
-          <button class="tab-btn" data-semester="4">
-            <span class="tab-number">4</span
-            ><span class="tab-label">Semester</span>
-          </button>
+        <div class="tabs-wrapper" id="semesterTabsContainer">
+          <div class="skeleton-tab"></div>
+          <div class="skeleton-tab"></div>
+          <div class="skeleton-tab"></div>
         </div>
       </div>
     </div>
 
-    <div class="container">
+    <!-- <div class="container">
       <div id="ad-slot-top" class="ad-slot-container"></div>
-    </div>
+    </div> -->
 
     <main class="main">
       <div class="container">
+        <div class="community-cta">
+          <div class="community-cta-content">
+            <h3>Got Notes?</h3>
+            <p>
+              Help your juniors/classmates by uploading your notes. Be a
+              <strong>legend</strong>! <i class="fas fa-ghost"></i>
+            </p>
+          </div>
+          <a href="/upload/" class="btn-cta-light">
+            Upload Now <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+        <div id="dailyCatalyst" class="catalyst-card hidden">
+          <div class="catalyst-content">
+            <div class="catalyst-icon">👋</div>
+            <div class="catalyst-text">
+              <h2 id="greetingTitle">Hello there!</h2>
+              <p id="greetingQuote">Loading your daily dose of chemistry...</p>
+            </div>
+          </div>
+          <button id="closeCatalyst" class="catalyst-close" aria-label="Close">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
         <div class="controls-section">
           <div class="search-box">
             <i class="fas fa-search"></i>
@@ -261,38 +277,14 @@
               placeholder="Search notes by title, teacher, or subject..."
             />
           </div>
-          <div class="filter-section">
+          <div class="filter-section" id="categoryFilters">
             <button class="filter-btn active" data-category="all">
               <i class="fas fa-th"></i> All
             </button>
-            <button
-              class="filter-btn"
-              data-category="favorites"
-              aria-label="Favorites"
-            >
-              <i class="fas fa-heart"></i>
-            </button>
-            <button
-              class="filter-btn"
-              data-category="General"
-              aria-label="General"
-            >
-              <i class="fas fa-gift"></i>
-            </button>
-            <button class="filter-btn" data-category="Organic">
-              <i class="fas fa-flask"></i> Organic
-            </button>
-            <button class="filter-btn" data-category="Inorganic">
-              <i class="fas fa-atom"></i> Inorganic
-            </button>
-            <button class="filter-btn" data-category="Physical">
-              <i class="fas fa-calculator"></i> Physical
-            </button>
-            <button class="filter-btn" data-category="Physics">
-              <i class="fas fa-infinity"></i> Physics
-            </button>
+            <div class="skeleton-btn" style="width: 80px"></div>
+            <div class="skeleton-btn" style="width: 100px"></div>
           </div>
-          <div id="ad-slot-middle" class="ad-slot-container"></div>
+          <!-- <div id="ad-slot-middle" class="ad-slot-container"></div> -->
         </div>
 
         <div class="stats-bar">
@@ -355,7 +347,7 @@
             </button>
           </h4>
           <div class="comments-list" id="commentsList">
-            <div id="ad-slot-modal" class="ad-slot-container mb-4"></div>
+            <!-- <div id="ad-slot-modal" class="ad-slot-container mb-4"></div> -->
           </div>
           <form class="comment-form" id="commentForm">
             <textarea
@@ -520,7 +512,7 @@
           <button type="submit">Notify Me</button>
         </form>
 
-        <p class="modal-footer">No spam. Unsubscribe anytime.</p>
+        <p class="modal-footer">No spam • Unsubscribe anytime</p>
       </div>
     </div>
 

@@ -1,14 +1,118 @@
 'use strict';
 
+const classSelect = document.getElementById('pdfClass');
+const newClassGroup = document.getElementById('newClassGroup');
+const newClassInput = document.getElementById('newClassName');
+let globalPdfData = []
+
+// 1. Fetch existing classes to populate the dropdown
+async function initUploadClasses() {
+    const snapshot = await db.collection('pdfs').get();
+    const classes = new Set();
+
+    globalPdfData = []; // Reset
+    snapshot.forEach(doc => {
+        const data = doc.data();
+        globalPdfData.push(data);
+        if (data.class) classes.add(data.class);
+    });
+
+    // Populate Class Dropdown
+    const sortedClasses = Array.from(classes).sort();
+    sortedClasses.forEach(cls => {
+        const opt = new Option(cls, cls);
+        classSelect.add(opt, classSelect.options[classSelect.options.length - 1]);
+    });
+}
+
+// 2. Function to Update Categories based on Class
+function updateCategoryDropdown(selectedClass) {
+    const categorySelect = document.getElementById('pdfCategory');
+    const newCategoryInput = document.getElementById('newCategoryInput');
+
+    // Reset
+    categorySelect.innerHTML = '<option value="" disabled selected>Select Category</option>';
+    newCategoryInput.classList.add('hidden');
+    newCategoryInput.required = false;
+
+    // Default Categories (Always available)
+    const defaultCategories = ['General', 'Syllabus', 'Question Paper'];
+    const dynamicCategories = new Set();
+
+    // Find existing categories for this class
+    if (selectedClass !== 'other') {
+        globalPdfData.filter(p => p.class === selectedClass).forEach(p => {
+            if (p.category) dynamicCategories.add(p.category);
+        });
+    }
+
+    // Merge and Sort
+    const allCats = [...new Set([...defaultCategories, ...dynamicCategories])].sort();
+
+    // Populate Dropdown
+    allCats.forEach(cat => {
+        categorySelect.add(new Option(cat, cat));
+    });
+
+    // Add "Other" Option at the end
+    categorySelect.add(new Option('Other', 'other'));
+}
+
+// 2. Handle "Other" selection
+classSelect.addEventListener('change', () => {
+    if (classSelect.value === 'other') {
+        newClassGroup.classList.remove('hidden');
+        newClassInput.required = true;
+        updateCategoryDropdown(classSelect.value);
+    } else {
+        newClassGroup.classList.add('hidden');
+        newClassInput.required = false;
+        updateCategoryDropdown(classSelect.value);
+    }
+});
+
+// 3. Typo/Similarity Check (Levenshtein Distance concept)
+newClassInput.addEventListener('input', () => {
+    const val = newClassInput.value.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+    const warning = document.getElementById('typoWarning');
+
+    const isDuplicate = Array.from(classSelect.options).some(opt => {
+        const optVal = opt.value.toLowerCase().replace(/[^a-z0-9]/g, '');
+        return val === optVal && opt.value !== 'other';
+    });
+
+    if (isDuplicate) {
+        warning.classList.remove('hidden');
+        warning.innerText = "This class likely already exists in the list!";
+    } else {
+        warning.classList.add('hidden');
+    }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // ==========================================
     // 1. CONFIGURATION & STATE
     // ==========================================
     const CONFIG = {
-        GAS_UPLOAD_ENDPOINT: "https://script.google.com/macros/s/AKfycbzOkHDEIYzECrLfjL6P3PmFdU0L0ixSlrsTx5OorXrvm-q8plMGh0l_Epc6RHc7N1Hsqg/exec",
+        GAS_UPLOAD_ENDPOINT: "https://script.google.com/macros/s/AKfycby2lW5QdidC7o_JX0jlXa59uAjmmpFzOx-rye0N1x0r6hoYu-1CB65YrM1wPr7h-tZu/exec",
         maxFileSize: 25 * 1024 * 1024 // 25MB
     };
+
+    initUploadClasses();
+
+    const categorySelect = document.getElementById('pdfCategory');
+    const newCategoryInput = document.getElementById('newCategoryInput');
+
+    categorySelect.addEventListener('change', () => {
+        if (categorySelect.value === 'other') {
+            newCategoryInput.classList.remove('hidden');
+            newCategoryInput.required = true;
+        } else {
+            newCategoryInput.classList.add('hidden');
+            newCategoryInput.required = false;
+        }
+    });
 
     // Store the real-time database listener so we can turn it off on logout
     let userVerificationListener = null;
@@ -115,9 +219,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Switch between Login, Signup, Pending, Upload
+    // Switch between Login, Signup, Pending, Upload
     const switchSection = (sectionName) => {
-        // 1. Hide the Initial Loader
-        const loader = document.getElementById('appLoader');
+        // 1. Hide the SKELETON Loader (Updated ID)
+        const loader = document.getElementById('appSkeleton');
         if (loader) loader.style.display = 'none';
 
         // 2. Hide all other sections
@@ -320,12 +425,20 @@ document.addEventListener('DOMContentLoaded', () => {
             // 4. Heavy Lifting
             const base64 = await toBase64(file);
 
+            // Calculate the requested class (Raw Input)
+            const requestedClass = (classSelect.value === 'other') ? newClassInput.value.trim() : classSelect.value;
+            const finalCategory = (categorySelect.value === 'other')
+                ? newCategoryInput.value.trim()
+                : categorySelect.value;
+
             const payload = {
                 action: 'upload',
                 filename: file.name,
                 mimeType: file.type,
                 file: base64,
-                semester: UI.inputs.semester.value
+                semester: UI.inputs.semester.value,
+                class: requestedClass,
+                category: finalCategory
             };
 
             const response = await fetch(CONFIG.GAS_UPLOAD_ENDPOINT, {
@@ -335,8 +448,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
 
             if (result.status !== 'success') {
-                console.log("Server Error Details:", result); // Print full error to console
-                throw new Error('Server Error: ' + result.message); // Show actual error in Toast
+                console.log("Server Error Details:", result);
+                throw new Error('Server Error: ' + result.message);
             }
 
             // --- 5. FINISH PROGRESS ---
@@ -346,11 +459,17 @@ document.addEventListener('DOMContentLoaded', () => {
             uploadBtn.style.background = `var(--success)`;
             uploadBtn.innerHTML = `<i class="fas fa-check"></i> Done!`;
 
-            // Prepare Filename for DB (Ensure .pdf extension)
+            // Prepare Filename
             let finalFileName = file.name;
             if (finalFileName.match(/\.(ppt|pptx)$/i)) {
                 finalFileName = finalFileName.replace(/\.(ppt|pptx)$/i, '.pdf');
             }
+
+            // --- FIX: USE THE FOLDER NAME RETURNED FROM DRIVE ---
+            // If GAS returned a 'folder' name, use it. Otherwise fallback to input.
+            // This ensures if Drive mapped "msc chemistry" -> "MSc Chemistry", 
+            // Firebase also saves "MSc Chemistry".
+            const finalClass = result.folder || requestedClass;
 
             // 6. Save to Firestore
             await db.collection('pdfs').add({
@@ -363,35 +482,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 uploadDate: new Date().toISOString().split('T')[0],
                 uploadedBy: auth.currentUser.email,
                 uploadedByName: auth.currentUser.displayName || auth.currentUser.email.split('@')[0],
-                fileName: finalFileName
+                fileName: finalFileName,
+                class: finalClass,
+                category: finalCategory
             });
 
             localStorage.removeItem('classnotes_db_cache');
             showToast('Note uploaded successfully!');
 
-            // 7. Cleanup & Reset Button after delay
+            // 7. Cleanup
             setTimeout(() => {
                 UI.forms.upload.reset();
                 UI.inputs.fileName.style.display = 'none';
+                uploadBtn.style.background = '';
+                uploadBtn.style.pointerEvents = 'auto';
+                uploadBtn.innerHTML = originalBtnText;
 
-                // Restore Button Style
-                uploadBtn.style.background = ''; // Removes inline gradient
-                uploadBtn.style.pointerEvents = 'auto'; // Re-enable clicks
-                uploadBtn.innerHTML = originalBtnText; // Restore original text
+                // Reset the class dropdown/input visibility
+                document.getElementById('newClassGroup').classList.add('hidden');
+                initUploadClasses(); // Optional: Refresh dropdown to include new class immediately
             }, 2000);
 
         } catch (error) {
+            // ... existing error handling ...
             clearInterval(progressInterval);
             console.error(error);
             showToast('Upload failed: ' + error.message, 'error');
 
-            // Reset Button Immediately on Error
-            uploadBtn.style.background = ''; // Removes inline gradient, falls back to CSS
-            uploadBtn.style.backgroundColor = 'var(--error)'; // Show Red for a moment
+            uploadBtn.style.background = '';
+            uploadBtn.style.backgroundColor = 'var(--error)';
             uploadBtn.innerHTML = `<i class="fas fa-times"></i> Failed`;
 
             setTimeout(() => {
-                uploadBtn.style.backgroundColor = ''; // Clear red
+                uploadBtn.style.backgroundColor = '';
                 uploadBtn.style.pointerEvents = 'auto';
                 uploadBtn.innerHTML = originalBtnText;
             }, 2000);

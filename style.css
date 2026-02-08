@@ -89,7 +89,9 @@ body,
 .tab-btn,
 input,
 .modal-content {
-  transition: background-color 0.3s ease, color 0.3s ease,
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
     border-color 0.3s ease;
 }
 
@@ -117,7 +119,12 @@ input,
 }
 
 body {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
     sans-serif;
   line-height: 1.5;
   color: var(--gray-800);
@@ -1251,7 +1258,9 @@ input:focus-visible {
     z-index: 9999;
     display: flex;
     flex-direction: column;
-    transition: transform 0.35s ease, bottom 0.35s ease;
+    transition:
+      transform 0.35s ease,
+      bottom 0.35s ease;
     overflow: hidden;
   }
 
@@ -1347,7 +1356,9 @@ input:focus-visible {
 #preloader.hidden {
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.5s ease, visibility 0s 0.5s;
+  transition:
+    opacity 0.5s ease,
+    visibility 0s 0.5s;
 }
 
 .book {
@@ -1884,7 +1895,9 @@ input:focus-visible {
   padding: calc(var(--spacing) * 2);
 
   box-shadow: var(--shadow-lg);
-  transition: opacity 0.3s, transform 0.3s;
+  transition:
+    opacity 0.3s,
+    transform 0.3s;
 
   display: flex;
   flex-direction: column;
@@ -2780,7 +2793,8 @@ input:focus-visible {
   background: #fff;
 }
 .holi .holiday-bg-anim {
-  background: radial-gradient(circle at 20% 80%, #ff0055, transparent 40%),
+  background:
+    radial-gradient(circle at 20% 80%, #ff0055, transparent 40%),
     radial-gradient(circle at 80% 20%, #00ccff, transparent 40%),
     radial-gradient(circle at 50% 50%, #ffcc00, transparent 40%);
   opacity: 0.8;
@@ -2848,146 +2862,6 @@ input:focus-visible {
   padding: 0 2px;
   border-radius: 2px;
   font-weight: 600;
-}
-/* --- Sponsored Blocks System --- */
-.ad-slot-container {
-  width: 100%;
-  margin: 16px 0;
-  transition: all 0.3s ease;
-}
-
-.mb-4 {
-  margin-bottom: 16px;
-}
-
-/* The Card Look */
-.sponsored-card {
-  background: var(--background-color);
-  border: 1px solid var(--gray-200);
-  border-radius: var(--border-radius-lg);
-  overflow: hidden;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  text-decoration: none; /* For wrapping anchors */
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.sponsored-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--primary-color);
-}
-
-/* Badge */
-.sponsored-badge {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: rgba(0, 0, 0, 0.6);
-  color: #fff;
-  font-size: 0.65rem;
-  padding: 2px 6px;
-  border-radius: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  z-index: 5;
-}
-
-/* Type: Image */
-.sponsored-image {
-  width: 100%;
-  height: auto;
-  display: block;
-  max-height: 200px; /* Limit height for banners */
-  object-fit: cover;
-}
-
-/* Type: Text/CTA */
-.sponsored-content {
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.sponsored-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--gray-900);
-}
-
-.sponsored-body {
-  font-size: 0.875rem;
-  color: var(--gray-600);
-  line-height: 1.4;
-}
-
-.sponsored-cta {
-  margin-top: 8px;
-  align-self: flex-start;
-  font-size: 0.8rem;
-  padding: 6px 12px;
-  background: var(--primary-color);
-  color: #fff;
-  border-radius: 4px;
-  font-weight: 600;
-}
-
-/* Fallback / "Your Ad Here" State */
-.sponsored-fallback {
-  border: 2px dashed var(--gray-300);
-  background: var(--gray-50);
-  color: var(--gray-600);
-  padding: 24px;
-  text-align: center;
-  border-radius: var(--border-radius-lg);
-  cursor: pointer;
-  transition: border-color 0.25s ease, background 0.25s ease, color 0.25s ease,
-    box-shadow 0.25s ease;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 120px;
-  text-decoration: none;
-}
-
-.sponsored-fallback:hover {
-  border-color: var(--primary-color);
-  background: rgba(37, 99, 235, 0.06);
-  color: var(--primary-color);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.sponsored-fallback i {
-  font-size: 1.6rem;
-  transition: color 0.25s ease;
-}
-
-.sponsored-fallback h4 {
-  font-size: 0.95rem;
-  font-weight: 600;
-  transition: color 0.25s ease;
-}
-
-.sponsored-fallback p {
-  font-size: 0.8rem;
-  transition: color 0.25s ease;
-}
-
-/* Dark Mode Adjustments */
-[data-theme="dark"] .sponsored-fallback {
-  background: rgba(255, 255, 255, 0.02);
-  border-color: var(--gray-300);
-}
-
-/* Mobile Tweak */
-@media (max-width: 768px) {
-  .sponsored-image {
-    max-height: 150px;
-  }
 }
 
 /* --- SEASONAL HEADER EFFECTS --- */
@@ -3299,7 +3173,9 @@ input:focus-visible {
   border-radius: 10px;
   border: 1px solid #ddd;
   outline: none;
-  transition: border 0.2s, box-shadow 0.2s;
+  transition:
+    border 0.2s,
+    box-shadow 0.2s;
 }
 
 .email-form input:focus {
@@ -3316,7 +3192,9 @@ input:focus-visible {
   color: #fff;
   font-weight: 500;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .email-form button:hover {
@@ -3348,4 +3226,416 @@ input:focus-visible {
   .modal-title {
     font-size: 1.2rem;
   }
+}
+
+/* =========================================
+   SKELETON LOADING ANIMATION
+   ========================================= */
+.skeleton {
+  background: #e1e4e8;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Dark mode skeleton color */
+[data-theme="dark"] .skeleton {
+  background: #2d2d30;
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.2) 20%,
+    rgba(255, 255, 255, 0.5) 60%,
+    rgba(255, 255, 255, 0)
+  );
+  animation: shimmer 2s infinite;
+}
+
+[data-theme="dark"] .skeleton::after {
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.05) 20%,
+    rgba(255, 255, 255, 0.1) 60%,
+    rgba(255, 255, 255, 0)
+  );
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Skeleton Card Structure */
+.skeleton-card {
+  background: var(--card-bg); /* Use theme card color */
+  border: 1px solid var(--border-color); /* Maintain border */
+  border-radius: var(--border-radius-lg);
+  padding: calc(var(--spacing) * 3);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  height: 250px; /* Approximate height of a real card */
+}
+
+.skeleton-header {
+  display: flex;
+  gap: 1rem;
+}
+
+.skeleton-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--border-radius);
+}
+
+.skeleton-title-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.skeleton-title {
+  height: 20px;
+  width: 80%;
+}
+
+.skeleton-tag {
+  height: 15px;
+  width: 40%;
+}
+
+.skeleton-body {
+  flex: 1;
+  height: 60px;
+}
+
+.skeleton-footer {
+  display: flex;
+  gap: 1rem;
+}
+
+.skeleton-btn {
+  height: 36px;
+  flex: 1;
+  border-radius: var(--border-radius);
+}
+
+/* =========================================
+   NEW UPLOAD CTA STYLES
+   ========================================= */
+/* Header Action Group */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Primary Header Upload Button */
+.btn-upload-header {
+  background: var(--primary-color);
+  color: #fff;
+  padding: 0.6rem 1.2rem;
+  border-radius: 50px; /* Modern pill shape */
+  font-weight: 600;
+  box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.39);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.btn-upload-header:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.23);
+  background: var(--primary-dark);
+}
+
+/* Community Call-to-Action Banner */
+.community-cta {
+  background: linear-gradient(
+    135deg,
+    var(--primary-color),
+    var(--primary-dark)
+  );
+  border-radius: var(--border-radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow-md);
+  position: relative;
+  overflow: hidden;
+}
+
+.community-cta-content {
+  z-index: 2;
+}
+
+.community-cta h3 {
+  font-size: 1.25rem;
+  margin-bottom: 0.25rem;
+  color: white;
+}
+
+.community-cta p {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+  margin-bottom: 0;
+}
+
+.btn-cta-light {
+  background: white;
+  color: var(--primary-color);
+  font-weight: 700;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.2s;
+  z-index: 2;
+  white-space: nowrap;
+}
+
+.btn-cta-light:hover {
+  background: var(--gray-50);
+  transform: scale(1.05);
+}
+
+/* Background decoration for banner */
+.community-cta::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 200px;
+  height: 200px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+@media (max-width: 600px) {
+  .community-cta {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+
+  .btn-upload-header span {
+    display: none; /* Hide text on mobile header, keep icon */
+  }
+
+  .btn-upload-header {
+    padding: 0.6rem;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    justify-content: center;
+  }
+}
+/* =========================================
+   REFRESHING UI UPDATES
+   ========================================= */
+
+/* 1. The Daily Catalyst (Greeting Card) */
+.catalyst-card {
+  background: linear-gradient(
+    135deg,
+    var(--primary-color),
+    var(--primary-dark)
+  );
+  border-radius: var(--border-radius-lg);
+  padding: 1.5rem 2rem;
+  margin-bottom: 2rem;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4);
+  position: relative;
+  overflow: hidden;
+  animation: slideDown 0.5s ease-out;
+}
+
+.catalyst-card.hidden {
+  display: none;
+}
+
+/* Abstract circles decoration background */
+.catalyst-card::before {
+  content: "";
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 150px;
+  height: 150px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+.catalyst-card::after {
+  content: "";
+  position: absolute;
+  bottom: -30px;
+  left: 20px;
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+.catalyst-content {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  z-index: 2;
+}
+
+.catalyst-icon {
+  font-size: 2.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  backdrop-filter: blur(5px);
+}
+
+.catalyst-text h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  color: #fff;
+}
+
+.catalyst-text p {
+  font-size: 0.95rem;
+  opacity: 0.9;
+  font-weight: 400;
+  max-width: 500px;
+}
+
+.catalyst-close {
+  background: rgba(0, 0, 0, 0.1);
+  border: none;
+  color: rgba(255, 255, 255, 0.8);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 2;
+}
+
+.catalyst-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  transform: rotate(90deg);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 600px) {
+  .catalyst-card {
+    padding: 1.25rem;
+    align-items: flex-start;
+  }
+  .catalyst-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .catalyst-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+  }
+}
+
+/* 2. Staggered Card Animation (The "Flow" Effect) */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pdf-card {
+  /* Default state for animation */
+  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0; /* Hidden initially, revealed by animation */
+}
+
+/* 3. Satisfying Heart Pop Animation */
+@keyframes heartPop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.4);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.btn-favorite.popping i {
+  animation: heartPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.class-switcher {
+  margin: 0 15px;
+}
+
+.class-switcher select {
+  padding: 6px 12px;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--gray-200);
+  background: var(--background-color);
+  color: var(--gray-800);
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: var(--transition);
+}
+
+[data-theme="dark"] .class-switcher select {
+  background: var(--gray-100);
+  color: var(--white);
+  border-color: var(--gray-300);
 }
