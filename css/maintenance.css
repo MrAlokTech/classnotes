@@ -1,0 +1,301 @@
+/* --- CHEMISTRY MAINTENANCE TERMINAL (RESPONSIVE) --- */
+.maintenance-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #050505; /* Lab Black */
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Hidden by default */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  font-family: "Courier New", Courier, monospace;
+  padding: 1rem; /* Prevent edges touching on mobile */
+}
+
+.maintenance-overlay.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.terminal-window {
+  width: 100%;
+  max-width: 650px;
+  background: #000;
+  border: 1px solid #333;
+  box-shadow: 0 0 30px rgba(0, 255, 0, 0.1);
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.terminal-top-bar {
+  background: #111;
+  padding: 10px 15px;
+  border-bottom: 1px solid #333;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0; /* Prevent shrinking */
+}
+
+.traffic-lights {
+  display: flex;
+  gap: 8px;
+  margin-right: 15px;
+}
+.light {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+.light.red {
+  background: #ff5f56;
+}
+.light.yellow {
+  background: #ffbd2e;
+}
+.light.green {
+  background: #27c93f;
+}
+
+.terminal-title {
+  color: #666;
+  font-size: 0.8rem;
+  margin: 0 auto;
+  padding-right: 40px; /* Balance the layout */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Content */
+.terminal-body {
+  padding: 20px;
+  color: #0f0; /* Neon Green */
+  position: relative;
+  min-height: 320px;
+  overflow-y: auto; /* Allow scrolling if content gets too tall on tiny screens */
+}
+
+.cmd {
+  color: #fff;
+  margin-top: 15px;
+  margin-bottom: 5px;
+  font-weight: bold;
+  font-size: 1rem;
+}
+.output {
+  color: #0f0;
+  line-height: 1.5;
+  margin-left: 10px;
+  opacity: 0.9;
+  font-size: 0.95rem;
+}
+.output a {
+  color: #fde047;
+  text-decoration: none;
+}
+.output-dim {
+  color: #008f00;
+  font-size: 0.8rem;
+  margin-top: 5px;
+  margin-left: 10px;
+}
+.text-yellow {
+  color: #fde047;
+}
+
+/* Blinking Status */
+.status-blink {
+  background: #ef4444; /* Danger Red */
+  color: #000;
+  padding: 2px 6px;
+  font-weight: bold;
+  animation: blink 1.5s infinite;
+}
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Bubbling Progress Bar */
+.terminal-progress-bar {
+  width: 100%;
+  height: 12px;
+  background: #0a200a;
+  border: 1px solid #0f0;
+  margin-top: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.terminal-progress-fill {
+  height: 100%;
+  width: 25%;
+  background: #0f0;
+  position: relative;
+  animation: liquidFlow 2s linear infinite;
+}
+
+.terminal-progress-fill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.2) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.2) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 20px 20px;
+  animation: moveStripes 1s linear infinite;
+}
+
+@keyframes moveStripes {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 20px 20px;
+  }
+}
+
+/* Scanline */
+.scan-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: rgba(0, 255, 0, 0.15);
+  animation: scan 6s linear infinite;
+  pointer-events: none;
+}
+@keyframes scan {
+  0% {
+    top: 0%;
+  }
+  100% {
+    top: 100%;
+  }
+}
+
+/* Buttons */
+.terminal-actions-row {
+  margin-top: 30px;
+  display: flex;
+  gap: 15px;
+  border-top: 1px dashed #333;
+  padding-top: 20px;
+}
+
+.terminal-btn,
+.terminal-link {
+  background: transparent;
+  border: 1px solid #0f0;
+  color: #0f0;
+  padding: 12px 20px; /* Larger touch target */
+  text-decoration: none;
+  font-family: inherit;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1; /* Make them equal width */
+}
+
+.terminal-btn:hover,
+.terminal-link:hover {
+  background: #0f0;
+  color: #000;
+  box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+}
+
+.terminal-footer-info {
+  margin-top: 30px;
+  font-size: 0.7rem;
+  color: #444;
+  text-align: right;
+  border-top: 1px solid #111;
+  padding-top: 10px;
+}
+
+.admin-only.hidden {
+  display: none;
+}
+
+/* --- MOBILE SPECIFIC STYLES --- */
+@media (max-width: 600px) {
+  .maintenance-overlay {
+    padding: 0; /* Full screen on mobile */
+    align-items: flex-start; /* Start from top to handle scrolling */
+  }
+
+  .terminal-window {
+    width: 100%;
+    height: 100%; /* Full height */
+    max-width: none;
+    border-radius: 0;
+    border: none;
+  }
+
+  .terminal-top-bar {
+    padding: 15px; /* Bigger touch area */
+  }
+
+  .terminal-title {
+    font-size: 0.75rem; /* Slightly smaller text */
+  }
+
+  .terminal-body {
+    padding: 20px 15px;
+    font-size: 0.9rem;
+    min-height: auto; /* Let content dictate height */
+    flex: 1; /* Fill remaining space */
+  }
+
+  .terminal-actions-row {
+    flex-direction: column; /* Stack buttons */
+    gap: 12px;
+    margin-top: auto; /* Push to bottom if space permits */
+    padding-bottom: 20px;
+  }
+
+  .terminal-btn,
+  .terminal-link {
+    width: 100%; /* Full width buttons */
+    padding: 14px; /* Easier to tap */
+    font-size: 1rem;
+  }
+
+  .output {
+    margin-left: 0; /* More space for text */
+    word-break: break-word; /* Prevent overflow */
+  }
+}

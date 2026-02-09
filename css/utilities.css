@@ -1,0 +1,123 @@
+/* =========================================
+   UTILITY CLASSES & HELPERS
+   ========================================= */
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: calc(var(--spacing) * 8) calc(var(--spacing) * 4);
+  color: var(--gray-500);
+  background: var(--background-color);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--gray-200);
+}
+
+.empty-state i {
+  font-size: 4rem;
+  margin-bottom: calc(var(--spacing) * 2);
+  color: var(--gray-300);
+}
+
+.empty-state h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: calc(var(--spacing) * 1);
+  color: var(--gray-700);
+}
+
+.empty-state p {
+  font-size: 0.875rem;
+}
+
+/* Toast Notifications */
+.toast {
+  position: fixed;
+  bottom: calc(var(--spacing) * 3);
+  right: calc(var(--spacing) * 3);
+  background: var(--success-color);
+  color: var(--white);
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+  border-radius: var(--border-radius);
+  display: none;
+  align-items: center;
+  gap: calc(var(--spacing) * 1);
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  z-index: 1100;
+  transform: translateX(100%);
+  transition: var(--transition);
+  max-width: calc(100vw - calc(var(--spacing) * 6));
+}
+
+.toast.show {
+  display: flex;
+  transform: translateX(0);
+}
+
+/* Skeleton Loading */
+.skeleton {
+  background: #e1e4e8;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .skeleton {
+  background: #2d2d30;
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.2) 20%,
+    rgba(255, 255, 255, 0.5) 60%,
+    rgba(255, 255, 255, 0)
+  );
+  animation: shimmer 2s infinite;
+}
+
+[data-theme="dark"] .skeleton::after {
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.05) 20%,
+    rgba(255, 255, 255, 0.1) 60%,
+    rgba(255, 255, 255, 0)
+  );
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Highlight */
+.highlight {
+  background-color: #fde047;
+  color: #000;
+  padding: 0 2px;
+  border-radius: 2px;
+  font-weight: 600;
+}
+
+/* Hidden Class */
+.hidden {
+  display: none !important;
+}
+
+.show {
+  display: block;
+}
+
+.invisible {
+  visibility: hidden;
+}

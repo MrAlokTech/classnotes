@@ -1,0 +1,224 @@
+/* =========================================
+   LAYOUT COMPONENTS
+   ========================================= */
+
+.header {
+  background: var(--background-color);
+  border-bottom: 1px solid var(--gray-200);
+  padding: calc(var(--spacing) * 2) 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(8px);
+  overflow: hidden;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 1.5);
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.logo i {
+  font-size: 2rem;
+}
+
+.logo h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.main {
+  flex: 1;
+  padding: calc(var(--spacing) * 4) 0;
+}
+
+.semester-tabs {
+  background: var(--background-color);
+  border-bottom: 1px solid var(--gray-200);
+  position: sticky;
+  top: var(--header-height);
+  z-index: 99;
+}
+
+.tabs-wrapper {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  padding: calc(var(--spacing) * 2) 0;
+}
+
+.tab-number {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.tab-label {
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pdf-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: calc(var(--spacing) * 3);
+}
+
+.stats-bar {
+  color: var(--gray-500);
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: calc(var(--spacing) * 3);
+  padding: calc(var(--spacing) * 1.5);
+  background: var(--background-color);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--gray-200);
+}
+
+/* Footer */
+footer {
+  background: var(--gray-900);
+  color: var(--gray-300);
+  padding: calc(var(--spacing) * 3) calc(var(--spacing) * 2);
+  text-align: center;
+  margin-top: auto;
+}
+
+.footer-content {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 1);
+}
+
+.github-link {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  gap: 8px;
+  background: var(--gray-100);
+  color: var(--gray-700);
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--gray-200);
+  margin-top: calc(var(--spacing) * 1);
+  margin-bottom: calc(var(--spacing) * 0.5);
+  transition: var(--transition);
+}
+
+.github-link i {
+  font-size: 1rem;
+}
+
+.github-link:hover {
+  background: #24292e;
+  color: white;
+  border-color: #24292e;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+[data-theme="dark"] .github-link {
+  background: var(--gray-100);
+  color: var(--gray-500);
+  border-color: var(--gray-200);
+}
+
+[data-theme="dark"] .github-link:hover {
+  background: white;
+  color: black;
+  border-color: white;
+}
+
+[data-theme="dark"] footer {
+  background-color: #000000;
+  color: var(--gray-400);
+  border-top: 1px solid var(--gray-200);
+}
+
+[data-theme="dark"] ins.adsbygoogle {
+  background: var(--gray-50);
+}
+
+.thanks-message {
+  font-size: 0.875rem;
+  color: var(--gray-400);
+  margin-bottom: calc(var(--spacing) * 1);
+}
+
+.contact-info {
+  font-size: 0.875rem;
+  color: var(--gray-400);
+  word-break: break-word;
+}
+
+.contact-info a {
+  color: var(--primary-light);
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.contact-info a:hover {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
+.credits {
+  font-size: 0.8125rem;
+  font-weight: 400;
+}
+
+.credits a {
+  color: var(--primary-light);
+  text-decoration: none;
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+.credits a:hover {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
+.heart {
+  color: #ef4444;
+  animation: pulse 1.5s infinite;
+  display: inline-block;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+}
+
+.copyright-text {
+  font-size: 0.75rem;
+  color: var(--gray-500);
+  margin-top: calc(var(--spacing) * 1);
+}

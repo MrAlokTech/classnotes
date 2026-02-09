@@ -1,0 +1,456 @@
+/* =========================================
+   MODAL COMPONENTS
+   ========================================= */
+
+/* Base Modal */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.75);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: calc(var(--spacing) * 2);
+  backdrop-filter: blur(4px);
+}
+
+.modal.active {
+  display: flex;
+}
+
+.modal-content {
+  background: var(--background-color);
+  border-radius: var(--border-radius-lg);
+  width: 100%;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: var(--shadow-xl);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(var(--spacing) * 3);
+  border-bottom: 1px solid var(--gray-200);
+  background: var(--background-color);
+  gap: calc(var(--spacing) * 2);
+}
+
+.modal-header h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--gray-900);
+  word-break: break-word;
+  flex: 1;
+}
+
+.modal-actions {
+  display: flex;
+  gap: calc(var(--spacing) * 1);
+  flex-shrink: 0;
+}
+
+.modal-body {
+  flex: 1;
+  padding: 0;
+  overflow: hidden;
+}
+
+.modal-body iframe {
+  border: none;
+  width: 100%;
+  height: 100%;
+  min-height: 600px;
+}
+
+/* Share Modal */
+.share-modal {
+  max-width: 500px;
+  max-height: none;
+}
+
+.share-modal .modal-body {
+  padding: calc(var(--spacing) * 3);
+}
+
+.share-modal p {
+  margin-bottom: calc(var(--spacing) * 2);
+  color: var(--gray-600);
+}
+
+.share-link-container {
+  display: flex;
+  gap: calc(var(--spacing) * 1.5);
+  margin-bottom: calc(var(--spacing) * 2);
+}
+
+.share-link-container input {
+  flex: 1;
+  padding: calc(var(--spacing) * 1.5);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--border-radius);
+  background: var(--background-color);
+  font-family: monospace;
+  font-size: 0.875rem;
+  min-width: 0;
+}
+
+.share-success {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 1);
+  color: var(--success-color);
+  font-weight: 500;
+  padding: calc(var(--spacing) * 1.5);
+  background: rgba(5, 150, 105, 0.1);
+  border-radius: var(--border-radius);
+}
+
+/* Email Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease;
+}
+
+.modal-overlay:not(.hidden) {
+  opacity: 1;
+  visibility: visible;
+}
+
+.email-modal {
+  position: relative;
+  width: 92%;
+  max-width: 420px;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 28px 22px 26px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+  text-align: center;
+  animation: modalPop 0.3s ease;
+}
+
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: #888;
+}
+
+.modal-close:hover {
+  color: #000;
+}
+
+.modal-icon {
+  font-size: 2.4rem;
+  margin-bottom: 10px;
+}
+
+.modal-title {
+  font-size: 1.35rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.modal-subtitle {
+  font-size: 0.95rem;
+  color: #666;
+  margin-bottom: 18px;
+}
+
+.email-form {
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+}
+
+.email-form input {
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  outline: none;
+  transition:
+    border 0.2s,
+    box-shadow 0.2s;
+}
+
+.email-form input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.email-form button {
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: #fff;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.email-form button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+}
+
+.modal-footer {
+  font-size: 0.75rem;
+  color: #999;
+  margin-top: 12px;
+}
+
+@keyframes modalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* PDF Viewer Layout with Sidebar */
+.pdf-viewer-layout {
+  display: flex;
+  flex-direction: row;
+  padding: 0;
+}
+
+.modal-main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.modal-sidebar {
+  width: 350px;
+  background: var(--background-color);
+  border-left: 1px solid var(--gray-200);
+  padding: calc(var(--spacing) * 3);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+}
+
+.modal-sidebar h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--gray-900);
+  margin-bottom: calc(var(--spacing) * 2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+/* Comments Section */
+.comments-list {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: calc(var(--spacing));
+  margin-bottom: calc(var(--spacing) * 2);
+}
+
+.comment-item {
+  border-bottom: 1px dashed var(--gray-200);
+  padding: calc(var(--spacing) * 1.5) 0;
+}
+
+.comment-item:last-child {
+  border-bottom: none;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: calc(var(--spacing) * 0.5);
+}
+
+.comment-author {
+  font-weight: 600;
+  color: var(--primary-dark);
+  font-size: 0.9375rem;
+}
+
+.comment-date {
+  font-size: 0.75rem;
+  color: var(--gray-500);
+}
+
+.comment-text {
+  font-size: 0.875rem;
+  color: var(--gray-700);
+  line-height: 1.4;
+}
+
+.comment-form {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 1);
+  padding-top: calc(var(--spacing) * 1);
+  border-top: 1px solid var(--gray-200);
+}
+
+.comment-form textarea,
+.comment-form input {
+  width: 100%;
+  padding: calc(var(--spacing) * 1);
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius);
+  font-size: 0.9375rem;
+  font-family: inherit;
+  transition: var(--transition);
+  resize: vertical;
+}
+
+.comment-form textarea:focus,
+.comment-form input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.comment-form textarea {
+  min-height: 80px;
+  max-height: 150px;
+}
+
+#submitCommentBtn {
+  width: 100%;
+}
+
+#openCommentsBtn {
+  display: none;
+}
+
+.drawer-close {
+  display: none;
+}
+
+/* Mobile Modal Adjustments */
+@media (max-width: 768px) {
+  .modal-sidebar {
+    position: fixed;
+    left: 0;
+    bottom: -100%;
+    width: 100%;
+    height: 70vh;
+    max-height: 80vh;
+    background: var(--background-color);
+    border-top: 2px solid var(--gray-200);
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.2);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    transition:
+      transform 0.35s ease,
+      bottom 0.35s ease;
+    overflow: hidden;
+  }
+
+  .modal-sidebar.active {
+    bottom: 0;
+  }
+
+  .modal-sidebar h4 {
+    font-size: 1.1rem;
+    margin: 0;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--gray-200);
+  }
+
+  .drawer-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    display: inline-flex;
+    color: var(--gray-700);
+    padding: 8px;
+    cursor: pointer;
+  }
+
+  .comments-list {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 1rem 1.25rem;
+  }
+
+  .comment-form {
+    flex-shrink: 0;
+    background: var(--gray-100);
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--gray-200);
+    position: sticky;
+    bottom: 0;
+  }
+
+  .comment-form textarea,
+  .comment-form input {
+    font-size: 0.9rem;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  #submitCommentBtn {
+    width: 100%;
+  }
+
+  #openCommentsBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+    color: white;
+    background: var(--primary-color);
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 999px;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9998;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  }
+
+  #openCommentsBtn i {
+    font-size: 1rem;
+  }
+
+  .pdf-viewer-layout {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 360px) {
+  .modal-title {
+    font-size: 1.2rem;
+  }
+}

@@ -1,0 +1,76 @@
+/* =========================================
+   FORM COMPONENTS
+   ========================================= */
+
+.search-box {
+  position: relative;
+  width: 100%;
+}
+
+.search-box i {
+  position: absolute;
+  left: calc(var(--spacing) * 2);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--gray-400);
+  font-size: 1rem;
+  pointer-events: none;
+}
+
+.search-box input {
+  width: 100%;
+  padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2)
+    calc(var(--spacing) * 1.5) calc(var(--spacing) * 6);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  transition: var(--transition);
+  background: var(--background-color);
+  font-family: inherit;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.search-box input::placeholder {
+  color: var(--gray-400);
+}
+
+.class-switcher {
+  margin: 0 15px;
+}
+
+.class-switcher select {
+  padding: 6px 12px;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--gray-200);
+  background: var(--background-color);
+  color: var(--gray-800);
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: var(--transition);
+}
+
+[data-theme="dark"] .class-switcher select {
+  background: var(--gray-100);
+  color: var(--gray-800);
+  border-color: var(--gray-300);
+}
+
+.filter-section {
+  display: flex;
+  gap: calc(var(--spacing) * 1.5);
+  flex-wrap: wrap;
+}
+
+.controls-section {
+  margin-bottom: calc(var(--spacing) * 3);
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 2);
+}

@@ -4,7 +4,7 @@
 let pdfDatabase = [];
 let currentClass = localStorage.getItem('currentClass') || 'MSc Chemistry';
 let availableClasses = [];
-let currentSemester = parseInt(localStorage.getItem('currentSemester')) || 2;
+let currentSemester = parseInt(localStorage.getItem('currentSemester')) || 1;
 let currentCategory = 'all';
 let isMaintenanceActive = false;
 let currentUserUID = null;
@@ -435,7 +435,17 @@ async function loadPDFDatabase() {
             if (!latestSnapshot.empty) {
                 const serverLatestId = latestSnapshot.docs[0].id;
                 const localLatestId = cachedData.length > 0 ? cachedData[0].id : null;
-                if (serverLatestId === localLatestId) shouldUseCache = true;
+
+                // CHECK 1: Is the content fresh?
+                const isContentFresh = serverLatestId === localLatestId;
+
+                // CHECK 2: Does the cache have the new 'class' schema?
+                // We check if the first item has the 'class' property
+                const hasNewSchema = cachedData.length > 0 && 'class' in cachedData[0];
+
+                if (isContentFresh && hasNewSchema) {
+                    shouldUseCache = true;
+                }
             }
         }
 
@@ -1337,7 +1347,7 @@ function initDailyCatalyst() {
     else if (hour < 18) timeGreeting = "Good Afternoon! 🌤️";
     else timeGreeting = "Good Evening! 🌙";
 
-    // 3. Chemistry Puns & Tips
+    // 3. Science & Chemistry Puns (Expanded to 100)
     const quotes = [
         "Remember: The mole is a unit, not a spy. 🕵️‍♂️",
         "Be like a proton—always positive! ⚛️",
@@ -1346,7 +1356,99 @@ function initDailyCatalyst() {
         "Chemistry is like cooking, just don't lick the spoon.",
         "Organic Chemistry is difficult. Those who pass it have alkynes of trouble.",
         "Reviewing notes today? You're in your element!",
-        "Double check your bonds before you break them."
+        "Double check your bonds before you break them.",
+        "If you're not part of the solution, you're part of the precipitate. ⚗️",
+        "Gold is the best element because it's Au-some! ✨",
+        "The name's Bond. Ionic Bond. Taken, not shared. 🤝",
+        "Keep your ion the prize! 👁️",
+        "I told a chemistry joke, but there was no reaction. 😐",
+        "Are you made of Copper and Tellurium? Because you're CuTe. 😉",
+        "Why are chemists great for solving problems? They have all the solutions. 🧪",
+        "Drop the base! (But handle acids with care). 🎧",
+        "Stop overreacting! (Said the Noble Gas). 🛑",
+        "If you can't helium or curium, you might as well barium. 🏥",
+        "A neutron walks into a bar. 'For you, no charge.' 😐",
+        "I lost an electron! Are you positive? ➕",
+        "Schrödinger’s cat walks into a bar... and doesn't. 🐈",
+        "What is a cation afraid of? A dogion. 🐶",
+        "Why did the bear dissolve in water? It was polar. 🐻‍❄️",
+        "Organic chemistry is just drawing hexagons. 🛑",
+        "0K is literally the coolest temperature. 🥶",
+        "Physics: It's all relative. 🎢",
+        "Biology is the only science where multiplication is the same as division. 🦠",
+        "Mitosis: It's a cell dividing. ➗",
+        "I wish I was Adenine so I could get paired with U. 🧬",
+        "Don't be negative, be like an electron... wait. ⚡",
+        "Mitochondria: The powerhouse of the cell! 🔋",
+        "What do you call a wheel made of iron? A Fe-rous wheel. 🎡",
+        "Did you hear oxygen went on a date with potassium? It went OK. 👌",
+        "Anyone know any jokes about sodium? Na. 🧂",
+        "I would tell you a joke about noble gases, but all the good ones Argon. 🎈",
+        "H2O is water and H2O2 is hydrogen peroxide. What is H2O4? Drinking. 🥤",
+        "Why do chemists like nitrates so much? They're cheaper than day rates. 💰",
+        "What did the scientist say when he found 2 isotopes of helium? HeHe. 😂",
+        "A photon checks into a hotel. 'Luggage?' 'No, I'm traveling light.' 🧳",
+        "What is the show cesium and iodine love watching together? CsI. 📺",
+        "My chemistry teacher threw sodium chloride at me. That's a salt. 👮",
+        "Silver walks up to Gold in a bar and says, 'Au, get out of here!' 👋",
+        "Why did the physicist break up with the biologist? There was no chemistry. 💔",
+        "I heard that Oxygen and Magnesium were going out and I was like OMg! 😱",
+        "The glass is half full... of liquid and half full of gas. 🥛",
+        "How often do I like jokes about elements? Periodically. 📅",
+        "Why did the acid go to the gym? To become a buffer solution. 💪",
+        "Old chemists never die, they just stop reacting. 💀",
+        "What is the chemical formula for banana? BaNa2. 🍌",
+        "Why did the germ cross the microscope? To get to the other slide. 🔬",
+        "Gravity is a downer. 📉",
+        "304 stainless steel: 'We don't serve your kind.' 'But I'm stainless!' 🤖",
+        "What did the limestone say to the geologist? Don't take me for granite. 🪨",
+        "Tectonics: It's not my fault! 🌍",
+        "Geology rocks! 🤘",
+        "Why does the hamburger have lower energy than the steak? Because it's in the ground state. 🍔",
+        "What happens when electrons lose their energy? They get Bohr-ed. 🥱",
+        "Why did Carbon marry Hydrogen? They bonded well. 💍",
+        "Exothermic reactions are cool... wait, no they're hot. 🔥",
+        "Endothermic reactions: cooler than being cool. 🧊",
+        "Why are quantum physicists bad at love? When they find the position, they can't find the momentum. 🔭",
+        "E=mc²: Energy = Milk × Coffee². ☕",
+        "May the mass times acceleration be with you. 🚀",
+        "A body at rest stays at rest... especially on Mondays. 😴",
+        "What did the biologist wear to his first date? Designer genes. 👖",
+        "The brain named itself. 🧠",
+        "Without physics, sports would be just math. ⚽",
+        "Why do plants hate math? Because it gives them square roots. 🌿",
+        "Why did the mushroom go to the party? Because he was a fungi. 🍄",
+        "Does a radioactive cat have 18 half-lives? ☢️",
+        "Why was the mole of oxygen molecules excited? He got Avogadro's number! 📞",
+        "Water molecules are like minions... small, numerous, and stick together. 🌊",
+        "Did you hear about the man who was cooled to absolute zero? He's 0K now. 👍",
+        "Why did the chemist coat his shoes with silicone rubber? To reduce his carbon footprint. 👣",
+        "What did the thermometer say to the graduated cylinder? 'You may be graduated, but I've got many degrees.' 🎓",
+        "Why did the chicken cross the Möbius strip? To get to the same side. 🐔",
+        "Why did the containment vessel leave the nuclear plant? It had a fallout. ☢️",
+        "Jokes about heavy elements? All the good ones are decaying. ⏳",
+        "Iron Man is a female superhero. Fe = Iron, Male = Man. 🦸‍♀️",
+        "Diamond: Just carbon that handled pressure well. 💎",
+        "What do you call an acid with an attitude? A-mean-o acid. 😠",
+        "Why do biologists look forward to the future? Because they cell-ebrate it. 🎉",
+        "What did the stamen say to the pistil? I like your style. 🌸",
+        "Why did the amoeba cross the road? It was time to split. 🦠",
+        "Why are enzymes so popular? They're always the life of the party. 🥳",
+        "Osmosis: Absorbing knowledge by sleeping on books. 📚",
+        "Why did the cell go to therapy? It had separation anxiety. 🛋️",
+        "Why did the gene go to the dentist? To fix its expression. 🦷",
+        "Why did the virus go to the doctor? It felt a little host-ile. 🌡️",
+        "Why did the skeleton go to the party alone? He had no body to go with. ☠️",
+        "Why can't you trust a spinal cord? It's too nervous. 😬",
+        "Why did the blood cell break up with the plasma? It just wasn't his type. 🩸",
+        "Why did the neuron get sent to the principal? For having a bad impulse. ⚡",
+        "What is a physicist's favorite food? Fission chips. 🍟",
+        "Why is electricity so dangerous? It doesn't know how to conduct itself. 🔌",
+        "Why did the magnet get arrested? For attracting the wrong crowd. 🧲",
+        "Why did the circuit go to the doctor? It had a short. 🏥",
+        "Why was the math book sad? It had too many problems. 📘",
+        "Why did the two 4s skip lunch? They already 8. 🍽️",
+        "Parallel lines have so much in common. It’s a shame they’ll never meet. 📏"
     ];
     const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
 

@@ -1,0 +1,111 @@
+/* =========================================
+   SEASONAL HEADER EFFECTS & ANIMATIONS
+   ========================================= */
+
+.header {
+  overflow: hidden;
+}
+
+.season-particle {
+  position: absolute;
+  pointer-events: none;
+  z-index: 1;
+  user-select: none;
+  will-change: transform;
+}
+
+/* WINTER: SNOW */
+.snowflake {
+  color: var(--primary-light);
+  top: -20px;
+  animation: snowFall linear forwards;
+}
+
+[data-theme="dark"] .snowflake {
+  color: #fff;
+  opacity: 0.8;
+}
+
+@keyframes snowFall {
+  to {
+    transform: translateY(120px) translateX(20px);
+    opacity: 0;
+  }
+}
+
+/* SUMMER: SUN MOTES / POLLEN */
+.sun-mote {
+  background: var(--accent-color);
+  box-shadow: 0 0 2px var(--accent-color);
+  border-radius: 50%;
+  bottom: -10px;
+  opacity: 0.7;
+  animation: heatRise linear forwards;
+}
+
+[data-theme="dark"] .sun-mote {
+  background: #fbbf24;
+  box-shadow: 0 0 8px #fbbf24;
+  opacity: 0.8;
+}
+
+@keyframes heatRise {
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-120px) translateX(-25px);
+    opacity: 0;
+  }
+}
+
+/* MONSOON: RAIN */
+.raindrop {
+  top: -30px;
+  opacity: 0.8;
+  animation: rainFall linear forwards;
+}
+
+@keyframes rainFall {
+  0% {
+    transform: translateY(0) translateX(0) skewX(-10deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(120vh) translateX(-50px) skewX(-10deg);
+    opacity: 0.2;
+  }
+}
+
+/* AUTUMN: LEAVES */
+.autumn-leaf {
+  top: -20px;
+  animation: leafFall ease-in-out forwards;
+}
+
+@keyframes leafFall {
+  0% {
+    transform: translateY(0) rotate(0deg) translateX(0);
+    opacity: 1;
+  }
+  25% {
+    transform: translateY(30px) rotate(45deg) translateX(20px);
+  }
+  50% {
+    transform: translateY(60px) rotate(90deg) translateX(-20px);
+  }
+  75% {
+    transform: translateY(90px) rotate(135deg) translateX(10px);
+  }
+  100% {
+    transform: translateY(120px) rotate(180deg) translateX(20px);
+    opacity: 0;
+  }
+}

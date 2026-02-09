@@ -1,0 +1,173 @@
+/* =========================================
+   POLICY PAGES & UPLOAD FORMS
+   ========================================= */
+
+/* Policy Page Styles */
+.main-policy {
+  margin: calc(var(--spacing) * 4) calc(var(--spacing) * 2);
+  padding: calc(var(--spacing) * 8) calc(var(--spacing) * 4);
+  color: var(--gray-500);
+  background: var(--background-color);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--gray-200);
+}
+
+.main-policy h2 {
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: calc(var(--spacing) * 2);
+  padding-bottom: calc(var(--spacing));
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.main-policy h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--primary-dark);
+  margin-top: calc(var(--spacing) * 4);
+  margin-bottom: calc(var(--spacing) * 1.5);
+}
+
+.main-policy p,
+.main-policy li {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--gray-700);
+  margin-bottom: calc(var(--spacing) * 2);
+}
+
+.main-policy ul,
+.main-policy ol {
+  list-style-position: inside;
+  padding-left: calc(var(--spacing) * 2);
+  margin-bottom: calc(var(--spacing) * 2);
+}
+
+.main-policy li {
+  margin-bottom: calc(var(--spacing));
+  list-style-type: disc;
+}
+
+.main-policy ol li {
+  list-style-type: decimal;
+}
+
+/* Footer Policy Links */
+.footer-content .policy-links {
+  font-size: 0.75rem;
+  color: var(--gray-400);
+  margin-top: calc(var(--spacing));
+}
+
+.footer-content .policy-links a {
+  color: var(--gray-400);
+  text-decoration: none;
+  transition: var(--transition);
+  font-weight: 500;
+}
+
+.footer-content .policy-links a:hover {
+  color: var(--primary-light);
+  text-decoration: underline;
+}
+
+/* Upload Form Styles */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: var(--gray-700);
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  transition: var(--transition);
+  background: var(--background-color);
+  font-family: inherit;
+}
+
+.form-group input[type="password"],
+.form-group input[type="email"] {
+  padding-right: calc(var(--spacing) * 5);
+}
+
+.form-group textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Password visibility toggle */
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 44px;
+  cursor: pointer;
+  color: var(--gray-400);
+  transition: var(--transition);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.password-toggle:hover {
+  color: var(--primary-color);
+}
+
+/* Form toggle link */
+.form-toggle-link {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 0.875rem;
+}
+
+.form-toggle-link a {
+  color: var(--primary-color);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.form-toggle-link a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .main-policy {
+    padding: calc(var(--spacing) * 6) calc(var(--spacing) * 3);
+  }
+  .main-policy h2 {
+    font-size: 2rem;
+    margin-bottom: calc(var(--spacing) * 1.5);
+  }
+  .main-policy h3 {
+    font-size: 1.125rem;
+    margin-top: calc(var(--spacing) * 3);
+  }
+  .main-policy p,
+  .main-policy li {
+    font-size: 0.9375rem;
+  }
+}

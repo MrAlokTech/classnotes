@@ -38,7 +38,7 @@
       />
     </noscript>
 
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="css/main.css" />
 
     <meta
       name="description"
@@ -213,7 +213,7 @@
           </div>
           <div class="class-switcher">
             <select id="classSelect" aria-label="Select Class">
-              <option value="" disabled selected>Loading Classes...</option>
+              <option value="" disabled selected></option>
             </select>
           </div>
           <button
@@ -258,10 +258,12 @@
         </div>
         <div id="dailyCatalyst" class="catalyst-card hidden">
           <div class="catalyst-content">
-            <div class="catalyst-icon">👋</div>
+            <div class="catalyst-icon">
+              <i class="fas fa-face-grin-tongue-wink"></i>
+            </div>
             <div class="catalyst-text">
               <h2 id="greetingTitle">Hello there!</h2>
-              <p id="greetingQuote">Loading your daily dose of chemistry...</p>
+              <p id="greetingQuote">Loading your daily dose of fun...</p>
             </div>
           </div>
           <button id="closeCatalyst" class="catalyst-close" aria-label="Close">
