@@ -488,6 +488,15 @@ async function loadPDFDatabase() {
 function hidePreloader() {
     if (preloader) {
         preloader.classList.add('hidden');
+
+        // Trigger the MNC-style reveal animation
+        const content = document.getElementById('contentWrapper');
+        if (content) {
+            // Slight delay (300ms) to allow the preloader fade-out to look smoother
+            setTimeout(() => {
+                content.classList.add('active');
+            }, 300);
+        }
     }
 }
 
@@ -555,6 +564,8 @@ function deactivateMaintenanceMode() {
 
 function checkHolidayMode() {
     const today = new Date();
+    // TEST MODE
+    // const today = new Date('2026-02-14');
     const month = today.getMonth(); // 0 = Jan, 11 = Dec
     const date = today.getDate();
 
@@ -568,6 +579,31 @@ function checkHolidayMode() {
 
     overlay.className = 'holiday-overlay hidden';
 
+    // --- FEBRUARY 14 LOGIC ---
+    if (month === 1 && date === 14) {
+        // 50% Chance logic
+        const showFunny = Math.random() < 0.5;
+
+        if (showFunny) {
+            // === FUNNY: BAJRANG DAL MODE ===
+            overlay.classList.add('valentines');
+            icon.innerText = "🏏"; // Cricket Bat (representing Lathi)
+            title.innerText = "Bajrang Dal Alert!";
+            msg.innerHTML = "Couples detected! Initiating 'Matr-Pitru Pujan' protocols.";
+            sub.innerHTML = "( Chemistry Note: Covalent bonds break, but Lathi charge is permanent! 🧡 )";
+        } else {
+            // === SERIOUS: BLACK DAY ===
+            overlay.classList.add('black-day');
+            icon.innerText = "🕯️"; // Candle
+            title.innerText = "Black Day";
+            msg.innerHTML = "Remembering the bravehearts of Pulwama (14 Feb 2019).";
+            sub.innerHTML = "Real heroes don't wear capes, they wear camo. 🇮🇳";
+        }
+
+        activateHoliday(overlay);
+        return true;
+    }
+
     if ((month === 0 && date === 26) || (month === 7 && date === 15)) {
         overlay.classList.add('tricolor');
         icon.innerText = "🇮🇳";
@@ -577,7 +613,7 @@ function checkHolidayMode() {
         activateHoliday(overlay);
         return true;
     }
-    if (month === 2 && date === 14) { // Holi approx
+    if ((month === 2 && date === 4) || (month === 2 && date === 3)) { // Holi approx
         overlay.classList.add('holi');
         icon.innerText = "🎨";
         title.innerText = "Happy Holi!";
@@ -1815,3 +1851,12 @@ function checkEmailCapture() {
         }
     };
 }
+
+console.log('%c👋 Hello There!', 'font-size: 20px; color: #ffff00; font-weight: bold;');
+console.log("Welcome to ClassNotes! 👋\nThis site is built by Alok Das, a student just like you. If you have any suggestions or want to contribute, check out the GitHub repo: https://github.com/MrAloktech/classnotes");
+console.log("नमस्ते! क्लासनोट्स में आपका स्वागत है! 👋\nयह साइट अलोक दास द्वारा बनाई गई है, जो आपके जैसे एक छात्र हैं। यदि आपके पास कोई सुझाव है या आप योगदान देना चाहते हैं, तो GitHub रिपॉजिटरी देखें: https://github.com/MrAloktech/classnotes");
+console.log("¡Hola! ¡Bienvenido a ClassNotes! 👋\nEste sitio fue creado por Alok Das, un estudiante como tú. Si tienes alguna sugerencia o quieres contribuir, visita el repositorio de GitHub: https://github.com/MrAloktech/classnotes");
+console.log("Bonjour! Bienvenue sur ClassNotes! 👋\nCe site est créé par Alok Das, un étudiant comme vous. Si vous avez des suggestions ou souhaitez contribuer, consultez le dépôt GitHub : https://github.com/MrAloktech/classnotes");
+console.log("Привет! Добро пожаловать в ClassNotes! 👋\nЭтот сайт создан Алоком Дасом, студентом, таким же, как и вы. Если у вас есть предложения или вы хотите внести свой вклад, посетите репозиторий GitHub: https://github.com/MrAloktech/classnotes");
+console.log("你好！欢迎来到ClassNotes！👋\n这个网站由Alok Das创建，他和你一样是个学生。如果你有任何建议或想要贡献，请查看GitHub仓库：https://github.com/MrAloktech/classnotes");
+console.log('%cFor more such cool projects like this, check out https://me.alokdasofficial.in ❤️', 'font-size: 16px; color: #ffaa00; font-weight: bold;');

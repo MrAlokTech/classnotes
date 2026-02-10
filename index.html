@@ -204,279 +204,290 @@
       </div>
       <p class="loader-text">Loading <span>ClassNotes</span></p>
     </div>
-    <header class="header">
-      <div class="container">
-        <div class="header-content">
-          <div class="logo">
-            <i class="fas fa-graduation-cap"></i>
-            <h1>ClassNotes</h1>
+    <div id="contentWrapper" class="reveal-content">
+      <header class="header">
+        <div class="container">
+          <div class="header-content">
+            <div class="logo">
+              <i class="fas fa-graduation-cap"></i>
+              <h1>ClassNotes</h1>
+            </div>
+            <div class="class-switcher">
+              <select id="classSelect" aria-label="Select Class">
+                <option value="" disabled selected></option>
+              </select>
+            </div>
+            <button
+              id="themeToggleBtn"
+              class="btn-icon theme-toggle"
+              title="Toggle Dark Mode"
+              aria-label="Toggle Dark Mode"
+            >
+              <i class="fas fa-moon"></i>
+            </button>
           </div>
-          <div class="class-switcher">
-            <select id="classSelect" aria-label="Select Class">
-              <option value="" disabled selected></option>
-            </select>
+        </div>
+      </header>
+
+      <div class="semester-tabs">
+        <div class="container">
+          <div class="tabs-wrapper" id="semesterTabsContainer">
+            <div class="skeleton-tab"></div>
+            <div class="skeleton-tab"></div>
+            <div class="skeleton-tab"></div>
           </div>
-          <button
-            id="themeToggleBtn"
-            class="btn-icon theme-toggle"
-            title="Toggle Dark Mode"
-            aria-label="Toggle Dark Mode"
-          >
-            <i class="fas fa-moon"></i>
-          </button>
         </div>
       </div>
-    </header>
 
-    <div class="semester-tabs">
-      <div class="container">
-        <div class="tabs-wrapper" id="semesterTabsContainer">
-          <div class="skeleton-tab"></div>
-          <div class="skeleton-tab"></div>
-          <div class="skeleton-tab"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- <div class="container">
+      <!-- <div class="container">
       <div id="ad-slot-top" class="ad-slot-container"></div>
     </div> -->
 
-    <main class="main">
-      <div class="container">
-        <div class="community-cta">
-          <div class="community-cta-content">
-            <h3>Got Notes?</h3>
-            <p>
-              Help your juniors/classmates by uploading your notes. Be a
-              <strong>legend</strong>! <i class="fas fa-ghost"></i>
-            </p>
-          </div>
-          <a href="/upload/" class="btn-cta-light">
-            Upload Now <i class="fas fa-arrow-right"></i>
-          </a>
-        </div>
-        <div id="dailyCatalyst" class="catalyst-card hidden">
-          <div class="catalyst-content">
-            <div class="catalyst-icon">
-              <i class="fas fa-face-grin-tongue-wink"></i>
+      <main class="main">
+        <div class="container">
+          <div class="community-cta">
+            <div class="community-cta-content">
+              <h3>Got Notes?</h3>
+              <p>
+                Help your juniors/classmates by uploading your notes. Be a
+                <strong>legend</strong>! <i class="fas fa-ghost"></i>
+              </p>
             </div>
-            <div class="catalyst-text">
-              <h2 id="greetingTitle">Hello there!</h2>
-              <p id="greetingQuote">Loading your daily dose of fun...</p>
+            <a href="/upload/" class="btn-cta-light">
+              Upload Now <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+          <div id="dailyCatalyst" class="catalyst-card hidden">
+            <div class="catalyst-content">
+              <div class="catalyst-icon">
+                <i class="fas fa-face-grin-tongue-wink"></i>
+              </div>
+              <div class="catalyst-text">
+                <h2 id="greetingTitle">Hello there!</h2>
+                <p id="greetingQuote">Loading your daily dose of fun...</p>
+              </div>
             </div>
-          </div>
-          <button id="closeCatalyst" class="catalyst-close" aria-label="Close">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-        <div class="controls-section">
-          <div class="search-box">
-            <i class="fas fa-search"></i>
-            <input
-              type="text"
-              id="searchInput"
-              placeholder="Search notes by title, teacher, or subject..."
-            />
-          </div>
-          <div class="filter-section" id="categoryFilters">
-            <button class="filter-btn active" data-category="all">
-              <i class="fas fa-th"></i> All
-            </button>
-            <div class="skeleton-btn" style="width: 80px"></div>
-            <div class="skeleton-btn" style="width: 100px"></div>
-          </div>
-          <!-- <div id="ad-slot-middle" class="ad-slot-container"></div> -->
-        </div>
-
-        <div class="stats-bar">
-          <span id="pdfCount">0</span> notes available
-        </div>
-
-        <div class="pdf-grid" id="pdfGrid"></div>
-
-        <div class="empty-state" id="emptyState" style="display: none">
-          <i class="fas fa-folder-open"></i>
-          <h3>No notes found</h3>
-          <p>Try adjusting your search or filter</p>
-        </div>
-      </div>
-    </main>
-
-    <div class="modal" id="pdfModal">
-      <div class="modal-content pdf-viewer-layout">
-        <div class="modal-main-content">
-          <button id="openCommentsBtn">
-            <i class="fas fa-comment-dots"></i> Comments
-          </button>
-          <div class="modal-header">
-            <h3 id="modalTitle">PDF Viewer</h3>
-            <div class="modal-actions">
-              <button class="btn-icon" id="modalShareBtn" title="Share PDF">
-                <i class="fas fa-share-alt"></i>
-              </button>
-              <button
-                class="btn-icon"
-                id="reportBtn"
-                title="Report Issue"
-                style="color: var(--error-color)"
-              >
-                <i class="fas fa-flag"></i>
-              </button>
-              <button class="btn-icon" id="downloadBtn" title="Download PDF">
-                <i class="fas fa-download"></i>
-              </button>
-              <button class="btn-icon" id="closeModal" title="Close">
-                <i class="fas fa-times"></i>
-              </button>
-            </div>
-          </div>
-          <div class="modal-body">
-            <iframe
-              id="pdfViewer"
-              src=""
-              width="100%"
-              height="100%"
-              loading="lazy"
-            ></iframe>
-          </div>
-        </div>
-        <div class="modal-sidebar" id="commentSidebar">
-          <h4>
-            <span>Comments (<span id="commentCount">0</span>)</span>
-            <button id="closeCommentsBtn" class="drawer-close" type="button">
+            <button
+              id="closeCatalyst"
+              class="catalyst-close"
+              aria-label="Close"
+            >
               <i class="fas fa-times"></i>
             </button>
-          </h4>
-          <div class="comments-list" id="commentsList">
-            <!-- <div id="ad-slot-modal" class="ad-slot-container mb-4"></div> -->
           </div>
-          <form class="comment-form" id="commentForm">
-            <textarea
-              id="commentInput"
-              placeholder="Add a comment... (Max 200 chars)"
-              maxlength="200"
-              required
-            ></textarea>
-            <input
-              type="text"
-              id="commentAuthor"
-              placeholder="Your Name (Optional)"
-              maxlength="50"
-            />
-            <button type="submit" class="btn btn-primary" id="submitCommentBtn">
-              <i class="fas fa-paper-plane"></i> Send
+          <div class="controls-section">
+            <div class="search-box">
+              <i class="fas fa-search"></i>
+              <input
+                type="text"
+                id="searchInput"
+                placeholder="Search notes by title, teacher, or subject..."
+              />
+            </div>
+            <div class="filter-section" id="categoryFilters">
+              <button class="filter-btn active" data-category="all">
+                <i class="fas fa-th"></i> All
+              </button>
+              <div class="skeleton-btn" style="width: 80px"></div>
+              <div class="skeleton-btn" style="width: 100px"></div>
+            </div>
+            <!-- <div id="ad-slot-middle" class="ad-slot-container"></div> -->
+          </div>
+
+          <div class="stats-bar">
+            <span id="pdfCount">0</span> notes available
+          </div>
+
+          <div class="pdf-grid" id="pdfGrid"></div>
+
+          <div class="empty-state" id="emptyState" style="display: none">
+            <i class="fas fa-folder-open"></i>
+            <h3>No notes found</h3>
+            <p>Try adjusting your search or filter</p>
+          </div>
+        </div>
+      </main>
+
+      <div class="modal" id="pdfModal">
+        <div class="modal-content pdf-viewer-layout">
+          <div class="modal-main-content">
+            <button id="openCommentsBtn">
+              <i class="fas fa-comment-dots"></i> Comments
             </button>
-          </form>
+            <div class="modal-header">
+              <h3 id="modalTitle">PDF Viewer</h3>
+              <div class="modal-actions">
+                <button class="btn-icon" id="modalShareBtn" title="Share PDF">
+                  <i class="fas fa-share-alt"></i>
+                </button>
+                <button
+                  class="btn-icon"
+                  id="reportBtn"
+                  title="Report Issue"
+                  style="color: var(--error-color)"
+                >
+                  <i class="fas fa-flag"></i>
+                </button>
+                <button class="btn-icon" id="downloadBtn" title="Download PDF">
+                  <i class="fas fa-download"></i>
+                </button>
+                <button class="btn-icon" id="closeModal" title="Close">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+            <div class="modal-body">
+              <iframe
+                id="pdfViewer"
+                src=""
+                width="100%"
+                height="100%"
+                loading="lazy"
+              ></iframe>
+            </div>
+          </div>
+          <div class="modal-sidebar" id="commentSidebar">
+            <h4>
+              <span>Comments (<span id="commentCount">0</span>)</span>
+              <button id="closeCommentsBtn" class="drawer-close" type="button">
+                <i class="fas fa-times"></i>
+              </button>
+            </h4>
+            <div class="comments-list" id="commentsList">
+              <!-- <div id="ad-slot-modal" class="ad-slot-container mb-4"></div> -->
+            </div>
+            <form class="comment-form" id="commentForm">
+              <textarea
+                id="commentInput"
+                placeholder="Add a comment... (Max 200 chars)"
+                maxlength="200"
+                required
+              ></textarea>
+              <input
+                type="text"
+                id="commentAuthor"
+                placeholder="Your Name (Optional)"
+                maxlength="50"
+              />
+              <button
+                type="submit"
+                class="btn btn-primary"
+                id="submitCommentBtn"
+              >
+                <i class="fas fa-paper-plane"></i> Send
+              </button>
+            </form>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="modal" id="shareModal">
-      <div class="modal-content share-modal">
-        <div class="modal-header">
-          <h3>Share this PDF</h3>
-          <button class="btn-icon" id="closeShareModal">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-        <div class="modal-body">
-          <p>Share this link with your classmates:</p>
-          <div class="share-link-container">
-            <input type="text" id="shareLink" readonly />
-            <button class="btn btn-primary" id="copyLinkBtn">
-              <i class="fas fa-clone"></i> Copy
+      <div class="modal" id="shareModal">
+        <div class="modal-content share-modal">
+          <div class="modal-header">
+            <h3>Share this PDF</h3>
+            <button class="btn-icon" id="closeShareModal">
+              <i class="fas fa-times"></i>
             </button>
           </div>
-          <div class="share-success" id="shareSuccess" style="display: none">
-            <i class="fas fa-check"></i> Link copied to clipboard!
+          <div class="modal-body">
+            <p>Share this link with your classmates:</p>
+            <div class="share-link-container">
+              <input type="text" id="shareLink" readonly />
+              <button class="btn btn-primary" id="copyLinkBtn">
+                <i class="fas fa-clone"></i> Copy
+              </button>
+            </div>
+            <div class="share-success" id="shareSuccess" style="display: none">
+              <i class="fas fa-check"></i> Link copied to clipboard!
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="alomole-promo" id="alomolePromo">
+      <div class="alomole-promo" id="alomolePromo">
+        <button
+          class="promo-close-btn"
+          id="closeAlomolePromo"
+          title="Hide Promotion"
+        >
+          <i class="fas fa-times"></i>
+        </button>
+        <a
+          href="https://play.google.com/store/apps/details?id=com.alokdas.alomole"
+          target="_blank"
+          class="promo-link"
+          title="Download Alomole"
+        >
+          <img
+            src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https://play.google.com/store/apps/details?id=com.alokdas.alomole"
+            alt="QR"
+            loading="lazy"
+            width="100"
+            height="100"
+          />
+          <span class="promo-text">Alomole</span>
+          <span class="promo-text-body">Download Now!</span>
+        </a>
+      </div>
+
+      <div class="toast" id="toast">
+        <i class="fas fa-check"></i>
+        <span id="toastMessage">Action completed!</span>
+      </div>
+
       <button
-        class="promo-close-btn"
-        id="closeAlomolePromo"
-        title="Hide Promotion"
+        class="btn-icon go-to-top"
+        id="goToTopBtn"
+        title="Go to top"
+        aria-label="Top"
       >
-        <i class="fas fa-times"></i>
+        <i class="fas fa-arrow-up"></i>
       </button>
       <a
-        href="https://play.google.com/store/apps/details?id=com.alokdas.alomole"
-        target="_blank"
-        class="promo-link"
-        title="Download Alomole"
-      >
-        <img
-          src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https://play.google.com/store/apps/details?id=com.alokdas.alomole"
-          alt="QR"
-          loading="lazy"
-          width="100"
-          height="100"
-        />
-        <span class="promo-text">Alomole</span>
-        <span class="promo-text-body">Download Now!</span>
-      </a>
+        href="/upload/"
+        class="btn-icon upload-btn"
+        title="Upload Note's"
+        aria-label="Upload"
+        ><i class="fa-solid fa-cloud-arrow-up"></i
+      ></a>
+
+      <footer>
+        <div class="footer-content">
+          <p class="thanks-message">
+            ✨ Heartfelt thanks to all the amazing friends who shared their
+            notes 🙌
+          </p>
+          <p class="contact-info">
+            Found an issue? Email us at
+            <a href="mailto:notes@alokdasofficial.in"
+              >notes@alokdasofficial.in</a
+            >
+          </p>
+          <p class="credits">
+            Made with <span class="heart">❤️</span> by
+            <a href="https://alokdasofficial.in" target="_blank">Alok Das</a>
+          </p>
+
+          <a
+            href="https://github.com/MrAlokTech/classnotes"
+            target="_blank"
+            class="github-link"
+            title="View Source Code"
+          >
+            <i class="fab fa-github"></i> Open Sourced on GitHub
+          </a>
+          <p class="copyright-text" id="copyright-year">
+            © 2025 ClassNotes. All rights reserved.
+          </p>
+          <p class="policy-links">
+            <a href="/upload/">Upload Note</a> |
+            <a href="/legal/privacy-policy.html">Privacy Policy</a> |
+            <a href="/legal/terms-of-use.html">Terms of Use</a> |
+            <a href="/legal/takedown-policy.html">Takedown Policy</a>
+          </p>
+        </div>
+      </footer>
     </div>
-
-    <div class="toast" id="toast">
-      <i class="fas fa-check"></i>
-      <span id="toastMessage">Action completed!</span>
-    </div>
-
-    <button
-      class="btn-icon go-to-top"
-      id="goToTopBtn"
-      title="Go to top"
-      aria-label="Top"
-    >
-      <i class="fas fa-arrow-up"></i>
-    </button>
-    <a
-      href="/upload/"
-      class="btn-icon upload-btn"
-      title="Upload Note's"
-      aria-label="Upload"
-      ><i class="fa-solid fa-cloud-arrow-up"></i
-    ></a>
-
-    <footer>
-      <div class="footer-content">
-        <p class="thanks-message">
-          ✨ Heartfelt thanks to all the amazing friends who shared their notes
-          🙌
-        </p>
-        <p class="contact-info">
-          Found an issue? Email us at
-          <a href="mailto:notes@alokdasofficial.in">notes@alokdasofficial.in</a>
-        </p>
-        <p class="credits">
-          Made with <span class="heart">❤️</span> by
-          <a href="https://alokdasofficial.in" target="_blank">Alok Das</a>
-        </p>
-
-        <a
-          href="https://github.com/MrAlokTech/classnotes"
-          target="_blank"
-          class="github-link"
-          title="View Source Code"
-        >
-          <i class="fab fa-github"></i> Open Sourced on GitHub
-        </a>
-        <p class="copyright-text" id="copyright-year">
-          © 2025 ClassNotes. All rights reserved.
-        </p>
-        <p class="policy-links">
-          <a href="/upload/">Upload Note</a> |
-          <a href="/legal/privacy-policy.html">Privacy Policy</a> |
-          <a href="/legal/terms-of-use.html">Terms of Use</a> |
-          <a href="/legal/takedown-policy.html">Takedown Policy</a>
-        </p>
-      </div>
-    </footer>
-
     <!-- FUN PRANK -->
     <div id="prankOverlay" class="prank-overlay hidden">
       <div class="prank-terminal">

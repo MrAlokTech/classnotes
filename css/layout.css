@@ -222,3 +222,103 @@ footer {
   color: var(--gray-500);
   margin-top: calc(var(--spacing) * 1);
 }
+
+/* --- Header Controls & Icon Buttons --- */
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Common Icon Button Style (Used for Theme & Class) */
+.icon-btn {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  padding: 0.5rem 0.8rem;
+  border-radius: 8px; /* Slightly rounded, modern look */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.icon-btn:hover {
+  background-color: var(--hover-bg);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.icon-btn svg {
+  stroke-width: 2px;
+}
+
+/* --- Class Selector Specifics --- */
+.class-selector-wrapper {
+  position: relative; /* Anchor for the dropdown */
+}
+
+/* The Dropdown Menu */
+.class-dropdown {
+  position: absolute;
+  top: 120%; /* Just below the button */
+  right: 0;
+  background-color: var(
+    --bg-card
+  ); /* Ensure you have this variable or use #fff/dark-color */
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 0.5rem;
+  min-width: 160px;
+  z-index: 1000;
+
+  /* Animation for the menu */
+  transform-origin: top right;
+  animation: scaleIn 0.2s ease forwards;
+}
+
+.class-dropdown.hidden {
+  display: none;
+}
+
+/* Dropdown Items */
+.class-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  color: var(--text-color);
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.class-option:hover {
+  background-color: var(--hover-bg);
+}
+
+.class-option.active {
+  background-color: var(
+    --accent-color-light
+  ); /* Light version of your primary color */
+  color: var(--accent-color);
+  font-weight: 700;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

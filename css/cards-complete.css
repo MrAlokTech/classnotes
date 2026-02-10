@@ -215,15 +215,15 @@
 
 @keyframes icon-animation {
   0% {
-    transform: rotate(-10deg) scale(1);
+    transform: rotate(-10deg);
     color: antiquewhite;
   }
   50% {
-    transform: rotate(10deg) scale(1.1);
+    transform: rotate(10deg);
     color: bisque;
   }
   100% {
-    transform: rotate(-10deg) scale(1);
+    transform: rotate(-10deg);
     color: antiquewhite;
   }
 }

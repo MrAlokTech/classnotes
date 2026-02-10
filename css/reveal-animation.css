@@ -1,0 +1,39 @@
+/* Reveal Animation */
+@keyframes revealIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+/* Class to trigger on the main content area */
+.reveal-content > * {
+  opacity: 0; /* Keep hidden initially */
+}
+
+.reveal-content.active > * {
+  animation: revealIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Staggering the elements (Header, Tabs, Catalyst, Grid) */
+.reveal-content.active header {
+  animation-delay: 0.1s;
+}
+.reveal-content.active .semester-tabs {
+  animation-delay: 0.2s;
+}
+.reveal-content.active .community-cta {
+  animation-delay: 0.3s;
+}
+.reveal-content.active .controls-section {
+  animation-delay: 0.4s;
+}
+.reveal-content.active .pdf-grid {
+  animation-delay: 0.5s;
+}

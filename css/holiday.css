@@ -1,0 +1,375 @@
+/* --- HOLIDAY GREETING CARD STYLES --- */
+.holiday-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.5s ease;
+  padding: 1rem;
+}
+
+.holiday-overlay.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Background Animation Layer */
+.holiday-bg-anim {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+
+/* The Glass Card */
+.glass-card {
+  background: rgba(255, 255, 255, 0.1); /* Frosted Glass */
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 24px;
+  padding: 3rem 2rem;
+  width: 100%;
+  max-width: 450px;
+  text-align: center;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  transform: scale(0.9);
+  animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  color: #fff;
+}
+
+@keyframes popIn {
+  to {
+    transform: scale(1);
+  }
+}
+
+/* --- Overlay Timer (New Year) --- */
+.overlay-timer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin: 1rem 0;
+  font-family: "Bangers", cursive;
+  color: #ffd700; /* Gold */
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.overlay-timer.hidden {
+  display: none !important;
+}
+
+.ot-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+}
+
+.ot-box span {
+  font-size: 2.5rem;
+}
+
+.ot-box small {
+  font-family: "Inter", sans-serif;
+  font-size: 0.8rem;
+  opacity: 0.8;
+  color: #fff;
+}
+
+.ot-sep {
+  font-size: 2rem;
+  margin-bottom: 10px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Typography & Layout */
+.holiday-emoji {
+  font-size: 4.5rem;
+  margin-bottom: 1rem;
+  filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.2));
+  animation: floatEmoji 3s ease-in-out infinite;
+}
+
+#holidayConfetti {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* Let clicks pass through to the button */
+  z-index: 200; /* Higher than background (1), lower than card (if needed) or higher */
+}
+
+@keyframes floatEmoji {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+#holidayTitle {
+  font-family: "Bangers", cursive; /* Your fun font */
+  font-size: 3rem;
+  letter-spacing: 1px;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  line-height: 1.1;
+}
+
+.holiday-divider {
+  width: 60px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.4);
+  margin: 1.5rem auto;
+  border-radius: 2px;
+}
+
+#holidayMessage {
+  font-family: "Inter", sans-serif;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  font-weight: 500;
+  margin-bottom: 1.5rem;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.chem-note {
+  font-family: "Inter", sans-serif;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 2rem;
+  background: rgba(0, 0, 0, 0.2);
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+}
+
+/* --- THEMES --- */
+
+/* 1. CHRISTMAS (Elegant Green/Red) */
+.holiday-overlay.christmas {
+  background: radial-gradient(circle at center, #1a472a, #0d1f15);
+}
+.christmas .holiday-bg-anim {
+  background-image: radial-gradient(white 2px, transparent 3px);
+  background-size: 50px 50px;
+  animation: snowFall 10s linear infinite;
+  opacity: 0.5;
+}
+.christmas #holidayTitle {
+  color: #ff6b6b;
+} /* Soft Red */
+
+/* 2. NEW YEAR (Classy Black/Gold) */
+.holiday-overlay.new-year {
+  background: radial-gradient(circle at center, #2c2c2c, #000);
+}
+.new-year .holiday-bg-anim {
+  background-image: radial-gradient(#ffd700 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: flicker 3s infinite;
+  opacity: 0.4;
+}
+.new-year #holidayTitle {
+  color: #ffd700;
+}
+.new-year .holiday-close-btn {
+  color: #b8860b;
+}
+
+/* 3. REPUBLIC/INDEPENDENCE (Patriotic Gradient) */
+.holiday-overlay.tricolor {
+  background: linear-gradient(135deg, #ff9933, #ffffff 50%, #138808);
+}
+.tricolor .glass-card {
+  background: rgba(0, 0, 50, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.tricolor #holidayTitle {
+  background: linear-gradient(to right, #ff9933, #fff, #138808);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.tricolor .chem-note {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* 4. HOLI (Vibrant Splash) */
+.holiday-overlay.holi {
+  background: #fff;
+}
+.holi .holiday-bg-anim {
+  background:
+    radial-gradient(circle at 20% 80%, #ff0055, transparent 40%),
+    radial-gradient(circle at 80% 20%, #00ccff, transparent 40%),
+    radial-gradient(circle at 50% 50%, #ffcc00, transparent 40%);
+  opacity: 0.8;
+}
+.holi .glass-card {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+.holi #holidayTitle {
+  color: #fff;
+  text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.2);
+}
+.holi #holidayMessage {
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* 5. DIWALI (Golden Glow) */
+.holiday-overlay.diwali {
+  background: radial-gradient(circle, #5e0a0a, #1a0000);
+}
+.diwali .holiday-bg-anim {
+  animation: flicker 4s infinite;
+  opacity: 0.5;
+}
+.diwali #holidayTitle {
+  color: #ffcc00;
+  text-shadow: 0 0 20px rgba(255, 204, 0, 0.6);
+}
+
+/* Animations */
+@keyframes snowFall {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 20px 400px;
+  }
+}
+@keyframes flicker {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .glass-card {
+    padding: 2rem 1.5rem;
+    width: 90%;
+  }
+  #holidayTitle {
+    font-size: 2.5rem;
+  }
+}
+
+/* =========================================
+   FEBRUARY 14 SPECIALS
+   ========================================= */
+
+/* --- 1. FUNNY: BAJRANG DAL MODE --- */
+.holiday-overlay.valentines {
+  background: linear-gradient(
+    135deg,
+    #ff9933 0%,
+    #ff5e62 100%
+  ); /* Saffron Gradient */
+}
+
+.valentines .glass-card {
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 153, 51, 0.1);
+}
+
+.valentines #holidayTitle {
+  color: #fff;
+  text-transform: uppercase;
+  font-weight: 800;
+  text-shadow: 2px 2px 0px #cc5200;
+}
+
+.valentines .holiday-emoji {
+  /* Aggressive shake animation */
+  animation: aggressiveShake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both
+    infinite;
+  font-size: 5rem;
+}
+
+@keyframes aggressiveShake {
+  10%,
+  90% {
+    transform: translate3d(-2px, 0, 0) rotate(-5deg);
+  }
+  20%,
+  80% {
+    transform: translate3d(3px, 0, 0) rotate(5deg);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translate3d(-5px, 0, 0) rotate(-5deg);
+  }
+  40%,
+  60% {
+    transform: translate3d(5px, 0, 0) rotate(5deg);
+  }
+}
+
+/* --- 2. SERIOUS: BLACK DAY (Pulwama) --- */
+.holiday-overlay.black-day {
+  background: #050505; /* Pitch Black */
+}
+
+.black-day .glass-card {
+  background: rgba(255, 255, 255, 0.05); /* Very subtle glass */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.black-day #holidayTitle {
+  color: #fff;
+  font-family: "Inter", sans-serif; /* Cleaner font for seriousness */
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-shadow: none;
+}
+
+.black-day .holiday-emoji {
+  text-shadow: 0 0 25px rgba(255, 140, 0, 0.8); /* Candle Glow */
+  animation: candleFlicker 3s infinite alternate;
+}
+
+.black-day .chem-note {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ccc;
+  font-style: normal;
+}
+
+@keyframes candleFlicker {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0px);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(0.98);
+    filter: blur(1px);
+  }
+  100% {
+    opacity: 0.8;
+    transform: scale(0.95);
+    filter: blur(2px);
+  }
+}

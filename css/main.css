@@ -47,3 +47,10 @@
    Overrides for the maintenance page
    ========================================= */
 @import url("maintenance.css");
+
+/* =========================================
+   REVEAL ANIMATION STYLES
+   For the main content area on the homepage
+   ========================================= */
+@import url("reveal-animation.css");
+@import url("holiday.css");
