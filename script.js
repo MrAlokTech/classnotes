@@ -413,6 +413,29 @@ async function syncClassSwitcher() {
     renderSemesterTabs();
 }
 
+function prepareSearchIndex() {
+    if (!pdfDatabase || !Array.isArray(pdfDatabase)) return;
+
+    pdfDatabase.forEach(pdf => {
+        // Create a search string: lowercased concatenation of relevant fields
+        // Use a safe fallback for missing fields to avoid runtime errors
+        const searchStr = (
+            (pdf.title || '') + ' ' +
+            (pdf.description || '') + ' ' +
+            (pdf.category || '') + ' ' +
+            (pdf.author || '')
+        ).toLowerCase();
+
+        // Use Object.defineProperty to make it non-enumerable
+        // This ensures it is NOT saved to localStorage when we cache pdfDatabase
+        Object.defineProperty(pdf, '_searchStr', {
+            value: searchStr,
+            enumerable: false,
+            writable: true
+        });
+    });
+}
+
 async function loadPDFDatabase() {
     if (isMaintenanceActive) return;
 
@@ -451,6 +474,7 @@ async function loadPDFDatabase() {
 
         if (shouldUseCache) {
             pdfDatabase = cachedData;
+            prepareSearchIndex();
             // --- FIX: CALL THIS TO POPULATE UI ---
             syncClassSwitcher();
             renderSemesterTabs();
@@ -473,6 +497,8 @@ async function loadPDFDatabase() {
             timestamp: new Date().getTime(),
             data: pdfDatabase
         }));
+
+        prepareSearchIndex();
 
         // --- FIX: CALL THIS TO POPULATE UI ---
         syncClassSwitcher();
@@ -915,10 +941,12 @@ function renderPDFs() {
             matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
         }
 
-        const matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
-            pdf.description.toLowerCase().includes(searchTerm) ||
-            pdf.category.toLowerCase().includes(searchTerm) ||
-            pdf.author.toLowerCase().includes(searchTerm);
+        const matchesSearch = pdf._searchStr
+            ? pdf._searchStr.includes(searchTerm)
+            : (pdf.title.toLowerCase().includes(searchTerm) ||
+                pdf.description.toLowerCase().includes(searchTerm) ||
+                pdf.category.toLowerCase().includes(searchTerm) ||
+                (pdf.author && pdf.author.toLowerCase().includes(searchTerm)));
 
         // Update return statement to include matchesClass
         return matchesSemester && matchesClass && matchesCategory && matchesSearch;
