@@ -332,6 +332,27 @@ function getAdData(slotName) {
     return null;
 }
 
+function prepareSearchIndex() {
+    // 1. Create a search index for each PDF to optimize filtering
+    //    concatenating title, description, category, and author into a single lowercased string.
+    // 2. We use a non-enumerable property '_searchStr' so it doesn't get serialized to localStorage
+    //    and keeps the object clean during debugging.
+    pdfDatabase.forEach(pdf => {
+        const searchStr = [
+            pdf.title,
+            pdf.description,
+            pdf.category,
+            pdf.author
+        ].map(s => (s || '').toLowerCase()).join(' ');
+
+        Object.defineProperty(pdf, '_searchStr', {
+            value: searchStr,
+            enumerable: false,
+            writable: true
+        });
+    });
+}
+
 /* =========================================
    5. DATA LOADING WITH CACHING
    ========================================= */
@@ -451,6 +472,7 @@ async function loadPDFDatabase() {
 
         if (shouldUseCache) {
             pdfDatabase = cachedData;
+            prepareSearchIndex(); // Optimize search performance
             // --- FIX: CALL THIS TO POPULATE UI ---
             syncClassSwitcher();
             renderSemesterTabs();
@@ -473,6 +495,8 @@ async function loadPDFDatabase() {
             timestamp: new Date().getTime(),
             data: pdfDatabase
         }));
+
+        prepareSearchIndex(); // Optimize search performance
 
         // --- FIX: CALL THIS TO POPULATE UI ---
         syncClassSwitcher();
@@ -902,26 +926,30 @@ function renderPDFs() {
 
     // Locate renderPDFs() in script.js and update the filter section
     const filteredPdfs = pdfDatabase.filter(pdf => {
-        const matchesSemester = pdf.semester === currentSemester;
+        // 1. Check Class (Primary Filter) - Short-circuit if mismatch
+        if (pdf.class !== currentClass) return false;
 
-        // NEW: Check if the PDF class matches the UI's current class selection
-        // Note: If old documents don't have this field, they will be hidden.
-        const matchesClass = pdf.class === currentClass;
+        // 2. Check Semester - Short-circuit if mismatch
+        if (pdf.semester !== currentSemester) return false;
 
-        let matchesCategory = false;
+        // 3. Check Category - Short-circuit if mismatch
         if (currentCategory === 'favorites') {
-            matchesCategory = favorites.includes(pdf.id);
-        } else {
-            matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
+            if (!favorites.includes(pdf.id)) return false;
+        } else if (currentCategory !== 'all') {
+            if (pdf.category !== currentCategory) return false;
         }
 
-        const matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
-            pdf.description.toLowerCase().includes(searchTerm) ||
-            pdf.category.toLowerCase().includes(searchTerm) ||
-            pdf.author.toLowerCase().includes(searchTerm);
-
-        // Update return statement to include matchesClass
-        return matchesSemester && matchesClass && matchesCategory && matchesSearch;
+        // 4. Check Search Term (Expensive Operation)
+        // Use the pre-computed _searchStr to avoid repeated toLowerCase() calls
+        if (pdf._searchStr) {
+            return pdf._searchStr.includes(searchTerm);
+        } else {
+            // Fallback for safety (though prepareSearchIndex ensures _searchStr exists)
+            return (pdf.title || '').toLowerCase().includes(searchTerm) ||
+                   (pdf.description || '').toLowerCase().includes(searchTerm) ||
+                   (pdf.category || '').toLowerCase().includes(searchTerm) ||
+                   (pdf.author || '').toLowerCase().includes(searchTerm);
+        }
     });
 
     updatePDFCount(filteredPdfs.length);
