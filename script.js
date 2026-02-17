@@ -451,6 +451,7 @@ async function loadPDFDatabase() {
 
         if (shouldUseCache) {
             pdfDatabase = cachedData;
+            prepareSearchIndex();
             // --- FIX: CALL THIS TO POPULATE UI ---
             syncClassSwitcher();
             renderSemesterTabs();
@@ -474,6 +475,8 @@ async function loadPDFDatabase() {
             data: pdfDatabase
         }));
 
+        prepareSearchIndex();
+
         // --- FIX: CALL THIS TO POPULATE UI ---
         syncClassSwitcher();
         renderPDFs();
@@ -483,6 +486,26 @@ async function loadPDFDatabase() {
         console.error('Error loading PDFs:', error);
         hidePreloader();
     }
+}
+
+function prepareSearchIndex() {
+    pdfDatabase.forEach(pdf => {
+        // Create a combined search string (optimization)
+        // We join fields with spaces so "title" + "author" don't merge
+        const searchStr = [
+            pdf.title,
+            pdf.description,
+            pdf.category,
+            pdf.author
+        ].map(s => (s || "").toLowerCase()).join(" ");
+
+        // Add as non-enumerable property so it doesn't get saved to localStorage
+        Object.defineProperty(pdf, '_searchStr', {
+            value: searchStr,
+            enumerable: false,
+            writable: true
+        });
+    });
 }
 
 function hidePreloader() {
@@ -915,10 +938,8 @@ function renderPDFs() {
             matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
         }
 
-        const matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
-            pdf.description.toLowerCase().includes(searchTerm) ||
-            pdf.category.toLowerCase().includes(searchTerm) ||
-            pdf.author.toLowerCase().includes(searchTerm);
+        // Use pre-computed search string (Optimization)
+        const matchesSearch = (pdf._searchStr || "").includes(searchTerm);
 
         // Update return statement to include matchesClass
         return matchesSemester && matchesClass && matchesCategory && matchesSearch;
