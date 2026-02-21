@@ -655,8 +655,18 @@ function activateHoliday(overlay) {
 /* =========================================
    7. EVENT LISTENERS
    ========================================= */
+function debounce(func, wait) {
+    let timeout;
+    return function (...args) {
+        const context = this;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(context, args), wait);
+    };
+}
+
 function setupEventListeners() {
-    searchInput.addEventListener('input', renderPDFs);
+    // ⚡ Bolt: Debounced search for performance
+    searchInput.addEventListener('input', debounce(renderPDFs, 300));
 
     tabBtns.forEach(btn => {
         btn.addEventListener('click', handleSemesterChange);
