@@ -451,6 +451,7 @@ async function loadPDFDatabase() {
 
         if (shouldUseCache) {
             pdfDatabase = cachedData;
+            prepareSearchIndex(pdfDatabase); // OPTIMIZATION: Index on Load
             // --- FIX: CALL THIS TO POPULATE UI ---
             syncClassSwitcher();
             renderSemesterTabs();
@@ -469,10 +470,13 @@ async function loadPDFDatabase() {
             pdfDatabase.push({ id: doc.id, ...doc.data() });
         });
 
+        // Save raw data to cache (without derived props)
         localStorage.setItem(CACHE_KEY, JSON.stringify({
             timestamp: new Date().getTime(),
             data: pdfDatabase
         }));
+
+        prepareSearchIndex(pdfDatabase); // OPTIMIZATION: Index on Fetch
 
         // --- FIX: CALL THIS TO POPULATE UI ---
         syncClassSwitcher();
@@ -915,10 +919,14 @@ function renderPDFs() {
             matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
         }
 
-        const matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
-            pdf.description.toLowerCase().includes(searchTerm) ||
-            pdf.category.toLowerCase().includes(searchTerm) ||
-            pdf.author.toLowerCase().includes(searchTerm);
+        // OPTIMIZATION: Use pre-calculated search string
+        const matchesSearch = pdf._searchStr ? pdf._searchStr.includes(searchTerm) : (
+            // Fallback if index missing (shouldn't happen)
+            (pdf.title || '').toLowerCase().includes(searchTerm) ||
+            (pdf.description || '').toLowerCase().includes(searchTerm) ||
+            (pdf.category || '').toLowerCase().includes(searchTerm) ||
+            (pdf.author || '').toLowerCase().includes(searchTerm)
+        );
 
         // Update return statement to include matchesClass
         return matchesSemester && matchesClass && matchesCategory && matchesSearch;
@@ -991,9 +999,9 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
     const heartIconClass = isFav ? 'fas' : 'far';
     const btnActiveClass = isFav ? 'active' : '';
 
-    const uploadDateObj = new Date(pdf.uploadDate);
-    const timeDiff = new Date() - uploadDateObj;
-    const isNew = timeDiff < (7 * 24 * 60 * 60 * 1000); // 7 days
+    // OPTIMIZATION: Use pre-calculated values
+    const isNew = (pdf._isNew !== undefined) ? pdf._isNew : false;
+    const formattedDate = (pdf._formattedDate !== undefined) ? pdf._formattedDate : 'Unknown';
 
     const newBadgeHTML = isNew
         ? `<span style="background:var(--error-color); color:white; font-size:0.6rem; padding:2px 6px; border-radius:4px; margin-left:8px; vertical-align:middle;">NEW</span>`
@@ -1006,11 +1014,6 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
         'Physics': 'fa-infinity' // Ensure Physics icon is mapped if used
     };
     const categoryIcon = categoryIcons[pdf.category] || 'fa-file-pdf';
-
-    // Formatting Date
-    const formattedDate = new Date(pdf.uploadDate).toLocaleDateString('en-US', {
-        year: 'numeric', month: 'short', day: 'numeric'
-    });
 
     // Uses global escapeHtml() now
 
@@ -1870,3 +1873,45 @@ console.log("Bonjour! Bienvenue sur ClassNotes! 👋\nCe site est créé par Alo
 console.log("Привет! Добро пожаловать в ClassNotes! 👋\nЭтот сайт создан Алоком Дасом, студентом, таким же, как и вы. Если у вас есть предложения или вы хотите внести свой вклад, посетите репозиторий GitHub: https://github.com/MrAloktech/classnotes");
 console.log("你好！欢迎来到ClassNotes！👋\n这个网站由Alok Das创建，他和你一样是个学生。如果你有任何建议或想要贡献，请查看GitHub仓库：https://github.com/MrAloktech/classnotes");
 console.log('%cFor more such cool projects like this, check out https://me.alokdasofficial.in ❤️', 'font-size: 16px; color: #ffaa00; font-weight: bold;');
+/* =========================================
+   PERFORMANCE OPTIMIZATIONS
+   ========================================= */
+function prepareSearchIndex(db) {
+    const now = new Date();
+    const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
+
+    db.forEach(pdf => {
+        // 1. Pre-calculate Search String
+        // Combine all searchable fields into one lowercase string
+        // This avoids .toLowerCase() and string concatenation during the filter loop
+        pdf._searchStr = (
+            (pdf.title || '') + ' ' +
+            (pdf.description || '') + ' ' +
+            (pdf.category || '') + ' ' +
+            (pdf.author || '')
+        ).toLowerCase();
+
+        // 2. Pre-calculate Date & New Badge
+        let uploadDateObj;
+        // Handle Firestore Timestamp or String Date
+        if (pdf.uploadDate && typeof pdf.uploadDate.toDate === 'function') {
+            uploadDateObj = pdf.uploadDate.toDate();
+        } else {
+            uploadDateObj = new Date(pdf.uploadDate);
+        }
+
+        // Format Date
+        if (!isNaN(uploadDateObj)) {
+            pdf._formattedDate = uploadDateObj.toLocaleDateString('en-US', {
+                year: 'numeric', month: 'short', day: 'numeric'
+            });
+
+            // Check "New" status
+            const timeDiff = now - uploadDateObj;
+            pdf._isNew = timeDiff < oneWeekMs;
+        } else {
+            pdf._formattedDate = 'Unknown Date';
+            pdf._isNew = false;
+        }
+    });
+}
