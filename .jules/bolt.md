@@ -1,0 +1,3 @@
+## 2024-05-19 - Pre-calculating derived properties
+**Learning:** In a single page app like this where filtering is done entirely client-side, the search and filtering loop (`renderPDFs`) gets called frequently (on every keystroke). Computing date differences, string concatenation, and array `.includes()` on every keystroke for every PDF becomes a bottleneck.
+**Action:** Move the computation of derived fields (like `_searchStr` for full text search, `_isNew` for date math, and `_formattedDate` for localized date strings) out of the render loop and into a `prepareSearchIndex` function that is only called once when data is fetched from the DB or cache. Also, use early returns in the `.filter()` loop to skip text matching if simple equality checks fail.
