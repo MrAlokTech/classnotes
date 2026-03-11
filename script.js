@@ -335,6 +335,27 @@ function getAdData(slotName) {
 /* =========================================
    5. DATA LOADING WITH CACHING
    ========================================= */
+function prepareSearchIndex(pdf) {
+    // Check for Firestore Timestamps (via .toDate()) before fallback to standard Date parsing
+    const uploadDateObj = pdf.uploadDate && typeof pdf.uploadDate.toDate === 'function'
+        ? pdf.uploadDate.toDate()
+        : new Date(pdf.uploadDate);
+
+    // _searchStr is a lowercased concatenation of searchable fields
+    pdf._searchStr = `${pdf.title} ${pdf.description} ${pdf.category} ${pdf.author}`.toLowerCase();
+
+    // Formatting Date once
+    pdf._formattedDate = uploadDateObj.toLocaleDateString('en-US', {
+        year: 'numeric', month: 'short', day: 'numeric'
+    });
+
+    // Calculate if it's new once
+    const timeDiff = new Date() - uploadDateObj;
+    pdf._isNew = timeDiff < (7 * 24 * 60 * 60 * 1000); // 7 days
+
+    return pdf;
+}
+
 function renderSemesterTabs() {
     const container = document.getElementById('semesterTabsContainer');
     if (!container) return;
@@ -450,7 +471,7 @@ async function loadPDFDatabase() {
         }
 
         if (shouldUseCache) {
-            pdfDatabase = cachedData;
+            pdfDatabase = cachedData.map(prepareSearchIndex);
             // --- FIX: CALL THIS TO POPULATE UI ---
             syncClassSwitcher();
             renderSemesterTabs();
@@ -468,6 +489,9 @@ async function loadPDFDatabase() {
         snapshot.forEach(doc => {
             pdfDatabase.push({ id: doc.id, ...doc.data() });
         });
+
+        // Mapping to calculate _searchStr before saving to local storage so its already computed
+        pdfDatabase = pdfDatabase.map(prepareSearchIndex);
 
         localStorage.setItem(CACHE_KEY, JSON.stringify({
             timestamp: new Date().getTime(),
@@ -902,26 +926,22 @@ function renderPDFs() {
 
     // Locate renderPDFs() in script.js and update the filter section
     const filteredPdfs = pdfDatabase.filter(pdf => {
-        const matchesSemester = pdf.semester === currentSemester;
+        // EARLY RETURNS: Check cheapest equality matches first
+        if (pdf.class !== currentClass) return false;
+        if (pdf.semester !== currentSemester) return false;
 
-        // NEW: Check if the PDF class matches the UI's current class selection
-        // Note: If old documents don't have this field, they will be hidden.
-        const matchesClass = pdf.class === currentClass;
-
-        let matchesCategory = false;
         if (currentCategory === 'favorites') {
-            matchesCategory = favorites.includes(pdf.id);
-        } else {
-            matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
+            if (!favorites.includes(pdf.id)) return false;
+        } else if (currentCategory !== 'all') {
+            if (pdf.category !== currentCategory) return false;
         }
 
-        const matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
-            pdf.description.toLowerCase().includes(searchTerm) ||
-            pdf.category.toLowerCase().includes(searchTerm) ||
-            pdf.author.toLowerCase().includes(searchTerm);
+        // Fast search using pre-calculated _searchStr
+        if (searchTerm && !pdf._searchStr.includes(searchTerm)) {
+            return false;
+        }
 
-        // Update return statement to include matchesClass
-        return matchesSemester && matchesClass && matchesCategory && matchesSearch;
+        return true;
     });
 
     updatePDFCount(filteredPdfs.length);
@@ -991,11 +1011,7 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
     const heartIconClass = isFav ? 'fas' : 'far';
     const btnActiveClass = isFav ? 'active' : '';
 
-    const uploadDateObj = new Date(pdf.uploadDate);
-    const timeDiff = new Date() - uploadDateObj;
-    const isNew = timeDiff < (7 * 24 * 60 * 60 * 1000); // 7 days
-
-    const newBadgeHTML = isNew
+    const newBadgeHTML = pdf._isNew
         ? `<span style="background:var(--error-color); color:white; font-size:0.6rem; padding:2px 6px; border-radius:4px; margin-left:8px; vertical-align:middle;">NEW</span>`
         : '';
 
@@ -1006,11 +1022,6 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
         'Physics': 'fa-infinity' // Ensure Physics icon is mapped if used
     };
     const categoryIcon = categoryIcons[pdf.category] || 'fa-file-pdf';
-
-    // Formatting Date
-    const formattedDate = new Date(pdf.uploadDate).toLocaleDateString('en-US', {
-        year: 'numeric', month: 'short', day: 'numeric'
-    });
 
     // Uses global escapeHtml() now
 
@@ -1033,7 +1044,7 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
             </div>
             <div class="pdf-meta">
                 <div class="pdf-category"><i class="fas ${categoryIcon}"></i> ${escapeHtml(pdf.category)}</div>
-                <div class="pdf-date"><i class="fas fa-calendar"></i> ${formattedDate}</div>
+                <div class="pdf-date"><i class="fas fa-calendar"></i> ${pdf._formattedDate}</div>
             </div>
             <p class="pdf-description">${highlightText(pdf.description)}</p>
             <div class="pdf-actions">
