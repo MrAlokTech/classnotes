@@ -1,0 +1,3 @@
+## 2024-05-24 - Pre-calculating search strings and dates for render loops
+**Learning:** Repeated Date formatting, object instantiations, and string lowercasing operations inside the `renderPDFs` loop and its filter functions cause significant CPU overhead and UI lag during user search typing, as these operations run for every item on every keystroke/render cycle.
+**Action:** Implement `prepareSearchIndex` to pre-calculate `_searchStr` (a lowercased concatenation of searchable fields), `_formattedDate`, and `_isNew` once when the PDF database is loaded. Use these cached properties in `renderPDFs` and `createPDFCard` along with early returns in the filter callback to speed up filtering and rendering.
