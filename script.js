@@ -466,7 +466,20 @@ async function loadPDFDatabase() {
 
         pdfDatabase = [];
         snapshot.forEach(doc => {
-            pdfDatabase.push({ id: doc.id, ...doc.data() });
+            const data = doc.data();
+            // Pre-calculate search string for performance
+            const _searchStr = [
+                data.title,
+                data.description,
+                data.category,
+                data.author
+            ].filter(Boolean).join(' ').toLowerCase();
+
+            pdfDatabase.push({
+                id: doc.id,
+                _searchStr,
+                ...data
+            });
         });
 
         localStorage.setItem(CACHE_KEY, JSON.stringify({
@@ -902,26 +915,32 @@ function renderPDFs() {
 
     // Locate renderPDFs() in script.js and update the filter section
     const filteredPdfs = pdfDatabase.filter(pdf => {
-        const matchesSemester = pdf.semester === currentSemester;
+        // Fast early returns for cheap equality checks
+        if (pdf.semester !== currentSemester) return false;
 
-        // NEW: Check if the PDF class matches the UI's current class selection
+        // Check if the PDF class matches the UI's current class selection
         // Note: If old documents don't have this field, they will be hidden.
-        const matchesClass = pdf.class === currentClass;
+        if (pdf.class !== currentClass) return false;
 
-        let matchesCategory = false;
         if (currentCategory === 'favorites') {
-            matchesCategory = favorites.includes(pdf.id);
-        } else {
-            matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
+            if (!favorites.includes(pdf.id)) return false;
+        } else if (currentCategory !== 'all') {
+            if (pdf.category !== currentCategory) return false;
         }
 
-        const matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
-            pdf.description.toLowerCase().includes(searchTerm) ||
-            pdf.category.toLowerCase().includes(searchTerm) ||
-            pdf.author.toLowerCase().includes(searchTerm);
+        // Use pre-calculated search string or fallback
+        if (searchTerm) {
+            const searchTarget = pdf._searchStr || [
+                pdf.title,
+                pdf.description,
+                pdf.category,
+                pdf.author
+            ].filter(Boolean).join(' ').toLowerCase();
 
-        // Update return statement to include matchesClass
-        return matchesSemester && matchesClass && matchesCategory && matchesSearch;
+            if (!searchTarget.includes(searchTerm)) return false;
+        }
+
+        return true;
     });
 
     updatePDFCount(filteredPdfs.length);
