@@ -877,9 +877,24 @@ function showSkeletons() {
     grid.innerHTML = skeletonHTML;
 }
 
+const escapeHtml = (text) => {
+    if (!text) return '';
+    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+};
+
 function renderPDFs() {
     const searchTerm = searchInput.value.toLowerCase();
     const favorites = getFavorites();
+
+    const rawSearchTerm = searchInput.value.trim();
+    let highlightRegex = null;
+    if (rawSearchTerm) {
+        try {
+            highlightRegex = new RegExp('(' + rawSearchTerm + ')', 'gi');
+        } catch (e) {
+            // Ignore invalid regex (e.g. user typing "(")
+        }
+    }
 
     if (searchTerm.length > 2) {
         clearTimeout(searchTimeout);
@@ -947,7 +962,7 @@ function renderPDFs() {
     let adCounter = 1;
 
     filteredPdfs.forEach((pdf, index) => {
-        gridHTML += createPDFCard(pdf, favorites, index);
+        gridHTML += createPDFCard(pdf, favorites, index, highlightRegex);
 
         // if ((index + 1) % AD_FREQUENCY === 0) {
         //     const adData = getAdData(`slot_grid_${adCounter}`);
@@ -973,7 +988,7 @@ function renderPDFs() {
 }
 
 // UPDATE THE FUNCTION SIGNATURE to include "index = 0"
-function createPDFCard(pdf, favoritesList, index = 0) {
+function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
     const favorites = favoritesList || getFavorites();
     const isFav = favorites.includes(pdf.id);
     const heartIconClass = isFav ? 'fas' : 'far';
@@ -1000,17 +1015,12 @@ function createPDFCard(pdf, favoritesList, index = 0) {
         year: 'numeric', month: 'short', day: 'numeric'
     });
 
-    const escapeHtml = (text) => {
-        if (!text) return '';
-        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-    };
+    // Uses global escapeHtml() now
 
     const highlightText = (text) => {
-        const searchTerm = document.getElementById('searchInput').value.trim(); // Ensure direct access or pass it in
         const safeText = escapeHtml(text);
-        if (!searchTerm) return safeText;
-        const regex = new RegExp(`(${searchTerm})`, 'gi');
-        return safeText.replace(regex, '<span class="highlight">$1</span>');
+        if (!highlightRegex) return safeText;
+        return safeText.replace(highlightRegex, '<span class="highlight">$1</span>');
     };
 
     const safePdfString = JSON.stringify(pdf).replace(/"/g, '&quot;');
