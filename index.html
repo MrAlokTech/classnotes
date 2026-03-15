@@ -116,60 +116,34 @@
     </div>
 
     <div id="maintenanceScreen" class="maintenance-overlay">
-      <div class="terminal-window">
-        <div class="terminal-top-bar">
-          <div class="traffic-lights">
-            <span class="light red"></span>
-            <span class="light yellow"></span>
-            <span class="light green"></span>
-          </div>
-          <div class="terminal-title">lab_admin@classnotes:~/reactor_core</div>
+      <div class="minimal-maintenance-card">
+        <div class="icon-wrapper">
+          <i class="fas fa-folder-open"></i>
+        </div>
+        <h1 class="maintenance-title">We Need Your Help</h1>
+        <p class="maintenance-message">
+          ClassNotes is built by students, for students. Due to a lack of active
+          participation and recent note contributions, the platform is
+          temporarily closed.
+        </p>
+        <p class="maintenance-submessage">
+          Be the catalyst. Share your notes to help reopen the library for
+          everyone.
+        </p>
+
+        <div class="maintenance-actions">
+          <a href="/upload/" class="btn-upload-primary">
+            <i class="fas fa-cloud-upload-alt"></i> Upload Notes
+          </a>
+          <button class="btn-check-status" onclick="window.location.reload()">
+            <i class="fas fa-sync-alt"></i> Refresh Status
+          </button>
         </div>
 
-        <div class="terminal-body">
-          <div class="scan-line"></div>
-
-          <p class="cmd">> sudo check_equilibrium</p>
-          <p class="output">
-            STATUS: <span class="status-blink">UNSTABLE</span><br />
-            ERROR_CODE:
-            <span class="text-yellow">ENTROPY_MAXIMIZED (ΔS > 0)</span>
+        <div id="adminDiagnostics" class="admin-only hidden">
+          <p class="text-muted mt-3" style="font-size: 0.8rem">
+            Admin Access Granted: <span id="bypassKey">0x_AVOGADRO_AUTH</span>
           </p>
-
-          <p class="cmd">> analyze_failure_cause</p>
-          <p class="output">
-            Detection: Covalent bonds in the backend have ruptured.<br />
-            Reason: Server exceeded Activation Energy (Ea).
-          </p>
-
-          <div class="mt-4">
-            <p class="cmd">> add_buffer_solution --fix-ph</p>
-            <div class="terminal-progress-bar">
-              <div class="terminal-progress-fill"></div>
-            </div>
-            <p class="output-dim">Re-titrating database... Please wait...</p>
-          </div>
-
-          <div class="terminal-actions-row">
-            <button class="terminal-btn" onclick="window.location.reload()">
-              [ RE-CATALYZE ]
-            </button>
-            <a href="mailto:notes@alokdasofficial.in" class="terminal-link">
-              [ REPORT_LEAK ]
-            </a>
-          </div>
-
-          <div id="adminDiagnostics" class="admin-only hidden">
-            <p class="cmd">> sudo isotope_verify</p>
-            <p class="output text-yellow">
-              User: <a href="http://alokdasofficial.in">Alok Das</a><br />
-              Access: <span id="bypassKey">0x_AVOGADRO_AUTH</span>
-            </p>
-          </div>
-
-          <div class="terminal-footer-info">
-            Timestamp: <span id="errorTime"></span> | Lab Temp: 298 K
-          </div>
         </div>
       </div>
     </div>

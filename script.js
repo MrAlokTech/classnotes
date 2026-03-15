@@ -115,7 +115,10 @@ document.addEventListener('DOMContentLoaded', async function () {
         });
     }
 
-    document.getElementById("errorTime").innerText = new Date().toISOString();
+    const errorTimeEl = document.getElementById("errorTime");
+    if (errorTimeEl) {
+        errorTimeEl.innerText = new Date().toISOString();
+    }
 
     // 2. Initialize Firebase
     if (!firebase.apps.length) {
