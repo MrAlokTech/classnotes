@@ -1,0 +1,3 @@
+## 2026-03-16 - [Debouncing Search Re-renders]
+**Learning:** Avoid micro-optimizing date creation inside render loops if it breaks variable scoping or introduces messy global states. A much higher-impact optimization for vanilla JS lists is simply debouncing the input event that triggers the render loop in the first place, ensuring the heavy DOM manipulation function isn't called on every single keystroke.
+**Action:** Always check the event listener attachments for high-frequency events (like `input` or `scroll`) before trying to micro-optimize the render loop itself. Debounce or throttle these handlers to reduce total render calls dramatically.

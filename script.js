@@ -658,8 +658,22 @@ function activateHoliday(overlay) {
 /* =========================================
    7. EVENT LISTENERS
    ========================================= */
+// Utility: Debounce function to limit the rate at which a function fires
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
 function setupEventListeners() {
-    searchInput.addEventListener('input', renderPDFs);
+    // Debounce the search input to significantly reduce DOM renders on every keystroke
+    searchInput.addEventListener('input', debounce(renderPDFs, 300));
 
     tabBtns.forEach(btn => {
         btn.addEventListener('click', handleSemesterChange);
