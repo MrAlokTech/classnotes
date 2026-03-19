@@ -338,6 +338,40 @@ function getAdData(slotName) {
 /* =========================================
    5. DATA LOADING WITH CACHING
    ========================================= */
+
+// Optimize search by pre-calculating search strings and derived properties once during load
+function prepareSearchIndex(dataList) {
+    const now = new Date();
+    dataList.forEach(item => {
+        // 1. Lowercase search string concatenation for fast O(1) matching later
+        const title = item.title || '';
+        const desc = item.description || '';
+        const cat = item.category || '';
+        const author = item.author || '';
+        item._searchStr = `${title} ${desc} ${cat} ${author}`.toLowerCase();
+
+        // 2. Pre-calculate formatted date
+        if (item.uploadDate) {
+            let uploadDateObj;
+            if (item.uploadDate && typeof item.uploadDate.toDate === 'function') {
+                uploadDateObj = item.uploadDate.toDate();
+            } else {
+                uploadDateObj = new Date(item.uploadDate);
+            }
+            item._formattedDate = uploadDateObj.toLocaleDateString('en-US', {
+                year: 'numeric', month: 'short', day: 'numeric'
+            });
+
+            // 3. Pre-calculate "isNew" flag (7 days)
+            const timeDiff = now - uploadDateObj;
+            item._isNew = timeDiff < (7 * 24 * 60 * 60 * 1000);
+        } else {
+            item._formattedDate = '';
+            item._isNew = false;
+        }
+    });
+}
+
 function renderSemesterTabs() {
     const container = document.getElementById('semesterTabsContainer');
     if (!container) return;
@@ -454,6 +488,8 @@ async function loadPDFDatabase() {
 
         if (shouldUseCache) {
             pdfDatabase = cachedData;
+            // ⚡ Bolt Optimization: Prepare search index
+            prepareSearchIndex(pdfDatabase);
             // --- FIX: CALL THIS TO POPULATE UI ---
             syncClassSwitcher();
             renderSemesterTabs();
@@ -476,6 +512,10 @@ async function loadPDFDatabase() {
             timestamp: new Date().getTime(),
             data: pdfDatabase
         }));
+
+        // ⚡ Bolt Optimization: Prepare search index AFTER saving to cache
+        // to avoid bloating localStorage with derived properties.
+        prepareSearchIndex(pdfDatabase);
 
         // --- FIX: CALL THIS TO POPULATE UI ---
         syncClassSwitcher();
@@ -905,26 +945,22 @@ function renderPDFs() {
 
     // Locate renderPDFs() in script.js and update the filter section
     const filteredPdfs = pdfDatabase.filter(pdf => {
-        const matchesSemester = pdf.semester === currentSemester;
+        // ⚡ Bolt Optimization: Early returns and pre-calculated search string
+        if (pdf.class !== currentClass) return false;
+        if (pdf.semester !== currentSemester) return false;
 
-        // NEW: Check if the PDF class matches the UI's current class selection
-        // Note: If old documents don't have this field, they will be hidden.
-        const matchesClass = pdf.class === currentClass;
-
-        let matchesCategory = false;
         if (currentCategory === 'favorites') {
-            matchesCategory = favorites.includes(pdf.id);
-        } else {
-            matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
+            if (!favorites.includes(pdf.id)) return false;
+        } else if (currentCategory !== 'all') {
+            if (pdf.category !== currentCategory) return false;
         }
 
-        const matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
-            pdf.description.toLowerCase().includes(searchTerm) ||
-            pdf.category.toLowerCase().includes(searchTerm) ||
-            pdf.author.toLowerCase().includes(searchTerm);
+        if (searchTerm) {
+            // Use pre-calculated lowercase search string
+            if (pdf._searchStr && !pdf._searchStr.includes(searchTerm)) return false;
+        }
 
-        // Update return statement to include matchesClass
-        return matchesSemester && matchesClass && matchesCategory && matchesSearch;
+        return true;
     });
 
     updatePDFCount(filteredPdfs.length);
