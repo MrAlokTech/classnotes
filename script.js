@@ -13,6 +13,9 @@ let adDatabase = {};
 let isModalHistoryPushed = false;
 let db; // Defined globally, initialized later
 
+// ⚡ Bolt: Cache favorites to prevent synchronous JSON.parse in the render loop
+let favoritesCache = null;
+
 // GAS
 const GAS_URL = "https://script.google.com/macros/s/AKfycby2lW5QdidC7o_JX0jlXa59uAjmmpFzOx-rye0N1x0r6hoYu-1CB65YrM1wPr7h-tZu/exec"
 // DOM Elements
@@ -1319,8 +1322,13 @@ async function handleCommentSubmit(e) {
    10. EXTRAS (THEME, FAVORITES, EASTER EGGS)
    ========================================= */
 function getFavorites() {
+    // ⚡ Bolt: Use cached favorites if available to avoid redundant JSON parsing
+    if (favoritesCache !== null) {
+        return favoritesCache;
+    }
     const stored = localStorage.getItem('classNotesFavorites');
-    return stored ? JSON.parse(stored) : [];
+    favoritesCache = stored ? JSON.parse(stored) : [];
+    return favoritesCache;
 }
 
 function toggleFavorite(event, pdfId) {
@@ -1339,6 +1347,8 @@ function toggleFavorite(event, pdfId) {
         favorites.push(pdfId);
         showToast('Added to saved notes');
     }
+    // ⚡ Bolt: Update cache whenever favorites list changes
+    favoritesCache = favorites;
     localStorage.setItem('classNotesFavorites', JSON.stringify(favorites));
     renderPDFs();
 }
