@@ -1,0 +1,3 @@
+## 2024-05-24 - Pre-calculate search index and format dates
+**Learning:** Pre-calculating derived properties (search string concatenations, boolean date thresholds, formatted date strings) directly into in-memory collection objects during initial data load drastically speeds up rendering cycles in vanilla JavaScript list components. Instantiating `new Date()` within a high-frequency `render()` loop is a noticeable performance bottleneck.
+**Action:** When filtering or rendering lists containing dates or complex search fields, process them once upstream (before or right after storing locally), cache the derived strings/booleans on the object itself, and read those pre-computed values dynamically downstream in the filter and render functions.
