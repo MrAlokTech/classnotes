@@ -1,0 +1,3 @@
+## 2024-05-01 - [Pre-calculate derived properties for render loops]
+**Learning:** Instantiating `Date` objects repeatedly inside a render or filter loop for large lists causes measurable UI slowdowns. Derived string concatenations and normalizations (like `.toLowerCase()`) in hot loops also have a performance penalty.
+**Action:** Always pre-calculate derived search strings, formatted dates, and conditional booleans (like `isNew`) during initial data load instead of per-render recalculations. To prevent bloating `localStorage`, add these runtime properties after the core data has been saved to the cache.
