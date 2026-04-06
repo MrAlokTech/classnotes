@@ -454,6 +454,7 @@ async function loadPDFDatabase() {
 
         if (shouldUseCache) {
             pdfDatabase = cachedData;
+            prepareSearchIndex();
             // --- FIX: CALL THIS TO POPULATE UI ---
             syncClassSwitcher();
             renderSemesterTabs();
@@ -477,6 +478,8 @@ async function loadPDFDatabase() {
             data: pdfDatabase
         }));
 
+        prepareSearchIndex();
+
         // --- FIX: CALL THIS TO POPULATE UI ---
         syncClassSwitcher();
         renderPDFs();
@@ -499,6 +502,46 @@ function hidePreloader() {
             setTimeout(() => {
                 content.classList.add('active');
             }, 300);
+        }
+    }
+}
+
+/**
+ * ⚡ Bolt Optimization: Pre-calculate expensive properties before render loops.
+ *
+ * Impact: Prevents repeated string conversions and Date instantiations during the high-frequency
+ * renderPDFs() and createPDFCard() loops. For large datasets, this avoids hundreds of redundant
+ * Date instantiations and .toLowerCase() calls on every keystroke in the search bar.
+ */
+function prepareSearchIndex() {
+    const dateFormatter = new Intl.DateTimeFormat('en-US', {
+        year: 'numeric', month: 'short', day: 'numeric'
+    });
+    const now = new Date();
+    const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+
+    for (let i = 0; i < pdfDatabase.length; i++) {
+        const pdf = pdfDatabase[i];
+
+        // 1. Pre-calculate search string
+        const searchStr = `${pdf.title || ''} ${pdf.description || ''} ${pdf.category || ''} ${pdf.author || ''}`.toLowerCase();
+        pdf._searchStr = searchStr;
+
+        // 2. Format Date and handle new status
+        let uploadDateObj;
+        if (pdf.uploadDate && typeof pdf.uploadDate.toDate === 'function') {
+            uploadDateObj = pdf.uploadDate.toDate();
+        } else {
+            uploadDateObj = new Date(pdf.uploadDate);
+        }
+
+        if (uploadDateObj && !isNaN(uploadDateObj)) {
+            pdf._formattedDate = dateFormatter.format(uploadDateObj);
+            const timeDiff = now - uploadDateObj;
+            pdf._isNew = timeDiff < sevenDaysMs;
+        } else {
+            pdf._formattedDate = 'Unknown Date';
+            pdf._isNew = false;
         }
     }
 }
@@ -918,10 +961,12 @@ function renderPDFs() {
             matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
         }
 
-        const matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
-            pdf.description.toLowerCase().includes(searchTerm) ||
-            pdf.category.toLowerCase().includes(searchTerm) ||
-            pdf.author.toLowerCase().includes(searchTerm);
+        let matchesSearch = false;
+        if (!pdf._searchStr) {
+           matchesSearch = false;
+        } else {
+           matchesSearch = pdf._searchStr.includes(searchTerm);
+        }
 
         // Update return statement to include matchesClass
         return matchesSemester && matchesClass && matchesCategory && matchesSearch;
@@ -994,9 +1039,7 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
     const heartIconClass = isFav ? 'fas' : 'far';
     const btnActiveClass = isFav ? 'active' : '';
 
-    const uploadDateObj = new Date(pdf.uploadDate);
-    const timeDiff = new Date() - uploadDateObj;
-    const isNew = timeDiff < (7 * 24 * 60 * 60 * 1000); // 7 days
+    const isNew = pdf._isNew || false;
 
     const newBadgeHTML = isNew
         ? `<span style="background:var(--error-color); color:white; font-size:0.6rem; padding:2px 6px; border-radius:4px; margin-left:8px; vertical-align:middle;">NEW</span>`
@@ -1011,9 +1054,7 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
     const categoryIcon = categoryIcons[pdf.category] || 'fa-file-pdf';
 
     // Formatting Date
-    const formattedDate = new Date(pdf.uploadDate).toLocaleDateString('en-US', {
-        year: 'numeric', month: 'short', day: 'numeric'
-    });
+    const formattedDate = pdf._formattedDate || 'Unknown Date';
 
     // Uses global escapeHtml() now
 
