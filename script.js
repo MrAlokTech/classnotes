@@ -13,6 +13,33 @@ let adDatabase = {};
 let isModalHistoryPushed = false;
 let db; // Defined globally, initialized later
 
+// NEW: Pre-calculate expensive operations once to improve render/filter speed
+const dateFormatter = new Intl.DateTimeFormat('en-US', {
+    year: 'numeric', month: 'short', day: 'numeric'
+});
+
+function prepareSearchIndex(pdfs) {
+    const now = new Date();
+    const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+
+    pdfs.forEach(pdf => {
+        // Handle both Firestore Timestamp objects and standard Dates/Strings
+        let dateObj;
+        if (pdf.uploadDate && typeof pdf.uploadDate.toDate === 'function') {
+            dateObj = pdf.uploadDate.toDate();
+        } else {
+            dateObj = new Date(pdf.uploadDate);
+        }
+
+        // Only calculate these once
+        pdf._formattedDate = dateFormatter.format(dateObj);
+        pdf._isNew = (now - dateObj) < SEVEN_DAYS_MS;
+
+        // Lowercase strings for single-pass searching
+        pdf._searchStr = `${pdf.title || ''} ${pdf.description || ''} ${pdf.category || ''} ${pdf.author || ''}`.toLowerCase();
+    });
+}
+
 // GAS
 const GAS_URL = "https://script.google.com/macros/s/AKfycby2lW5QdidC7o_JX0jlXa59uAjmmpFzOx-rye0N1x0r6hoYu-1CB65YrM1wPr7h-tZu/exec"
 // DOM Elements
@@ -454,6 +481,7 @@ async function loadPDFDatabase() {
 
         if (shouldUseCache) {
             pdfDatabase = cachedData;
+            prepareSearchIndex(pdfDatabase);
             // --- FIX: CALL THIS TO POPULATE UI ---
             syncClassSwitcher();
             renderSemesterTabs();
@@ -476,6 +504,8 @@ async function loadPDFDatabase() {
             timestamp: new Date().getTime(),
             data: pdfDatabase
         }));
+
+        prepareSearchIndex(pdfDatabase);
 
         // --- FIX: CALL THIS TO POPULATE UI ---
         syncClassSwitcher();
@@ -918,10 +948,10 @@ function renderPDFs() {
             matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
         }
 
-        const matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
-            pdf.description.toLowerCase().includes(searchTerm) ||
-            pdf.category.toLowerCase().includes(searchTerm) ||
-            pdf.author.toLowerCase().includes(searchTerm);
+        let matchesSearch = true;
+        if (searchTerm) {
+            matchesSearch = !!pdf._searchStr && pdf._searchStr.includes(searchTerm);
+        }
 
         // Update return statement to include matchesClass
         return matchesSemester && matchesClass && matchesCategory && matchesSearch;
@@ -994,11 +1024,7 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
     const heartIconClass = isFav ? 'fas' : 'far';
     const btnActiveClass = isFav ? 'active' : '';
 
-    const uploadDateObj = new Date(pdf.uploadDate);
-    const timeDiff = new Date() - uploadDateObj;
-    const isNew = timeDiff < (7 * 24 * 60 * 60 * 1000); // 7 days
-
-    const newBadgeHTML = isNew
+    const newBadgeHTML = pdf._isNew
         ? `<span style="background:var(--error-color); color:white; font-size:0.6rem; padding:2px 6px; border-radius:4px; margin-left:8px; vertical-align:middle;">NEW</span>`
         : '';
 
@@ -1011,9 +1037,7 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
     const categoryIcon = categoryIcons[pdf.category] || 'fa-file-pdf';
 
     // Formatting Date
-    const formattedDate = new Date(pdf.uploadDate).toLocaleDateString('en-US', {
-        year: 'numeric', month: 'short', day: 'numeric'
-    });
+    const formattedDate = pdf._formattedDate || '';
 
     // Uses global escapeHtml() now
 
