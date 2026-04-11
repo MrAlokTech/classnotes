@@ -1,0 +1,3 @@
+## 2024-05-24 - Pre-calculating Search and Filter Values
+**Learning:** In highly iterated loops like `renderPDFs` and `createPDFCard` on large arrays, performing inline computations (e.g. concatenating strings, calling `toLowerCase()`, instantiating `Date` objects, using `Intl.DateTimeFormat`) drastically reduces performance.
+**Action:** Created a `prepareSearchIndex` method to be called immediately after the data array is populated (either via cache or fresh fetch) to map `_searchStr`, `_formattedDate`, and `_isNew` to each object. Then updated the filter logic to simply check `.includes()` against `_searchStr` and format logic to use the pre-calculated formats, reducing repeated calculations and object instantiations.
