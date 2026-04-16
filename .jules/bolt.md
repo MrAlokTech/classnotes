@@ -1,0 +1,3 @@
+## $(date +%Y-%m-%d) - [Pre-calculating Derived Data in Loops]
+**Learning:** Recalculating dates (`new Date()`, `.toLocaleDateString()`) and deriving search indices (`toLowerCase().includes()`) inline within render loops (e.g. `renderPDFs` and `createPDFCard`) creates a massive performance bottleneck for vanilla JS apps, significantly degrading list filtering performance when datasets are large.
+**Action:** When working with derived runtime state, compute and append these values (like `_searchStr`, `_isNew`, and `_formattedDate`) *once* immediately after fetching the data from the database or cache. Crucially, apply these transient properties *after* persisting to localStorage to avoid bloating the cache size.
