@@ -338,6 +338,42 @@ function getAdData(slotName) {
 /* =========================================
    5. DATA LOADING WITH CACHING
    ========================================= */
+
+/* =========================================
+   PERFORMANCE HELPERS
+   ========================================= */
+function prepareSearchIndex(pdfs) {
+    if (!pdfs || !Array.isArray(pdfs)) return;
+
+    const now = new Date();
+    const dateFormatter = new Intl.DateTimeFormat('en-US', {
+        year: 'numeric', month: 'short', day: 'numeric'
+    });
+
+    for (let i = 0; i < pdfs.length; i++) {
+        const pdf = pdfs[i];
+
+        // 1. Pre-calculate search string
+        pdf._searchStr = `${pdf.title || ''} ${pdf.description || ''} ${pdf.category || ''} ${pdf.author || ''}`.toLowerCase();
+
+        // 2. Pre-calculate date properties
+        if (pdf.uploadDate) {
+            const uploadDateObj = new Date(pdf.uploadDate);
+            if (!isNaN(uploadDateObj)) {
+                const timeDiff = now - uploadDateObj;
+                pdf._isNew = timeDiff < (7 * 24 * 60 * 60 * 1000); // 7 days
+                pdf._formattedDate = dateFormatter.format(uploadDateObj);
+            } else {
+                pdf._isNew = false;
+                pdf._formattedDate = 'Unknown Date';
+            }
+        } else {
+            pdf._isNew = false;
+            pdf._formattedDate = 'Unknown Date';
+        }
+    }
+}
+
 function renderSemesterTabs() {
     const container = document.getElementById('semesterTabsContainer');
     if (!container) return;
@@ -454,6 +490,7 @@ async function loadPDFDatabase() {
 
         if (shouldUseCache) {
             pdfDatabase = cachedData;
+            prepareSearchIndex(pdfDatabase); // Optimize performance
             // --- FIX: CALL THIS TO POPULATE UI ---
             syncClassSwitcher();
             renderSemesterTabs();
@@ -476,6 +513,8 @@ async function loadPDFDatabase() {
             timestamp: new Date().getTime(),
             data: pdfDatabase
         }));
+
+        prepareSearchIndex(pdfDatabase); // Optimize performance
 
         // --- FIX: CALL THIS TO POPULATE UI ---
         syncClassSwitcher();
@@ -905,26 +944,27 @@ function renderPDFs() {
 
     // Locate renderPDFs() in script.js and update the filter section
     const filteredPdfs = pdfDatabase.filter(pdf => {
-        const matchesSemester = pdf.semester === currentSemester;
+        // 1. Cheap Equality Checks (Early Returns)
+        if (pdf.semester !== currentSemester) return false;
+        if (pdf.class !== currentClass) return false;
 
-        // NEW: Check if the PDF class matches the UI's current class selection
-        // Note: If old documents don't have this field, they will be hidden.
-        const matchesClass = pdf.class === currentClass;
-
-        let matchesCategory = false;
+        // 2. Category Check
         if (currentCategory === 'favorites') {
-            matchesCategory = favorites.includes(pdf.id);
-        } else {
-            matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
+            if (!favorites.includes(pdf.id)) return false;
+        } else if (currentCategory !== 'all') {
+            if (pdf.category !== currentCategory) return false;
         }
 
-        const matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
-            pdf.description.toLowerCase().includes(searchTerm) ||
-            pdf.category.toLowerCase().includes(searchTerm) ||
-            pdf.author.toLowerCase().includes(searchTerm);
+        // 3. Search Check (using pre-calculated string)
+        if (searchTerm && pdf._searchStr) {
+            if (!pdf._searchStr.includes(searchTerm)) return false;
+        } else if (searchTerm && !pdf._searchStr) {
+            // Fallback for malformed or unindexed items
+            const fallbackStr = `${pdf.title || ''} ${pdf.description || ''} ${pdf.category || ''} ${pdf.author || ''}`.toLowerCase();
+            if (!fallbackStr.includes(searchTerm)) return false;
+        }
 
-        // Update return statement to include matchesClass
-        return matchesSemester && matchesClass && matchesCategory && matchesSearch;
+        return true;
     });
 
     updatePDFCount(filteredPdfs.length);
@@ -994,9 +1034,18 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
     const heartIconClass = isFav ? 'fas' : 'far';
     const btnActiveClass = isFav ? 'active' : '';
 
-    const uploadDateObj = new Date(pdf.uploadDate);
-    const timeDiff = new Date() - uploadDateObj;
-    const isNew = timeDiff < (7 * 24 * 60 * 60 * 1000); // 7 days
+    // Use pre-calculated performance values if available
+    let isNew = pdf._isNew;
+    if (isNew === undefined) {
+        // Fallback if not indexed
+        const uploadDateObj = new Date(pdf.uploadDate);
+        if (!isNaN(uploadDateObj)) {
+            const timeDiff = new Date() - uploadDateObj;
+            isNew = timeDiff < (7 * 24 * 60 * 60 * 1000); // 7 days
+        } else {
+            isNew = false;
+        }
+    }
 
     const newBadgeHTML = isNew
         ? `<span style="background:var(--error-color); color:white; font-size:0.6rem; padding:2px 6px; border-radius:4px; margin-left:8px; vertical-align:middle;">NEW</span>`
@@ -1011,9 +1060,14 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
     const categoryIcon = categoryIcons[pdf.category] || 'fa-file-pdf';
 
     // Formatting Date
-    const formattedDate = new Date(pdf.uploadDate).toLocaleDateString('en-US', {
-        year: 'numeric', month: 'short', day: 'numeric'
-    });
+    let formattedDate = pdf._formattedDate;
+    if (!formattedDate) {
+        // Fallback if not indexed
+        const d = new Date(pdf.uploadDate);
+        formattedDate = !isNaN(d) ? d.toLocaleDateString('en-US', {
+            year: 'numeric', month: 'short', day: 'numeric'
+        }) : 'Unknown Date';
+    }
 
     // Uses global escapeHtml() now
 
