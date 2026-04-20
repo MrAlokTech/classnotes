@@ -13,6 +13,10 @@ let adDatabase = {};
 let isModalHistoryPushed = false;
 let db; // Defined globally, initialized later
 
+let isGlobalMaintenance = false;
+let isUserVerified = false;
+let authCheckComplete = false;
+
 // GAS
 const GAS_URL = "https://script.google.com/macros/s/AKfycby2lW5QdidC7o_JX0jlXa59uAjmmpFzOx-rye0N1x0r6hoYu-1CB65YrM1wPr7h-tZu/exec"
 // DOM Elements
@@ -127,7 +131,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     db = firebase.firestore();
 
     // 3. Start non-blocking tasks
-    initAuth();
+    const authPromise = initAuth();
     initTheme();
     initSeasonalHeader();
     initDailyCatalyst();
@@ -144,6 +148,9 @@ document.addEventListener('DOMContentLoaded', async function () {
         hidePreloader();
         return; // Stop loading data if holiday mode is full screen
     }
+
+    // Wait for auth to resolve before parallel loading
+    await authPromise;
 
     // 5. Parallel Data Loading (The Performance Fix)
     try {
@@ -182,24 +189,53 @@ document.addEventListener('DOMContentLoaded', async function () {
    3. AUTH & ANALYTICS
    ========================================= */
 function initAuth() {
-    // Check if someone is ALREADY logged in (Student or Guest)
-    firebase.auth().onAuthStateChanged((user) => {
-        if (user) {
-            // A user is present! It might be a logged-in Student or an existing Guest.
-            // DO NOT overwrite their session. Just update analytics.
-            currentUserUID = user.uid;
-            updateUserMetadata();
-        } else {
-            // No one is logged in. NOW we create a new Anonymous Guest session.
-            firebase.auth().signInAnonymously()
-                .then((userCredential) => {
-                    currentUserUID = userCredential.user.uid;
-                    updateUserMetadata();
-                })
-                .catch((error) => {
-                    console.error("Auth Error:", error);
-                });
-        }
+    return new Promise((resolve) => {
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                currentUserUID = user.uid;
+                updateUserMetadata();
+                
+                if (!user.isAnonymous) {
+                    db.collection('users').doc(user.uid).get().then(doc => {
+                        if (doc.exists && doc.data().isVerified === true) {
+                            isUserVerified = true;
+                        } else {
+                            isUserVerified = false;
+                        }
+                        authCheckComplete = true;
+                        reevaluateMaintenance();
+                        resolve(isUserVerified);
+                    }).catch(() => {
+                        isUserVerified = false;
+                        authCheckComplete = true;
+                        reevaluateMaintenance();
+                        resolve(false);
+                    });
+                } else {
+                    isUserVerified = false;
+                    authCheckComplete = true;
+                    reevaluateMaintenance();
+                    resolve(false);
+                }
+            } else {
+                firebase.auth().signInAnonymously()
+                    .then((userCredential) => {
+                        currentUserUID = userCredential.user.uid;
+                        updateUserMetadata();
+                        isUserVerified = false;
+                        authCheckComplete = true;
+                        reevaluateMaintenance();
+                        resolve(false);
+                    })
+                    .catch((error) => {
+                        console.error("Auth Error:", error);
+                        isUserVerified = false;
+                        authCheckComplete = true;
+                        reevaluateMaintenance();
+                        resolve(false);
+                    });
+            }
+        });
     });
 }
 
@@ -509,14 +545,21 @@ function hidePreloader() {
 function initMaintenanceListener() {
     db.collection('controll').doc('classNotes')
         .onSnapshot((doc) => {
-            let isDown = false;
-            if (doc.exists) isDown = doc.data().isMaintenance === true;
-            if (isDown) activateMaintenanceMode();
-            else deactivateMaintenanceMode();
+            if (doc.exists) isGlobalMaintenance = doc.data().isMaintenance === true;
+            reevaluateMaintenance();
         }, (error) => {
             console.error("Connection failed:", error);
-            // activateMaintenanceMode(); // Optional: Don't force maintenance on weak net
         });
+}
+
+function reevaluateMaintenance() {
+    if (!authCheckComplete) return; // Wait until auth state is resolved
+
+    if (isGlobalMaintenance && !isUserVerified) {
+        activateMaintenanceMode();
+    } else {
+        deactivateMaintenanceMode();
+    }
 }
 
 function activateMaintenanceMode() {
