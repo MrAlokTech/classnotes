@@ -452,6 +452,29 @@ async function syncClassSwitcher() {
     renderSemesterTabs();
 }
 
+/**
+ * ⚡ Bolt: Performance optimization
+ * Pre-calculate expensive derived properties (search strings, date formatting)
+ * during initial load to avoid recalculating them during every filter/render cycle.
+ */
+function prepareSearchIndex(data) {
+    const now = Date.now();
+    const formatter = new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+
+    data.forEach(pdf => {
+        // Pre-compute lowercased search string
+        pdf._searchStr = `${pdf.title || ''} ${pdf.description || ''} ${pdf.category || ''} ${pdf.author || ''}`.toLowerCase();
+
+        // Pre-compute date-related properties to avoid allocating 'new Date()' in render loops
+        const d = new Date(pdf.uploadDate);
+        if (!isNaN(d.getTime())) {
+            pdf._isNew = (now - d.getTime()) < SEVEN_DAYS_MS;
+            pdf._formattedDate = formatter.format(d);
+        }
+    });
+}
+
 async function loadPDFDatabase() {
     if (isMaintenanceActive) return;
 
@@ -490,6 +513,9 @@ async function loadPDFDatabase() {
 
         if (shouldUseCache) {
             pdfDatabase = cachedData;
+            // ⚡ Bolt: Prepare search index on cached data
+            prepareSearchIndex(pdfDatabase);
+
             // --- FIX: CALL THIS TO POPULATE UI ---
             syncClassSwitcher();
             renderSemesterTabs();
@@ -508,13 +534,20 @@ async function loadPDFDatabase() {
             pdfDatabase.push({ id: doc.id, ...doc.data() });
         });
 
+        // ⚡ Bolt: Save core data to cache before adding derived properties
         localStorage.setItem(CACHE_KEY, JSON.stringify({
             timestamp: new Date().getTime(),
             data: pdfDatabase
         }));
 
+        // ⚡ Bolt: Prepare search index on fresh data
+        prepareSearchIndex(pdfDatabase);
+
         // --- FIX: CALL THIS TO POPULATE UI ---
         syncClassSwitcher();
+        // Force rendering category filters during fresh fetch to ensure consistency
+        renderCategoryFilters();
+        renderSemesterTabs();
         renderPDFs();
         hidePreloader();
 
@@ -948,26 +981,28 @@ function renderPDFs() {
 
     // Locate renderPDFs() in script.js and update the filter section
     const filteredPdfs = pdfDatabase.filter(pdf => {
-        const matchesSemester = pdf.semester === currentSemester;
+        // ⚡ Bolt: Early returns for O(1) skipping instead of evaluating all conditions
+        if (pdf.semester !== currentSemester) return false;
+        if (pdf.class !== currentClass) return false;
 
-        // NEW: Check if the PDF class matches the UI's current class selection
-        // Note: If old documents don't have this field, they will be hidden.
-        const matchesClass = pdf.class === currentClass;
-
-        let matchesCategory = false;
         if (currentCategory === 'favorites') {
-            matchesCategory = favorites.includes(pdf.id);
-        } else {
-            matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
+            if (!favorites.includes(pdf.id)) return false;
+        } else if (currentCategory !== 'all' && pdf.category !== currentCategory) {
+            return false;
         }
 
-        const matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
-            pdf.description.toLowerCase().includes(searchTerm) ||
-            pdf.category.toLowerCase().includes(searchTerm) ||
-            pdf.author.toLowerCase().includes(searchTerm);
+        if (searchTerm) {
+            // ⚡ Bolt: Use pre-calculated lowercased search string if available
+            if (pdf._searchStr) {
+                if (!pdf._searchStr.includes(searchTerm)) return false;
+            } else {
+                // Fallback for unindexed items
+                const fallbackSearchStr = `${pdf.title || ''} ${pdf.description || ''} ${pdf.category || ''} ${pdf.author || ''}`.toLowerCase();
+                if (!fallbackSearchStr.includes(searchTerm)) return false;
+            }
+        }
 
-        // Update return statement to include matchesClass
-        return matchesSemester && matchesClass && matchesCategory && matchesSearch;
+        return true;
     });
 
     updatePDFCount(filteredPdfs.length);
@@ -1037,9 +1072,28 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
     const heartIconClass = isFav ? 'fas' : 'far';
     const btnActiveClass = isFav ? 'active' : '';
 
-    const uploadDateObj = new Date(pdf.uploadDate);
-    const timeDiff = new Date() - uploadDateObj;
-    const isNew = timeDiff < (7 * 24 * 60 * 60 * 1000); // 7 days
+    // ⚡ Bolt: Fast path for pre-calculated properties
+    let isNew = pdf._isNew;
+    let formattedDate = pdf._formattedDate;
+
+    // Fallback for unindexed items
+    if (isNew === undefined || formattedDate === undefined) {
+        const uploadDateObj = new Date(pdf.uploadDate);
+        if (!isNaN(uploadDateObj.getTime())) {
+            if (isNew === undefined) {
+                const timeDiff = new Date() - uploadDateObj;
+                isNew = timeDiff < (7 * 24 * 60 * 60 * 1000); // 7 days
+            }
+            if (formattedDate === undefined) {
+                formattedDate = uploadDateObj.toLocaleDateString('en-US', {
+                    year: 'numeric', month: 'short', day: 'numeric'
+                });
+            }
+        } else {
+            isNew = false;
+            formattedDate = 'Unknown Date';
+        }
+    }
 
     const newBadgeHTML = isNew
         ? `<span style="background:var(--error-color); color:white; font-size:0.6rem; padding:2px 6px; border-radius:4px; margin-left:8px; vertical-align:middle;">NEW</span>`
@@ -1052,11 +1106,6 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
         'Physics': 'fa-infinity' // Ensure Physics icon is mapped if used
     };
     const categoryIcon = categoryIcons[pdf.category] || 'fa-file-pdf';
-
-    // Formatting Date
-    const formattedDate = new Date(pdf.uploadDate).toLocaleDateString('en-US', {
-        year: 'numeric', month: 'short', day: 'numeric'
-    });
 
     // Uses global escapeHtml() now
 
