@@ -490,6 +490,7 @@ async function loadPDFDatabase() {
 
         if (shouldUseCache) {
             pdfDatabase = cachedData;
+            prepareSearchIndex(pdfDatabase);
             // --- FIX: CALL THIS TO POPULATE UI ---
             syncClassSwitcher();
             renderSemesterTabs();
@@ -513,6 +514,7 @@ async function loadPDFDatabase() {
             data: pdfDatabase
         }));
 
+        prepareSearchIndex(pdfDatabase);
         // --- FIX: CALL THIS TO POPULATE UI ---
         syncClassSwitcher();
         renderPDFs();
@@ -961,10 +963,15 @@ function renderPDFs() {
             matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
         }
 
-        const matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
-            pdf.description.toLowerCase().includes(searchTerm) ||
-            pdf.category.toLowerCase().includes(searchTerm) ||
-            pdf.author.toLowerCase().includes(searchTerm);
+        let matchesSearch = false;
+        if (pdf._searchStr) {
+            matchesSearch = pdf._searchStr.includes(searchTerm);
+        } else {
+            matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
+                pdf.description.toLowerCase().includes(searchTerm) ||
+                pdf.category.toLowerCase().includes(searchTerm) ||
+                pdf.author.toLowerCase().includes(searchTerm);
+        }
 
         // Update return statement to include matchesClass
         return matchesSemester && matchesClass && matchesCategory && matchesSearch;
@@ -1037,9 +1044,12 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
     const heartIconClass = isFav ? 'fas' : 'far';
     const btnActiveClass = isFav ? 'active' : '';
 
-    const uploadDateObj = new Date(pdf.uploadDate);
-    const timeDiff = new Date() - uploadDateObj;
-    const isNew = timeDiff < (7 * 24 * 60 * 60 * 1000); // 7 days
+    let isNew = pdf._isNew;
+    if (isNew === undefined) {
+        const uploadDateObj = new Date(pdf.uploadDate);
+        const timeDiff = new Date() - uploadDateObj;
+        isNew = timeDiff < (7 * 24 * 60 * 60 * 1000); // 7 days
+    }
 
     const newBadgeHTML = isNew
         ? `<span style="background:var(--error-color); color:white; font-size:0.6rem; padding:2px 6px; border-radius:4px; margin-left:8px; vertical-align:middle;">NEW</span>`
@@ -1054,9 +1064,12 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
     const categoryIcon = categoryIcons[pdf.category] || 'fa-file-pdf';
 
     // Formatting Date
-    const formattedDate = new Date(pdf.uploadDate).toLocaleDateString('en-US', {
-        year: 'numeric', month: 'short', day: 'numeric'
-    });
+    let formattedDate = pdf._formattedDate;
+    if (formattedDate === undefined) {
+        formattedDate = new Date(pdf.uploadDate).toLocaleDateString('en-US', {
+            year: 'numeric', month: 'short', day: 'numeric'
+        });
+    }
 
     // Uses global escapeHtml() now
 
@@ -1715,6 +1728,30 @@ function triggerPrank(overlay, textEl, barEl, closeBtn) {
                 barEl.style.width = step.progress + "%";
             }
         }, step.delay);
+    });
+}
+
+/* =========================================
+   PERFORMANCE HELPERS
+   ========================================= */
+
+function prepareSearchIndex(data) {
+    const now = Date.now();
+    const formatter = new Intl.DateTimeFormat('en-US', {
+        year: 'numeric', month: 'short', day: 'numeric'
+    });
+
+    data.forEach(item => {
+        item._searchStr = [
+            item.title,
+            item.description,
+            item.category,
+            item.author
+        ].join(' ').toLowerCase();
+
+        const uploadTimestamp = new Date(item.uploadDate).getTime();
+        item._isNew = !isNaN(uploadTimestamp) ? (now - uploadTimestamp) < (7 * 24 * 60 * 60 * 1000) : false;
+        item._formattedDate = !isNaN(uploadTimestamp) ? formatter.format(uploadTimestamp) : 'Unknown Date';
     });
 }
 
