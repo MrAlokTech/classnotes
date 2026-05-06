@@ -1,530 +1,493 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ClassNotes — Service Discontinued</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    <title>
-      ClassNotes ~ MSc Chemistry | Rabindranath Tagore University (RTV)
-    </title>
+    :root {
+      --ink:       #e8e2d9;
+      --ink-dim:   #9a9186;
+      --ink-faint: #5c564f;
+      --bg:        #0e0c0a;
+      --bg2:       #16130f;
+      --bg3:       #1e1a15;
+      --amber:     #c8944a;
+      --amber-dim: #7a5a2c;
+      --red:       #b04040;
+      --line:      rgba(200,148,74,0.18);
+    }
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preconnect" href="https://firestore.googleapis.com" />
-    <link rel="preconnect" href="https://www.google-analytics.com" />
+    html { scroll-behavior: smooth; }
 
-    <link rel="icon" type="image/svg+xml" href="icon.svg" />
-    <link rel="apple-touch-icon" href="icon.svg" />
-    <meta name="theme-color" content="#2563eb" />
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Outfit', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
 
-    <link
-      href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    /* ── Canvas background ── */
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
 
-    <link
-      rel="preload"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-      as="style"
-      onload="
-        this.onload = null;
-        this.rel = 'stylesheet';
-      "
-    />
-    <noscript>
-      <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-      />
-    </noscript>
+    /* ── Noise grain overlay ── */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.032;
+      pointer-events: none;
+      z-index: 1;
+    }
 
-    <link rel="stylesheet" href="css/main.css" />
+    /* ── Layout ── */
+    .page {
+      position: relative;
+      z-index: 2;
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
 
-    <meta
-      name="description"
-      content="Access all MSc Chemistry ClassNotes for Rabindranath Tagore University (RTV) in one place. Curated and organized by Alok Das."
-    />
-    <meta
-      name="keywords"
-      content="ClassNotes, MSc Chemistry, RTU, RTV, Rabindranath Tagore University, Rabindranath Thakur Viswavidyalaya, Chemistry Notes, Alok Das, alokdasofficial, Assam, Academics"
-    />
-    <meta name="author" content="Alok Das" />
-    <meta
-      name="robots"
-      content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"
-    />
-    <meta property="og:title" content="ClassNotes ~ MSc Chemistry | RTV" />
-    <meta
-      property="og:description"
-      content="All the MSc Chemistry ClassNotes for Rabindranath Tagore University (RTV) shared here."
-    />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://notes.alokdasofficial.in/" />
-    <meta
-      property="og:image"
-      content="https://notes.alokdasofficial.in/preview.jpg"
-    />
-    <meta property="og:site_name" content="ClassNotes" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="ClassNotes ~ MSc Chemistry | RTV" />
-    <meta
-      name="twitter:description"
-      content="All the MSc Chemistry ClassNotes for Rabindranath Tagore University (RTV) shared here."
-    />
-    <meta
-      name="twitter:image"
-      content="https://notes.alokdasofficial.in/preview.jpg"
-    />
-    <meta name="twitter:creator" content="@alokdasofficial" />
-    <link rel="canonical" href="https://notes.alokdasofficial.in/" />
-  </head>
+    /* ── Header bar ── */
+    header {
+      padding: clamp(1.25rem, 3vw, 2rem) clamp(1.5rem, 6vw, 5rem);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+    }
 
-  <body>
-    <!-- MARQUEE -->
-    <div id="announcementBar" class="announcement-bar hidden">
-      <div class="container announcement-content">
-        <span id="announcementText">Loading updates...</span>
-        <button id="closeAnnouncement" aria-label="Close">&times;</button>
-      </div>
-    </div>
-    <!-- HOLIDAY -->
-    <div id="holidayOverlay" class="holiday-overlay hidden">
-      <canvas id="holidayConfetti"></canvas>
-      <div id="holidayBgAnim" class="holiday-bg-anim"></div>
-      <div class="glass-card">
-        <div class="holiday-icon-wrapper">
-          <div id="holidayIcon" class="holiday-emoji">✨</div>
+    .logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      color: var(--ink);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+
+    .logo-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--amber);
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    .status-pill {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      color: var(--red);
+      background: rgba(176,64,64,0.12);
+      border: 1px solid rgba(176,64,64,0.3);
+      border-radius: 999px;
+      padding: 0.3rem 0.85rem;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    /* ── Hero ── */
+    main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: clamp(3rem, 8vw, 6rem) clamp(1.5rem, 6vw, 5rem);
+      gap: 0;
+    }
+
+    .eyebrow {
+      font-family: 'DM Mono', monospace;
+      font-size: clamp(0.65rem, 1.5vw, 0.75rem);
+      letter-spacing: 0.25em;
+      color: var(--amber);
+      text-transform: uppercase;
+      margin-bottom: 1.8rem;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.2s ease forwards;
+    }
+
+    .headline {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(3rem, 10vw, 7.5rem);
+      font-weight: 300;
+      line-height: 0.95;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      margin-bottom: 0.15em;
+      opacity: 0;
+      animation: fadeUp 0.9s 0.35s ease forwards;
+    }
+
+    .headline em {
+      font-style: italic;
+      color: var(--amber);
+    }
+
+    .sub-headline {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.2rem, 3.5vw, 2.2rem);
+      font-weight: 300;
+      font-style: italic;
+      color: var(--ink-dim);
+      margin-bottom: 3rem;
+      opacity: 0;
+      animation: fadeUp 0.9s 0.5s ease forwards;
+    }
+
+    /* ── Divider ── */
+    .rule {
+      width: clamp(40px, 8vw, 80px);
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--amber), transparent);
+      margin: 0 auto 3rem;
+      opacity: 0;
+      animation: fadeIn 1s 0.65s ease forwards;
+    }
+
+    /* ── Body text ── */
+    .body-text {
+      max-width: 560px;
+      font-size: clamp(0.95rem, 2vw, 1.05rem);
+      line-height: 1.85;
+      color: var(--ink-dim);
+      margin: 0 auto 3.5rem;
+      opacity: 0;
+      animation: fadeUp 0.9s 0.75s ease forwards;
+    }
+
+    .body-text strong {
+      color: var(--ink);
+      font-weight: 400;
+    }
+
+    /* ── Info cards ── */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1px;
+      background: var(--line);
+      border: 1px solid var(--line);
+      border-radius: 2px;
+      max-width: 680px;
+      width: 100%;
+      margin: 0 auto 4rem;
+      overflow: hidden;
+      opacity: 0;
+      animation: fadeUp 0.9s 0.9s ease forwards;
+    }
+
+    .card {
+      background: var(--bg2);
+      padding: clamp(1.25rem, 3vw, 1.8rem);
+      text-align: left;
+      transition: background 0.3s;
+    }
+
+    .card:hover { background: var(--bg3); }
+
+    .card-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--amber-dim);
+      margin-bottom: 0.6rem;
+    }
+
+    .card-value {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1rem, 2.5vw, 1.3rem);
+      font-weight: 400;
+      color: var(--ink);
+      line-height: 1.4;
+    }
+
+    .card-value a {
+      color: var(--ink);
+      text-decoration: none;
+      border-bottom: 1px solid var(--amber-dim);
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .card-value a:hover {
+      color: var(--amber);
+      border-color: var(--amber);
+    }
+
+    /* ── CTA ── */
+    .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+      opacity: 0;
+      animation: fadeUp 0.9s 1.05s ease forwards;
+    }
+
+    .btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 0.85rem 2rem;
+      border-radius: 1px;
+      transition: all 0.25s;
+      display: inline-block;
+    }
+
+    .btn-primary {
+      background: var(--amber);
+      color: #0e0c0a;
+      border: 1px solid var(--amber);
+    }
+
+    .btn-primary:hover {
+      background: transparent;
+      color: var(--amber);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--ink-dim);
+      border: 1px solid var(--ink-faint);
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--ink-dim);
+      color: var(--ink);
+    }
+
+    /* ── Footer ── */
+    footer {
+      position: relative;
+      z-index: 2;
+      border-top: 1px solid var(--line);
+      padding: clamp(1.25rem, 3vw, 2rem) clamp(1.5rem, 6vw, 5rem);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .footer-copy {
+      font-size: 0.8rem;
+      color: var(--ink-faint);
+      line-height: 1.7;
+    }
+
+    .footer-copy a {
+      color: var(--amber-dim);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-copy a:hover { color: var(--amber); }
+
+    .footer-right {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      color: var(--ink-faint);
+      text-transform: uppercase;
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(22px); }
+      to   { opacity: 1; transform: translateY(0);    }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 540px) {
+      .status-pill { display: none; }
+      .cards { grid-template-columns: 1fr; }
+      .cta-row { flex-direction: column; align-items: center; }
+      .btn { width: 100%; text-align: center; }
+      footer { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="bg-canvas"></canvas>
+
+  <div class="page">
+
+    <!-- Header -->
+    <header>
+      <a href="#" class="logo">
+        <span class="logo-dot"></span>
+        ClassNotes
+      </a>
+      <span class="status-pill">● Service Discontinued</span>
+    </header>
+
+    <!-- Main Hero -->
+    <main>
+      <p class="eyebrow">A farewell from ClassNotes</p>
+
+      <h1 class="headline">
+        We're<br /><em>Closing</em><br />Our Doors.
+      </h1>
+
+      <p class="sub-headline">Thank you for being part of the journey.</p>
+
+      <div class="rule"></div>
+
+      <p class="body-text">
+        After careful consideration, <strong>ClassNotes</strong> has been permanently
+        shut down due to low user engagement. It has been a sincere endeavor to bring
+        organized, accessible notes to students everywhere — and we are deeply grateful
+        to every person who visited, used, and shared the platform.<br /><br />
+        All services, including note access and account management, are no longer available.
+        If you have any questions or concerns, please reach out via email.
+      </p>
+
+      <!-- Info cards -->
+      <div class="cards">
+        <div class="card">
+          <div class="card-label">Status</div>
+          <div class="card-value">Permanently Offline</div>
         </div>
-        <h1 id="holidayTitle">Happy Holidays</h1>
-
-        <div id="overlayTimer" class="overlay-timer hidden">
-          <div class="ot-box"><span id="otDays">00</span><small>d</small></div>
-          <div class="ot-sep">:</div>
-          <div class="ot-box"><span id="otHours">00</span><small>h</small></div>
-          <div class="ot-sep">:</div>
-          <div class="ot-box"><span id="otMins">00</span><small>m</small></div>
-          <div class="ot-sep">:</div>
-          <div class="ot-box"><span id="otSecs">00</span><small>s</small></div>
+        <div class="card">
+          <div class="card-label">Effective Date</div>
+          <div class="card-value">May 2026</div>
         </div>
-
-        <div class="holiday-divider"></div>
-        <p id="holidayMessage">Wishing you a wonderful break!</p>
-        <p id="holidaySubMessage" class="chem-note">
-          ( Chemistry Note: Take a break from the Periodic Table )
-        </p>
-      </div>
-    </div>
-
-    <div id="maintenanceScreen" class="maintenance-overlay">
-      <div class="minimal-maintenance-card">
-        <div class="icon-wrapper">
-          <i class="fas fa-folder-open"></i>
-        </div>
-        <h1 class="maintenance-title">Library is Locked</h1>
-        <p class="maintenance-message">
-          ClassNotes is currently restricted to verified contributors and students.
-        </p>
-        <p class="maintenance-submessage">
-          Please log in with a verified account to access the library.
-        </p>
-
-        <div class="maintenance-actions">
-          <a href="/upload/" class="btn-upload-primary">
-            <i class="fas fa-sign-in-alt"></i> Login / Register
-          </a>
-          <button class="btn-check-status" onclick="window.location.reload()">
-            <i class="fas fa-sync-alt"></i> Refresh Status
-          </button>
-        </div>
-
-        <div id="adminDiagnostics" class="admin-only hidden">
-          <p class="text-muted mt-3" style="font-size: 0.8rem">
-            Admin Access Granted: <span id="bypassKey">0x_AVOGADRO_AUTH</span>
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div id="preloader">
-      <div class="book">
-        <div class="inner">
-          <div class="left"></div>
-          <div class="middle"></div>
-          <div class="right"></div>
-        </div>
-        <ul>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-          <li></li>
-        </ul>
-      </div>
-      <p class="loader-text">Loading <span>ClassNotes</span></p>
-    </div>
-    <div id="contentWrapper" class="reveal-content">
-      <header class="header">
-        <div class="container">
-          <div class="header-content">
-            <div class="logo">
-              <i class="fas fa-graduation-cap"></i>
-              <h1>ClassNotes</h1>
-            </div>
-            <div class="class-switcher">
-              <select id="classSelect" aria-label="Select Class">
-                <option value="" disabled selected></option>
-              </select>
-            </div>
-            <button
-              id="themeToggleBtn"
-              class="btn-icon theme-toggle"
-              title="Toggle Dark Mode"
-              aria-label="Toggle Dark Mode"
-            >
-              <i class="fas fa-moon"></i>
-            </button>
+        <div class="card">
+          <div class="card-label">Contact</div>
+          <div class="card-value">
+            <a href="mailto:notes@alokdasofficial.in">notes@alokdasofficial.in</a>
           </div>
         </div>
-      </header>
-
-      <div class="semester-tabs">
-        <div class="container">
-          <div class="tabs-wrapper" id="semesterTabsContainer">
-            <div class="skeleton-tab"></div>
-            <div class="skeleton-tab"></div>
-            <div class="skeleton-tab"></div>
-          </div>
-        </div>
       </div>
 
-      <!-- <div class="container">
-      <div id="ad-slot-top" class="ad-slot-container"></div>
-    </div> -->
-
-      <main class="main">
-        <div class="container">
-          <div class="community-cta">
-            <div class="community-cta-content">
-              <h3>Got Notes?</h3>
-              <p>
-                Help your juniors/classmates by uploading your notes. Be a
-                <strong>legend</strong>! <i class="fas fa-ghost"></i>
-              </p>
-            </div>
-            <a href="/upload/" class="btn-cta-light">
-              Upload Now <i class="fas fa-arrow-right"></i>
-            </a>
-          </div>
-          <div id="dailyCatalyst" class="catalyst-card hidden">
-            <div class="catalyst-content">
-              <div class="catalyst-icon">
-                <i class="fas fa-face-grin-tongue-wink"></i>
-              </div>
-              <div class="catalyst-text">
-                <h2 id="greetingTitle">Hello there!</h2>
-                <p id="greetingQuote">Loading your daily dose of fun...</p>
-              </div>
-            </div>
-            <button
-              id="closeCatalyst"
-              class="catalyst-close"
-              aria-label="Close"
-            >
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
-          <div class="controls-section">
-            <div class="search-box">
-              <i class="fas fa-search"></i>
-              <input
-                type="text"
-                id="searchInput"
-                placeholder="Search notes by title, teacher, or subject..."
-              />
-            </div>
-            <div class="filter-section" id="categoryFilters">
-              <button class="filter-btn active" data-category="all">
-                <i class="fas fa-th"></i> All
-              </button>
-              <div class="skeleton-btn" style="width: 80px"></div>
-              <div class="skeleton-btn" style="width: 100px"></div>
-            </div>
-            <!-- <div id="ad-slot-middle" class="ad-slot-container"></div> -->
-          </div>
-
-          <div class="stats-bar">
-            <span id="pdfCount">0</span> notes available
-          </div>
-
-          <div class="pdf-grid" id="pdfGrid"></div>
-
-          <div class="empty-state" id="emptyState" style="display: none">
-            <i class="fas fa-folder-open"></i>
-            <h3>No notes found</h3>
-            <p>Try adjusting your search or filter</p>
-          </div>
-        </div>
-      </main>
-
-      <div class="modal" id="pdfModal">
-        <div class="modal-content pdf-viewer-layout">
-          <div class="modal-main-content">
-            <button id="openCommentsBtn">
-              <i class="fas fa-comment-dots"></i> Comments
-            </button>
-            <div class="modal-header">
-              <h3 id="modalTitle">PDF Viewer</h3>
-              <div class="modal-actions">
-                <button class="btn-icon" id="modalShareBtn" title="Share PDF">
-                  <i class="fas fa-share-alt"></i>
-                </button>
-                <button
-                  class="btn-icon"
-                  id="reportBtn"
-                  title="Report Issue"
-                  style="color: var(--error-color)"
-                >
-                  <i class="fas fa-flag"></i>
-                </button>
-                <button class="btn-icon" id="downloadBtn" title="Download PDF">
-                  <i class="fas fa-download"></i>
-                </button>
-                <button class="btn-icon" id="closeModal" title="Close">
-                  <i class="fas fa-times"></i>
-                </button>
-              </div>
-            </div>
-            <div class="modal-body">
-              <iframe
-                id="pdfViewer"
-                src=""
-                width="100%"
-                height="100%"
-                loading="lazy"
-              ></iframe>
-            </div>
-          </div>
-          <div class="modal-sidebar" id="commentSidebar">
-            <h4>
-              <span>Comments (<span id="commentCount">0</span>)</span>
-              <button id="closeCommentsBtn" class="drawer-close" type="button">
-                <i class="fas fa-times"></i>
-              </button>
-            </h4>
-            <div class="comments-list" id="commentsList">
-              <!-- <div id="ad-slot-modal" class="ad-slot-container mb-4"></div> -->
-            </div>
-            <form class="comment-form" id="commentForm">
-              <textarea
-                id="commentInput"
-                placeholder="Add a comment... (Max 200 chars)"
-                maxlength="200"
-                required
-              ></textarea>
-              <input
-                type="text"
-                id="commentAuthor"
-                placeholder="Your Name (Optional)"
-                maxlength="50"
-              />
-              <button
-                type="submit"
-                class="btn btn-primary"
-                id="submitCommentBtn"
-              >
-                <i class="fas fa-paper-plane"></i> Send
-              </button>
-            </form>
-          </div>
-        </div>
+      <!-- CTAs -->
+      <div class="cta-row">
+        <a href="mailto:notes@alokdasofficial.in" class="btn btn-primary">Send Us a Message</a>
+        <a href="https://www.alokdasofficial.in" target="_blank" rel="noopener" class="btn btn-ghost">Visit the Developer</a>
       </div>
+    </main>
 
-      <div class="modal" id="shareModal">
-        <div class="modal-content share-modal">
-          <div class="modal-header">
-            <h3>Share this PDF</h3>
-            <button class="btn-icon" id="closeShareModal">
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
-          <div class="modal-body">
-            <p>Share this link with your classmates:</p>
-            <div class="share-link-container">
-              <input type="text" id="shareLink" readonly />
-              <button class="btn btn-primary" id="copyLinkBtn">
-                <i class="fas fa-clone"></i> Copy
-              </button>
-            </div>
-            <div class="share-success" id="shareSuccess" style="display: none">
-              <i class="fas fa-check"></i> Link copied to clipboard!
-            </div>
-          </div>
-        </div>
+    <!-- Footer -->
+    <footer>
+      <div class="footer-copy">
+        Developed &amp; maintained by&nbsp;
+        <a href="https://www.alokdasofficial.in" target="_blank" rel="noopener">Alok Das</a>
+        &nbsp;·&nbsp;
+        <a href="mailto:notes@alokdasofficial.in">notes@alokdasofficial.in</a>
       </div>
+      <div class="footer-right">ClassNotes &copy; 2026</div>
+    </footer>
 
-      <div class="alomole-promo" id="alomolePromo">
-        <button
-          class="promo-close-btn"
-          id="closeAlomolePromo"
-          title="Hide Promotion"
-        >
-          <i class="fas fa-times"></i>
-        </button>
-        <a
-          href="https://play.google.com/store/apps/details?id=com.alokdas.alomole"
-          target="_blank"
-          class="promo-link"
-          title="Download Alomole"
-        >
-          <img
-            src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https://play.google.com/store/apps/details?id=com.alokdas.alomole"
-            alt="QR"
-            loading="lazy"
-            width="100"
-            height="100"
-          />
-          <span class="promo-text">Alomole</span>
-          <span class="promo-text-body">Download Now!</span>
-        </a>
-      </div>
+  </div><!-- .page -->
 
-      <div class="toast" id="toast">
-        <i class="fas fa-check"></i>
-        <span id="toastMessage">Action completed!</span>
-      </div>
+  <script>
+    /* ── Animated floating note fragments ── */
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
 
-      <button
-        class="btn-icon go-to-top"
-        id="goToTopBtn"
-        title="Go to top"
-        aria-label="Top"
-      >
-        <i class="fas fa-arrow-up"></i>
-      </button>
-      <a
-        href="/upload/"
-        class="btn-icon upload-btn"
-        title="Upload Note's"
-        aria-label="Upload"
-        ><i class="fa-solid fa-cloud-arrow-up"></i
-      ></a>
+    function resize() {
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
 
-      <footer>
-        <div class="footer-content">
-          <p class="thanks-message">
-            ✨ Heartfelt thanks to all the amazing friends who shared their
-            notes 🙌
-          </p>
-          <p class="contact-info">
-            Found an issue? Email us at
-            <a href="mailto:notes@alokdasofficial.in"
-              >notes@alokdasofficial.in</a
-            >
-          </p>
-          <p class="credits">
-            Made with <span class="heart">❤️</span> by
-            <a href="https://alokdasofficial.in" target="_blank">Alok Das</a>
-          </p>
+    const AMBER  = 'rgba(200,148,74,';
+    const WHITE  = 'rgba(232,226,217,';
+    const COUNT  = 38;
 
-          <a
-            href="https://github.com/MrAlokTech/classnotes"
-            target="_blank"
-            class="github-link"
-            title="View Source Code"
-          >
-            <i class="fab fa-github"></i> Open Sourced on GitHub
-          </a>
-          <p class="copyright-text" id="copyright-year">
-            © 2025 ClassNotes. All rights reserved.
-          </p>
-          <p class="policy-links">
-            <a href="/upload/">Upload Note</a> |
-            <a href="/legal/privacy-policy.html">Privacy Policy</a> |
-            <a href="/legal/terms-of-use.html">Terms of Use</a> |
-            <a href="/legal/takedown-policy.html">Takedown Policy</a>
-          </p>
-        </div>
-      </footer>
-    </div>
-    <!-- FUN PRANK -->
-    <div id="prankOverlay" class="prank-overlay hidden">
-      <div class="prank-terminal">
-        <div id="prankText" class="prank-text">> INITIALIZING...</div>
-        <div class="prank-progress-bar">
-          <div id="prankProgress" class="prank-progress-fill"></div>
-        </div>
-        <button id="closePrankBtn" class="prank-close-btn hidden">
-          Okay, I'm Done 😭
-        </button>
-      </div>
-    </div>
+    class Particle {
+      constructor() { this.reset(true); }
 
-    <!-- MARKETING -->
-    <div id="emailModal" class="modal-overlay hidden">
-      <div class="modal-content email-modal">
-        <button class="modal-close" id="closeEmailModal" aria-label="Close">
-          ✕
-        </button>
+      reset(initial) {
+        this.x    = Math.random() * canvas.width;
+        this.y    = initial ? Math.random() * canvas.height : canvas.height + 20;
+        this.size = Math.random() * 1.6 + 0.3;
+        this.vy   = -(Math.random() * 0.3 + 0.12);
+        this.vx   = (Math.random() - 0.5) * 0.18;
+        this.alpha= Math.random() * 0.35 + 0.05;
+        this.color= Math.random() > 0.65 ? AMBER : WHITE;
+        this.pulse= Math.random() * Math.PI * 2;
+      }
 
-        <div class="modal-icon">🔔</div>
+      update() {
+        this.x    += this.vx;
+        this.y    += this.vy;
+        this.pulse+= 0.012;
+        this.alpha = (Math.sin(this.pulse) * 0.12 + 0.13);
+        if (this.y < -20) this.reset(false);
+      }
 
-        <h3 class="modal-title">Never Miss a Note</h3>
-        <p class="modal-subtitle">
-          Get instant email alerts whenever new semester notes are uploaded.
-        </p>
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = this.color + this.alpha.toFixed(2) + ')';
+        ctx.fill();
+      }
+    }
 
-        <form id="emailCaptureForm" class="email-form">
-          <input
-            type="email"
-            id="captureEmailInput"
-            placeholder="notes@alokdasofficial.in"
-            required
-          />
-          <button type="submit">Notify Me</button>
-        </form>
+    /* Grid lines — very faint ruled-paper feel */
+    function drawGrid() {
+      const spacing = 52;
+      ctx.strokeStyle = 'rgba(200,148,74,0.028)';
+      ctx.lineWidth   = 0.5;
+      for (let y = 0; y < canvas.height; y += spacing) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+      /* Single vertical margin line */
+      const mx = Math.min(72, canvas.width * 0.09);
+      ctx.strokeStyle = 'rgba(176,64,64,0.04)';
+      ctx.beginPath();
+      ctx.moveTo(mx, 0);
+      ctx.lineTo(mx, canvas.height);
+      ctx.stroke();
+    }
 
-        <p class="modal-footer">No spam • Unsubscribe anytime</p>
-      </div>
-    </div>
+    const particles = Array.from({ length: COUNT }, () => new Particle());
 
-    <script
-      src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"
-      defer
-    ></script>
-    <script
-      src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"
-      defer
-    ></script>
-    <script
-      src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"
-      defer
-    ></script>
+    function loop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawGrid();
+      particles.forEach(p => { p.update(); p.draw(); });
+      requestAnimationFrame(loop);
+    }
+    loop();
+  </script>
 
-    <script>
-      const firebaseConfig = {
-        apiKey: "AIzaSyAf9MEc8495GUwWHZsE4HcvJvbtptkBfQc",
-        authDomain: "alokdasofficial-69f96.firebaseapp.com",
-        projectId: "alokdasofficial",
-        storageBucket: "alokdasofficial.firebasestorage.app",
-        messagingSenderId: "315463239297",
-        appId: "1:315463239297:web:c374126286d9b33f3f2f80",
-        measurementId: "G-QPXHCK0R2E",
-      };
-    </script>
-
-    <script src="script.js" defer></script>
-  </body>
+</body>
 </html>
