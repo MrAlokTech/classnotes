@@ -145,6 +145,37 @@
   border-radius: 50%;
 }
 
+/* --- Ghost Animation Code --- */
+
+/* 1. Define the floating animation using keyframes */
+@keyframes float {
+  0% {
+    transform: translateY(0px); /* Starts at its original position */
+  }
+  50% {
+    transform: translateY(-8px); /* Moves up by 8 pixels halfway through */
+  }
+  100% {
+    transform: translateY(0px); /* Returns to the original position */
+  }
+}
+
+/* 2. Apply the animation to the ghost icon */
+.community-cta .fa-ghost {
+  /* Icons are 'inline' by default, which means they don't move well. 
+     'inline-block' allows the transform property to work properly. */
+  display: inline-block;
+
+  /* This runs the 'float' animation we made above.
+     It takes 3 seconds to complete one full cycle.
+     'ease-in-out' makes the movement smooth at the top and bottom.
+     'infinite' means it will loop forever. */
+  animation: float 3s ease-in-out infinite;
+
+  /* Adds a tiny bit of space between the text and the icon */
+  margin-left: 0.3rem;
+}
+
 /* Catalyst Card */
 .catalyst-card {
   background: linear-gradient(

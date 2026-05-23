@@ -590,6 +590,7 @@ footer a:hover {
   animation: slideIn 0.3s ease;
   border-left: 3px solid var(--success);
   font-size: 0.875rem;
+  line-height: 1.5;
 }
 .toast.error {
   border-left-color: var(--error);
@@ -605,6 +606,21 @@ footer a:hover {
   color: var(--error);
 }
 
+/* Toast Links */
+.toast a {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.toast a:hover {
+  opacity: 0.85;
+}
+
+/* Optional: Better visibility in dark mode */
+[data-theme="dark"] .toast a {
+  color: #8ab4ff;
+}
 @keyframes slideIn {
   from {
     transform: translateX(100%);
@@ -781,4 +797,227 @@ footer a:hover {
   background: var(--primary);
   color: white;
   box-shadow: 0 2px 5px rgba(37, 99, 235, 0.3);
+}
+
+/* =========================================
+   MY UPLOADS SECTION
+   ========================================= */
+.my-uploads-section {
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.my-uploads-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.my-uploads-header .section-title {
+  margin-bottom: 0;
+}
+
+.upload-count {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+/* --- Grid --- */
+.my-uploads-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+/* --- Individual Card --- */
+.upload-note-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.upload-note-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* --- Card Thumbnail --- */
+.note-card-thumb {
+  background: linear-gradient(
+    135deg,
+    rgba(37, 99, 235, 0.08),
+    rgba(37, 99, 235, 0.18)
+  );
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+  min-height: 110px;
+}
+
+.note-card-thumb i {
+  font-size: 2.25rem;
+  color: var(--primary);
+  opacity: 0.85;
+}
+
+.note-card-sem {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--primary);
+  background: rgba(37, 99, 235, 0.1);
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+/* --- Card Body --- */
+.note-card-body {
+  padding: 0.875rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.note-card-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-main);
+  font-family: "Poppins", sans-serif;
+  line-height: 1.3;
+  /* Clamp to 2 lines */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.note-card-meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+}
+
+.note-card-meta i {
+  width: 12px;
+  text-align: center;
+  opacity: 0.7;
+}
+
+.note-card-date {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: auto;
+  padding-top: 0.5rem;
+}
+
+/* --- Card Actions --- */
+.note-card-actions {
+  display: flex;
+  border-top: 1px solid var(--border-color);
+}
+
+.note-card-actions a,
+.note-card-actions button {
+  flex: 1;
+  padding: 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-family: "Inter", sans-serif;
+  text-decoration: none;
+}
+
+.note-card-view {
+  background: transparent;
+  color: var(--primary);
+}
+
+.note-card-view:hover {
+  background: rgba(37, 99, 235, 0.07);
+}
+
+.note-card-delete {
+  background: transparent;
+  color: var(--error);
+  border-left: 1px solid var(--border-color) !important;
+}
+
+.note-card-delete:hover {
+  background: rgba(220, 38, 38, 0.07);
+}
+
+/* --- Empty State --- */
+.no-uploads-msg {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 2.5rem 1rem;
+  font-size: 0.9rem;
+  line-height: 2;
+}
+
+.no-uploads-msg i {
+  font-size: 2rem;
+  opacity: 0.4;
+}
+
+/* --- Skeleton Cards --- */
+.upload-skeleton-card {
+  height: 220px;
+  border-radius: var(--radius);
+}
+
+/* --- Dark Mode Fixes --- */
+[data-theme="dark"] .note-card-thumb {
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.08),
+    rgba(59, 130, 246, 0.15)
+  );
+}
+
+/* --- Responsive --- */
+@media (max-width: 640px) {
+  .my-uploads-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .my-uploads-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .my-uploads-grid {
+    grid-template-columns: 1fr;
+  }
 }

@@ -25,6 +25,124 @@ async function initUploadClasses() {
     });
 }
 
+// ==========================================
+// MY UPLOADS — Fetch & Render
+// ==========================================
+async function loadMyUploads(userEmail) {
+    const grid = document.getElementById('myUploadsGrid');
+    const noMsg = document.getElementById('noUploadsMsg');
+    const countBadge = document.getElementById('uploadCount');
+
+    try {
+        const snapshot = await db.collection('pdfs')
+            .where('uploadedBy', '==', userEmail)
+            .orderBy('uploadDate', 'desc')
+            .get();
+
+        // Clear skeletons
+        grid.innerHTML = '';
+
+        if (snapshot.empty) {
+            noMsg.classList.remove('hidden');
+            countBadge.textContent = '0 notes';
+            return;
+        }
+
+        countBadge.textContent = `${snapshot.size} note${snapshot.size !== 1 ? 's' : ''}`;
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const card = buildNoteCard(doc.id, data);
+            grid.appendChild(card);
+        });
+
+    } catch (err) {
+        console.error('Failed to load uploads:', err);
+        grid.innerHTML = `<p style="color:var(--error);font-size:0.85rem;">
+      <i class="fas fa-exclamation-circle"></i> Could not load your uploads.
+    </p>`;
+    }
+}
+
+function buildNoteCard(docId, data) {
+    const card = document.createElement('div');
+    card.className = 'upload-note-card';
+    card.dataset.id = docId;
+
+    // Format date nicely
+    const rawDate = data.uploadDate || '';
+    let displayDate = '—';
+    if (rawDate) {
+        const d = new Date(rawDate);
+        displayDate = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    card.innerHTML = `
+    <div class="note-card-thumb">
+      <i class="fas fa-file-pdf"></i>
+      <span class="note-card-sem">Sem ${data.semester || '?'}</span>
+    </div>
+    <div class="note-card-body">
+      <p class="note-card-title">${data.title || 'Untitled'}</p>
+      <p class="note-card-meta">
+        <i class="fas fa-tag"></i> ${data.category || 'General'}
+      </p>
+      <p class="note-card-meta">
+        <i class="fas fa-graduation-cap"></i> ${data.class || '—'}
+      </p>
+      <p class="note-card-date">
+        <i class="fas fa-calendar-alt"></i> ${displayDate}
+      </p>
+    </div>
+    <div class="note-card-actions">
+      <a href="https://notes.alokdasofficial.in/?pdf=${docId}" target="_blank" class="note-card-view">
+        <i class="fas fa-eye"></i> View
+      </a>
+      <button class="note-card-delete" data-id="${docId}">
+        <i class="fas fa-trash-alt"></i> Delete
+      </button>
+    </div>
+  `;
+
+    // Delete handler
+    card.querySelector('.note-card-delete').addEventListener('click', () => {
+        deleteUpload(docId, card);
+    });
+
+    return card;
+}
+
+async function deleteUpload(docId, cardElement) {
+    const confirmed = confirm('Remove this note from ClassNotes? This cannot be undone.');
+    if (!confirmed) return;
+
+    try {
+        await db.collection('pdfs').doc(docId).delete();
+
+        // Animate out
+        cardElement.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        cardElement.style.opacity = '0';
+        cardElement.style.transform = 'scale(0.95)';
+
+        setTimeout(() => {
+            cardElement.remove();
+
+            // Update count
+            const remaining = document.querySelectorAll('.upload-note-card').length;
+            const badge = document.getElementById('uploadCount');
+            badge.textContent = `${remaining} note${remaining !== 1 ? 's' : ''}`;
+
+            if (remaining === 0) {
+                document.getElementById('noUploadsMsg').classList.remove('hidden');
+            }
+        }, 300);
+
+    } catch (err) {
+        alert('Failed to delete. Please try again.');
+        console.error(err);
+    }
+}
+
 // 2. Function to Update Categories based on Class
 function updateCategoryDropdown(selectedClass) {
     const categorySelect = document.getElementById('pdfCategory');
@@ -274,6 +392,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             if (UI.display.userName) UI.display.userName.textContent = displayName;
                             if (UI.display.userEmail) UI.display.userEmail.textContent = displayEmail;
                             switchSection('upload');
+                            loadMyUploads(user.email);
                         } else {
                             // --- PENDING SECTION ---
                             if (UI.display.pendingUserName) UI.display.pendingUserName.textContent = displayName;
@@ -307,7 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // 1. Validate Terms Checkbox
         const termsBox = document.getElementById('loginTerms');
         if (!termsBox.checked) {
-            showToast('Please agree to the Terms of Use to login.', 'error');
+            showToast(`Please read and agree to <a href="/legal/terms-of-use.html" target="_blank">Terms of Use</a> & <a href="/legal/privacy-policy.html" target="_blank">Privacy Policy</a>.`, 'error');
             return;
         }
 
@@ -334,7 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // 1. Validate Terms Checkbox
         const termsBox = document.getElementById('signUpTerms');
         if (!termsBox.checked) {
-            showToast('You must agree to the Terms & Privacy Policy.', 'error');
+            showToast(`Please read and agree to <a href="/legal/terms-of-use.html" target="_blank">Terms of Use</a> & <a href="/legal/privacy-policy.html" target="_blank">Privacy Policy</a>.`, 'error');
             return;
         }
 
@@ -382,7 +501,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // 1. Validation
         const termsCheckbox = document.getElementById('termsCheckbox');
         if (!termsCheckbox.checked) {
-            showToast('You must agree to the Terms of Use.', 'error');
+            showToast(`Please read and agree to <a href="/legal/terms-of-use.html" target="_blank">Terms of Use</a> & <a href="/legal/privacy-policy.html" target="_blank">Privacy Policy</a>.`, 'error');
             return;
         }
 
@@ -489,6 +608,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             localStorage.removeItem('classnotes_db_cache');
             showToast('Note uploaded successfully!');
+            loadMyUploads(auth.currentUser.email);
 
             // 7. Cleanup
             setTimeout(() => {

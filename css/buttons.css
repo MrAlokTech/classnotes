@@ -308,3 +308,217 @@
     background: var(--primary-color);
   }
 }
+
+/* =========================================
+   ACCOUNT WIDGET
+   ========================================= */
+.account-widget {
+  position: relative;
+  margin-left: 10px;
+}
+
+/* Shared base for both states */
+.account-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+  border: 1.5px solid var(--gray-200);
+  background: var(--background-color);
+  color: var(--gray-500);
+  text-decoration: none;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+.account-btn:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+/* Logged-in initials avatar */
+.account-avatar {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-family: "Inter", sans-serif;
+  letter-spacing: 0.02em;
+}
+
+.account-avatar:hover {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+  color: #fff;
+}
+
+/* --- Dropdown Panel --- */
+.account-dropdown {
+  position: fixed; /* ← change from absolute to fixed */
+  top: var(--header-height); /* sits just below the header */
+  right: 16px; /* distance from right edge */
+  width: 220px;
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-xl);
+  z-index: 999;
+  overflow: hidden;
+  animation: accountDropIn 0.18s ease;
+  transform-origin: top right;
+}
+
+@keyframes accountDropIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Header section: name + email */
+.account-dropdown-header {
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid var(--gray-200);
+  background: var(--gray-50);
+}
+
+.dropdown-name {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--gray-900);
+  margin: 0 0 0.15rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropdown-email {
+  font-size: 0.72rem;
+  color: var(--gray-500);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Action list */
+.account-dropdown-body {
+  padding: 0.375rem 0;
+}
+
+.dropdown-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.65rem 1rem;
+  font-size: 0.875rem;
+  color: var(--gray-800);
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: "Inter", sans-serif;
+  font-weight: 500;
+  transition: var(--transition);
+  text-align: left;
+}
+
+.dropdown-item:hover {
+  background: var(--gray-50);
+  color: var(--primary-color);
+}
+
+.dropdown-item i {
+  width: 16px;
+  text-align: center;
+  color: var(--gray-400);
+  font-size: 0.85rem;
+  transition: var(--transition);
+}
+
+.dropdown-item:hover i {
+  color: var(--primary-color);
+}
+
+/* Sign out gets a red treatment */
+.dropdown-signout {
+  color: var(--error-color) !important;
+  border-top: 1px solid var(--gray-200);
+  margin-top: 0.25rem;
+}
+
+.dropdown-signout i {
+  color: var(--error-color) !important;
+}
+
+.dropdown-signout:hover {
+  background: #fef2f2 !important;
+  color: var(--error-color) !important;
+}
+
+/* --- Dark Mode --- */
+[data-theme="dark"] .account-dropdown {
+  background: var(--white);
+  border-color: var(--gray-200);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .account-dropdown-header {
+  background: var(--gray-100);
+  border-color: var(--gray-200);
+}
+
+[data-theme="dark"] .dropdown-name {
+  color: var(--gray-900);
+}
+
+[data-theme="dark"] .dropdown-email {
+  color: var(--gray-400);
+}
+
+[data-theme="dark"] .dropdown-item {
+  color: var(--gray-700);
+}
+
+[data-theme="dark"] .dropdown-item:hover {
+  background: var(--gray-100);
+}
+
+[data-theme="dark"] .dropdown-signout:hover {
+  background: rgba(220, 38, 38, 0.15) !important;
+}
+
+/* --- Also update header-content to handle the new element --- */
+/* Your header is centered with theme-toggle absolutely positioned.
+   We keep that but make room for the widget next to the toggle. */
+.theme-toggle {
+  position: absolute;
+  right: 42px; /* Shift left to make room for account widget */
+}
+
+.account-widget {
+  position: absolute;
+  right: 0;
+}
+
+/* --- Mobile --- */
+@media (max-width: 480px) {
+  .account-dropdown {
+    width: 200px;
+    right: -4px;
+  }
+
+  .theme-toggle {
+    right: 46px;
+  }
+}

@@ -134,6 +134,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const authPromise = initAuth();
     initTheme();
     initSeasonalHeader();
+    initAccountWidget();
     initDailyCatalyst();
     updateSemesterTab();
     initMaintenanceListener();
@@ -194,7 +195,7 @@ function initAuth() {
             if (user) {
                 currentUserUID = user.uid;
                 updateUserMetadata();
-                
+
                 if (!user.isAnonymous) {
                     db.collection('users').doc(user.uid).get().then(doc => {
                         if (doc.exists && doc.data().isVerified === true) {
@@ -1906,6 +1907,95 @@ function checkEmailCapture() {
             button.innerText = "Notify Me";
         }
     };
+
+}
+
+/* =========================================
+   ACCOUNT WIDGET (Main Site Header)
+   ========================================= */
+function initAccountWidget() {
+    const guestBtn = document.getElementById('accountBtnGuest');
+    const userBtn = document.getElementById('accountBtnUser');
+    const dropdown = document.getElementById('accountDropdown');
+    const initials = document.getElementById('accountInitials');
+    const dropName = document.getElementById('dropdownName');
+    const dropEmail = document.getElementById('dropdownEmail');
+    const signOutBtn = document.getElementById('dropdownSignOut');
+
+    if (!guestBtn) return; // Safety check
+
+    // Toggle dropdown
+    // Replace the toggle click handler in initAccountWidget()
+    userBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+
+        const isHidden = dropdown.classList.contains('hidden');
+        dropdown.classList.toggle('hidden');
+
+        if (isHidden) {
+            // Position it dynamically below the avatar button
+            const rect = userBtn.getBoundingClientRect();
+            dropdown.style.top = (rect.bottom + 8) + 'px';
+            dropdown.style.right = (window.innerWidth - rect.right) + 'px';
+        }
+    });
+
+    // Close on outside click
+    document.addEventListener('click', () => {
+        if (dropdown) dropdown.classList.add('hidden');
+    });
+
+    // Sign out
+    signOutBtn.addEventListener('click', () => {
+        firebase.auth().signOut().then(() => {
+            dropdown.classList.add('hidden');
+            showToast('Signed out successfully');
+        });
+    });
+
+    firebase.auth().onAuthStateChanged(async (user) => {
+        const isRealUser = user && !user.isAnonymous;
+
+        if (isRealUser) {
+            guestBtn.classList.add('hidden');
+            userBtn.classList.remove('hidden');
+
+            let displayName = user.displayName || user.email.split('@')[0];
+
+            try {
+                const doc = await firebase.firestore()
+                    .collection('users')
+                    .doc(user.uid)
+                    .get();
+
+                if (doc.exists) {
+                    const data = doc.data();
+
+                    if (data.displayName) {
+                        displayName = data.displayName;
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to fetch user profile:', err);
+            }
+
+            // Build initials
+            const parts = displayName.trim().split(/\s+/);
+
+            const abbr = parts.length >= 2
+                ? (parts[0][0] + parts[1][0]).toUpperCase()
+                : displayName.slice(0, 2).toUpperCase();
+
+            initials.textContent = abbr;
+            dropName.textContent = displayName;
+            dropEmail.textContent = user.email || '';
+
+        } else {
+            guestBtn.classList.remove('hidden');
+            userBtn.classList.add('hidden');
+            dropdown.classList.add('hidden');
+        }
+    });
 }
 
 console.log('%c👋 Hello There!', 'font-size: 20px; color: #ffff00; font-weight: bold;');
