@@ -28,19 +28,42 @@
         class="container header-content"
         style="justify-content: space-between"
       >
-        <div class="logo">
+        <a href="/" class="logo" style="text-decoration: none">
           <i class="fas fa-graduation-cap"></i>
           <h1>ClassNotes</h1>
-        </div>
+        </a>
 
-        <button
-          id="themeToggleBtn"
-          class="btn btn-secondary"
-          style="width: auto; padding: 0.5rem"
-          title="Toggle Theme"
-        >
-          <i class="fas fa-moon"></i>
-        </button>
+        <div style="display: flex; gap: 0.5rem; align-items: center">
+          <a
+            href="/"
+            class="btn btn-secondary"
+            style="
+              width: auto;
+              padding: 0.5rem;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+            "
+            title="Go to Home"
+          >
+            <i class="fas fa-home"></i>
+          </a>
+
+          <button
+            id="themeToggleBtn"
+            class="btn btn-secondary"
+            style="
+              width: auto;
+              padding: 0.5rem;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+            "
+            title="Toggle Theme"
+          >
+            <i class="fas fa-moon"></i>
+          </button>
+        </div>
       </div>
     </header>
 
