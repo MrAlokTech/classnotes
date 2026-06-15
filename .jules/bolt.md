@@ -1,0 +1,3 @@
+## 2024-05-23 - Pre-indexing Derived Properties for Faster Filtering
+**Learning:** In vanilla JS applications with large lists, filtering performance can degrade significantly when searching involves concatenating strings or checking dates inline inside the filter callback (`pdfDatabase.filter()`). For example, doing `.toLowerCase().includes()` on multiple fields per item.
+**Action:** Pre-calculate a `_searchStr` (and other derived properties like `_isNew` and `_formattedDate`) during the initial data load (`loadPDFDatabase`) exactly once. Use this pre-calculated string inside the filter/render loop for O(1) property access and faster substring searching. Add early returns to skip further checks if a condition fails.
