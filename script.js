@@ -422,6 +422,49 @@ window.changeSemester = function (sem) {
     renderPDFs();
 };
 
+function prepareSearchIndex() {
+    const today = new Date();
+    const oneWeek = 7 * 24 * 60 * 60 * 1000;
+
+    // Category Icons Map
+    const categoryIcons = {
+        'Organic': 'fa-flask',
+        'Inorganic': 'fa-atom',
+        'Physical': 'fa-calculator',
+        'Physics': 'fa-infinity',
+        'Math': 'fa-square-root-alt',
+        'Biology': 'fa-dna',
+        'History': 'fa-landmark',
+        'General': 'fa-globe',
+        'Syllabus': 'fa-list-alt'
+    };
+
+    pdfDatabase.forEach(pdf => {
+        // 1. Search String (Lowercased for case-insensitive search)
+        pdf._searchStr = (
+            (pdf.title || '') + ' ' +
+            (pdf.description || '') + ' ' +
+            (pdf.category || '') + ' ' +
+            (pdf.author || '')
+        ).toLowerCase();
+
+        // 2. Date Formatting & New Badge
+        if (pdf.uploadDate) {
+            const dateObj = new Date(pdf.uploadDate);
+            pdf._formattedDate = dateObj.toLocaleDateString('en-US', {
+                year: 'numeric', month: 'short', day: 'numeric'
+            });
+            pdf._isNew = (today - dateObj) < oneWeek && (today - dateObj) >= 0;
+        } else {
+             pdf._formattedDate = '';
+             pdf._isNew = false;
+        }
+
+        // 3. Category Icon
+        pdf._icon = categoryIcons[pdf.category] || 'fa-file-pdf';
+    });
+}
+
 async function syncClassSwitcher() {
     const classSelect = document.getElementById('classSelect');
     if (!classSelect) return;
@@ -491,6 +534,8 @@ async function loadPDFDatabase() {
 
         if (shouldUseCache) {
             pdfDatabase = cachedData;
+            // Optim: Prepare Search Index
+            prepareSearchIndex();
             // --- FIX: CALL THIS TO POPULATE UI ---
             syncClassSwitcher();
             renderSemesterTabs();
@@ -513,6 +558,9 @@ async function loadPDFDatabase() {
             timestamp: new Date().getTime(),
             data: pdfDatabase
         }));
+
+        // Optim: Prepare Search Index
+        prepareSearchIndex();
 
         // --- FIX: CALL THIS TO POPULATE UI ---
         syncClassSwitcher();
@@ -835,7 +883,17 @@ function getEmbeddableUrl(url) {
     return `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(url)}`;
 }
 
-async function viewPDF(pdf, pushToHistory = true) {
+async function viewPDF(pdfOrId, pushToHistory = true) {
+    let pdf = pdfOrId;
+    if (typeof pdfOrId === 'string') {
+        pdf = pdfDatabase.find(p => p.id === pdfOrId);
+    }
+
+    if (!pdf) {
+        showToast('PDF not found.', 'error');
+        return;
+    }
+
     const originalPdfPath = pdf.pdfUrl;
     logInteraction('view_pdf', pdf.title, pdf.id);
 
@@ -962,10 +1020,7 @@ function renderPDFs() {
             matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
         }
 
-        const matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
-            pdf.description.toLowerCase().includes(searchTerm) ||
-            pdf.category.toLowerCase().includes(searchTerm) ||
-            pdf.author.toLowerCase().includes(searchTerm);
+        const matchesSearch = (pdf._searchStr || "").includes(searchTerm);
 
         // Update return statement to include matchesClass
         return matchesSemester && matchesClass && matchesCategory && matchesSearch;
@@ -1038,26 +1093,14 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
     const heartIconClass = isFav ? 'fas' : 'far';
     const btnActiveClass = isFav ? 'active' : '';
 
-    const uploadDateObj = new Date(pdf.uploadDate);
-    const timeDiff = new Date() - uploadDateObj;
-    const isNew = timeDiff < (7 * 24 * 60 * 60 * 1000); // 7 days
+    const isNew = pdf._isNew;
 
     const newBadgeHTML = isNew
         ? `<span style="background:var(--error-color); color:white; font-size:0.6rem; padding:2px 6px; border-radius:4px; margin-left:8px; vertical-align:middle;">NEW</span>`
         : '';
 
-    const categoryIcons = {
-        'Organic': 'fa-flask',
-        'Inorganic': 'fa-atom',
-        'Physical': 'fa-calculator',
-        'Physics': 'fa-infinity' // Ensure Physics icon is mapped if used
-    };
-    const categoryIcon = categoryIcons[pdf.category] || 'fa-file-pdf';
-
-    // Formatting Date
-    const formattedDate = new Date(pdf.uploadDate).toLocaleDateString('en-US', {
-        year: 'numeric', month: 'short', day: 'numeric'
-    });
+    const categoryIcon = pdf._icon || 'fa-file-pdf';
+    const formattedDate = pdf._formattedDate || '';
 
     // Uses global escapeHtml() now
 
@@ -1066,8 +1109,6 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
         if (!highlightRegex) return safeText;
         return safeText.replace(highlightRegex, '<span class="highlight">$1</span>');
     };
-
-    const safePdfString = JSON.stringify(pdf).replace(/"/g, '&quot;');
 
     // --- NEW: Calculate Stagger Delay ---
     // Cap at 1s (20 items) so the list doesn't feel unresponsive
@@ -1084,7 +1125,7 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
             </div>
             <p class="pdf-description">${highlightText(pdf.description)}</p>
             <div class="pdf-actions">
-                <button class="btn btn-primary" onclick="viewPDF(${safePdfString})">
+                <button class="btn btn-primary" data-id="${escapeHtml(pdf.id)}" onclick="viewPDF(this.dataset.id)">
                     <i class="fas fa-eye"></i> View
                 </button>
                 <button class="btn btn-favorite ${btnActiveClass}" onclick="toggleFavorite(event, '${pdf.id}')" title="Save Note">
