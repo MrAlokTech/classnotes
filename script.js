@@ -453,6 +453,53 @@ async function syncClassSwitcher() {
     renderSemesterTabs();
 }
 
+/* =========================================
+   HELPER: PRE-COMPUTE SEARCH INDEX & DATES
+   ========================================= */
+function prepareSearchIndex() {
+    const now = new Date();
+    const oneWeek = 7 * 24 * 60 * 60 * 1000;
+
+    pdfDatabase.forEach(pdf => {
+        // 1. Search String (Lowercased)
+        const searchStr = (
+            (pdf.title || '') + ' ' +
+            (pdf.description || '') + ' ' +
+            (pdf.category || '') + ' ' +
+            (pdf.author || '')
+        ).toLowerCase();
+
+        // 2. Date Handling
+        let dateObj;
+        // Handle Firestore Timestamp if needed
+        if (pdf.uploadDate && typeof pdf.uploadDate.toDate === 'function') {
+            dateObj = pdf.uploadDate.toDate();
+        } else {
+            dateObj = new Date(pdf.uploadDate);
+        }
+
+        // Fallback for invalid dates
+        if (isNaN(dateObj.getTime())) {
+            dateObj = new Date();
+        }
+
+        const formattedDate = dateObj.toLocaleDateString('en-US', {
+            year: 'numeric', month: 'short', day: 'numeric'
+        });
+
+        // 3. Is New?
+        const isNew = (now - dateObj) < oneWeek;
+
+        // 4. Attach as Non-Enumerable Properties
+        // (So they don't get saved to localStorage)
+        Object.defineProperties(pdf, {
+            '_searchStr': { value: searchStr, writable: true, enumerable: false },
+            '_formattedDate': { value: formattedDate, writable: true, enumerable: false },
+            '_isNew': { value: isNew, writable: true, enumerable: false }
+        });
+    });
+}
+
 async function loadPDFDatabase() {
     if (isMaintenanceActive) return;
 
@@ -491,6 +538,7 @@ async function loadPDFDatabase() {
 
         if (shouldUseCache) {
             pdfDatabase = cachedData;
+            prepareSearchIndex();
             // --- FIX: CALL THIS TO POPULATE UI ---
             syncClassSwitcher();
             renderSemesterTabs();
@@ -508,6 +556,8 @@ async function loadPDFDatabase() {
         snapshot.forEach(doc => {
             pdfDatabase.push({ id: doc.id, ...doc.data() });
         });
+
+        prepareSearchIndex();
 
         localStorage.setItem(CACHE_KEY, JSON.stringify({
             timestamp: new Date().getTime(),
@@ -835,7 +885,17 @@ function getEmbeddableUrl(url) {
     return `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(url)}`;
 }
 
-async function viewPDF(pdf, pushToHistory = true) {
+async function viewPDF(pdfOrId, pushToHistory = true) {
+    let pdf = pdfOrId;
+    if (typeof pdfOrId === 'string') {
+        pdf = pdfDatabase.find(p => p.id === pdfOrId);
+    }
+
+    if (!pdf) {
+        showToast('PDF not found.', 'error');
+        return;
+    }
+
     const originalPdfPath = pdf.pdfUrl;
     logInteraction('view_pdf', pdf.title, pdf.id);
 
@@ -962,10 +1022,8 @@ function renderPDFs() {
             matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
         }
 
-        const matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
-            pdf.description.toLowerCase().includes(searchTerm) ||
-            pdf.category.toLowerCase().includes(searchTerm) ||
-            pdf.author.toLowerCase().includes(searchTerm);
+        // Optimized Search
+        const matchesSearch = (pdf._searchStr || '').includes(searchTerm);
 
         // Update return statement to include matchesClass
         return matchesSemester && matchesClass && matchesCategory && matchesSearch;
@@ -1038,9 +1096,8 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
     const heartIconClass = isFav ? 'fas' : 'far';
     const btnActiveClass = isFav ? 'active' : '';
 
-    const uploadDateObj = new Date(pdf.uploadDate);
-    const timeDiff = new Date() - uploadDateObj;
-    const isNew = timeDiff < (7 * 24 * 60 * 60 * 1000); // 7 days
+    // Optimized: Use pre-computed properties
+    const isNew = pdf._isNew;
 
     const newBadgeHTML = isNew
         ? `<span style="background:var(--error-color); color:white; font-size:0.6rem; padding:2px 6px; border-radius:4px; margin-left:8px; vertical-align:middle;">NEW</span>`
@@ -1054,10 +1111,8 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
     };
     const categoryIcon = categoryIcons[pdf.category] || 'fa-file-pdf';
 
-    // Formatting Date
-    const formattedDate = new Date(pdf.uploadDate).toLocaleDateString('en-US', {
-        year: 'numeric', month: 'short', day: 'numeric'
-    });
+    // Formatting Date (Optimized)
+    const formattedDate = pdf._formattedDate;
 
     // Uses global escapeHtml() now
 
@@ -1067,7 +1122,7 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
         return safeText.replace(highlightRegex, '<span class="highlight">$1</span>');
     };
 
-    const safePdfString = JSON.stringify(pdf).replace(/"/g, '&quot;');
+    // const safePdfString = JSON.stringify(pdf).replace(/"/g, '&quot;'); // Removed for performance
 
     // --- NEW: Calculate Stagger Delay ---
     // Cap at 1s (20 items) so the list doesn't feel unresponsive
@@ -1084,7 +1139,7 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
             </div>
             <p class="pdf-description">${highlightText(pdf.description)}</p>
             <div class="pdf-actions">
-                <button class="btn btn-primary" onclick="viewPDF(${safePdfString})">
+                <button class="btn btn-primary" onclick="viewPDF('${pdf.id}')">
                     <i class="fas fa-eye"></i> View
                 </button>
                 <button class="btn btn-favorite ${btnActiveClass}" onclick="toggleFavorite(event, '${pdf.id}')" title="Save Note">
