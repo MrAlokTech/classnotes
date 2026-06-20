@@ -1,0 +1,3 @@
+## 2026-04-02 - List Rendering & Filtering Bottleneck
+**Learning:** Calling `new Date()` and `toLocaleDateString()` synchronously inside high-frequency render loops (`createPDFCard`), combined with repetitive string concatenation and `.toLowerCase()` on multiple fields per item in filter loops (`renderPDFs`), causes severe UI thread blocking and jank when filtering large lists.
+**Action:** Always calculate and attach derived runtime properties (like `_searchStr`, `_isNew`, `_formattedDate`) during the initial data load or fetch phase (`prepareSearchIndex`), instead of calculating them on-the-fly during per-render operations.

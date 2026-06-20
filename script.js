@@ -375,6 +375,39 @@ function getAdData(slotName) {
 /* =========================================
    5. DATA LOADING WITH CACHING
    ========================================= */
+
+// ⚡ BOLT OPTIMIZATION: Pre-calculate expensive derived properties during data load.
+// By avoiding inline calculations of new Date(), toLocaleDateString(), string concatenation,
+// and toLowerCase() inside the high-frequency renderPDFs() and createPDFCard() loops,
+// this optimization prevents main-thread blocking and UI jank during list filtering.
+function prepareSearchIndex(data) {
+    if (!Array.isArray(data)) return;
+    const now = new Date();
+    data.forEach(pdf => {
+        const t = pdf.title || '';
+        const d = pdf.description || '';
+        const c = pdf.category || '';
+        const a = pdf.author || '';
+        // Pre-calculate lowercased search string for faster O(1) property lookup during filtering
+        pdf._searchStr = `${t} ${d} ${c} ${a}`.toLowerCase();
+
+        let uploadDateObj;
+        if (pdf.uploadDate && typeof pdf.uploadDate.toDate === 'function') {
+            uploadDateObj = pdf.uploadDate.toDate();
+        } else {
+            uploadDateObj = new Date(pdf.uploadDate);
+        }
+
+        const timeDiff = now - uploadDateObj;
+        pdf._isNew = timeDiff < (7 * 24 * 60 * 60 * 1000);
+
+        // Pre-format date to avoid repetitive Date object instantiations during card render loop
+        pdf._formattedDate = uploadDateObj.toLocaleDateString('en-US', {
+            year: 'numeric', month: 'short', day: 'numeric'
+        });
+    });
+}
+
 function renderSemesterTabs() {
     const container = document.getElementById('semesterTabsContainer');
     if (!container) return;
@@ -491,6 +524,7 @@ async function loadPDFDatabase() {
 
         if (shouldUseCache) {
             pdfDatabase = cachedData;
+            prepareSearchIndex(pdfDatabase);
             // --- FIX: CALL THIS TO POPULATE UI ---
             syncClassSwitcher();
             renderSemesterTabs();
@@ -513,6 +547,8 @@ async function loadPDFDatabase() {
             timestamp: new Date().getTime(),
             data: pdfDatabase
         }));
+
+        prepareSearchIndex(pdfDatabase);
 
         // --- FIX: CALL THIS TO POPULATE UI ---
         syncClassSwitcher();
@@ -962,10 +998,10 @@ function renderPDFs() {
             matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
         }
 
-        const matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
-            pdf.description.toLowerCase().includes(searchTerm) ||
-            pdf.category.toLowerCase().includes(searchTerm) ||
-            pdf.author.toLowerCase().includes(searchTerm);
+        let matchesSearch = false;
+        if (pdf._searchStr) {
+            matchesSearch = pdf._searchStr.includes(searchTerm);
+        }
 
         // Update return statement to include matchesClass
         return matchesSemester && matchesClass && matchesCategory && matchesSearch;
@@ -1038,9 +1074,7 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
     const heartIconClass = isFav ? 'fas' : 'far';
     const btnActiveClass = isFav ? 'active' : '';
 
-    const uploadDateObj = new Date(pdf.uploadDate);
-    const timeDiff = new Date() - uploadDateObj;
-    const isNew = timeDiff < (7 * 24 * 60 * 60 * 1000); // 7 days
+    const isNew = pdf._isNew || false;
 
     const newBadgeHTML = isNew
         ? `<span style="background:var(--error-color); color:white; font-size:0.6rem; padding:2px 6px; border-radius:4px; margin-left:8px; vertical-align:middle;">NEW</span>`
@@ -1055,9 +1089,7 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
     const categoryIcon = categoryIcons[pdf.category] || 'fa-file-pdf';
 
     // Formatting Date
-    const formattedDate = new Date(pdf.uploadDate).toLocaleDateString('en-US', {
-        year: 'numeric', month: 'short', day: 'numeric'
-    });
+    const formattedDate = pdf._formattedDate || '';
 
     // Uses global escapeHtml() now
 
