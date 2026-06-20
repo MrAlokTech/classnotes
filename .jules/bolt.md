@@ -1,0 +1,3 @@
+## 2024-03-07 - [renderPDFs Filter Optimization]
+**Learning:** In client-side filtering (like in Single Page Apps filtering large arrays without a framework), the order of conditions in array.filter matters heavily. String operations (.toLowerCase(), .includes()) are extremely expensive compared to basic equality checks (===) on primitive values. Concatenating strings over and over is also costly.
+**Action:** Always place cheap strict equality checks first as early returns to prune the dataset before performing expensive string searching. Additionally, calculate and cache compound search strings on the objects lazily so they are only computed once per item, enabling rapid single-pass matching for subsequent searches.
