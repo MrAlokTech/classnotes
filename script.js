@@ -422,6 +422,35 @@ window.changeSemester = function (sem) {
     renderPDFs();
 };
 
+function prepareSearchIndex(pdfs) {
+    const now = new Date();
+    const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+
+    pdfs.forEach(pdf => {
+        // Handle Firestore Timestamps and strings
+        let uploadDateObj;
+        if (pdf.uploadDate && typeof pdf.uploadDate.toDate === 'function') {
+            uploadDateObj = pdf.uploadDate.toDate();
+        } else {
+            uploadDateObj = new Date(pdf.uploadDate);
+        }
+
+        const title = (pdf.title || '').toLowerCase();
+        const desc = (pdf.description || '').toLowerCase();
+        const cat = (pdf.category || '').toLowerCase();
+        const author = (pdf.author || '').toLowerCase();
+
+        pdf._searchStr = `${title} ${desc} ${cat} ${author}`;
+
+        pdf._formattedDate = uploadDateObj.toLocaleDateString('en-US', {
+            year: 'numeric', month: 'short', day: 'numeric'
+        });
+
+        const timeDiff = now - uploadDateObj;
+        pdf._isNew = timeDiff < sevenDaysMs;
+    });
+}
+
 async function syncClassSwitcher() {
     const classSelect = document.getElementById('classSelect');
     if (!classSelect) return;
@@ -491,6 +520,7 @@ async function loadPDFDatabase() {
 
         if (shouldUseCache) {
             pdfDatabase = cachedData;
+            prepareSearchIndex(pdfDatabase);
             // --- FIX: CALL THIS TO POPULATE UI ---
             syncClassSwitcher();
             renderSemesterTabs();
@@ -513,6 +543,8 @@ async function loadPDFDatabase() {
             timestamp: new Date().getTime(),
             data: pdfDatabase
         }));
+
+        prepareSearchIndex(pdfDatabase);
 
         // --- FIX: CALL THIS TO POPULATE UI ---
         syncClassSwitcher();
@@ -949,11 +981,9 @@ function renderPDFs() {
 
     // Locate renderPDFs() in script.js and update the filter section
     const filteredPdfs = pdfDatabase.filter(pdf => {
-        const matchesSemester = pdf.semester === currentSemester;
-
-        // NEW: Check if the PDF class matches the UI's current class selection
-        // Note: If old documents don't have this field, they will be hidden.
-        const matchesClass = pdf.class === currentClass;
+        // Early return for cheap class and semester checks
+        if (pdf.class !== currentClass) return false;
+        if (pdf.semester !== currentSemester) return false;
 
         let matchesCategory = false;
         if (currentCategory === 'favorites') {
@@ -962,13 +992,13 @@ function renderPDFs() {
             matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
         }
 
-        const matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
-            pdf.description.toLowerCase().includes(searchTerm) ||
-            pdf.category.toLowerCase().includes(searchTerm) ||
-            pdf.author.toLowerCase().includes(searchTerm);
+        if (!matchesCategory) return false;
+
+        // Use pre-calculated search string
+        const matchesSearch = searchTerm ? pdf._searchStr.includes(searchTerm) : true;
 
         // Update return statement to include matchesClass
-        return matchesSemester && matchesClass && matchesCategory && matchesSearch;
+        return matchesSearch;
     });
 
     updatePDFCount(filteredPdfs.length);
@@ -1038,11 +1068,7 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
     const heartIconClass = isFav ? 'fas' : 'far';
     const btnActiveClass = isFav ? 'active' : '';
 
-    const uploadDateObj = new Date(pdf.uploadDate);
-    const timeDiff = new Date() - uploadDateObj;
-    const isNew = timeDiff < (7 * 24 * 60 * 60 * 1000); // 7 days
-
-    const newBadgeHTML = isNew
+    const newBadgeHTML = pdf._isNew
         ? `<span style="background:var(--error-color); color:white; font-size:0.6rem; padding:2px 6px; border-radius:4px; margin-left:8px; vertical-align:middle;">NEW</span>`
         : '';
 
@@ -1054,10 +1080,7 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
     };
     const categoryIcon = categoryIcons[pdf.category] || 'fa-file-pdf';
 
-    // Formatting Date
-    const formattedDate = new Date(pdf.uploadDate).toLocaleDateString('en-US', {
-        year: 'numeric', month: 'short', day: 'numeric'
-    });
+    const formattedDate = pdf._formattedDate || new Date().toLocaleDateString('en-US'); // Fallback just in case
 
     // Uses global escapeHtml() now
 
