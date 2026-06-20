@@ -1,0 +1,3 @@
+## 2026-03-18 - Caching Search Index and Optimizing Loops
+**Learning:** Pre-calculating derived fields (like lowercased search strings, `isNew`, `formattedDate`) on initial list load dramatically improves the performance of frequent operations like searching/filtering by avoiding redundant calculations on every render. Also, grouping boolean variables (`a && b && c`) in array filters is less efficient than explicit early returns (`if (!a) return false;`), which bypasses further evaluations immediately when a basic condition fails.
+**Action:** When working with large lists or frequent render cycles, always identify expensive string/date operations that can be moved upstream (to data load/init time) and favor explicit early returns for cheap equality checks.
