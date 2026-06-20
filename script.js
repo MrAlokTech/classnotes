@@ -422,6 +422,23 @@ window.changeSemester = function (sem) {
     renderPDFs();
 };
 
+function prepareSearchIndex(data) {
+    data.forEach(pdf => {
+        const searchStr = (
+            (pdf.title || '') + ' ' +
+            (pdf.description || '') + ' ' +
+            (pdf.category || '') + ' ' +
+            (pdf.author || '')
+        ).toLowerCase();
+
+        Object.defineProperty(pdf, '_searchStr', {
+            value: searchStr,
+            enumerable: false, // Ensures it's not saved to localStorage
+            writable: true
+        });
+    });
+}
+
 async function syncClassSwitcher() {
     const classSelect = document.getElementById('classSelect');
     if (!classSelect) return;
@@ -491,6 +508,7 @@ async function loadPDFDatabase() {
 
         if (shouldUseCache) {
             pdfDatabase = cachedData;
+            prepareSearchIndex(pdfDatabase); // Optimize search
             // --- FIX: CALL THIS TO POPULATE UI ---
             syncClassSwitcher();
             renderSemesterTabs();
@@ -508,6 +526,8 @@ async function loadPDFDatabase() {
         snapshot.forEach(doc => {
             pdfDatabase.push({ id: doc.id, ...doc.data() });
         });
+
+        prepareSearchIndex(pdfDatabase); // Optimize search
 
         localStorage.setItem(CACHE_KEY, JSON.stringify({
             timestamp: new Date().getTime(),
@@ -949,26 +969,29 @@ function renderPDFs() {
 
     // Locate renderPDFs() in script.js and update the filter section
     const filteredPdfs = pdfDatabase.filter(pdf => {
-        const matchesSemester = pdf.semester === currentSemester;
+        // Fast checks first (Short-circuiting)
+        if (pdf.class !== currentClass) return false;
+        if (pdf.semester !== currentSemester) return false;
 
-        // NEW: Check if the PDF class matches the UI's current class selection
-        // Note: If old documents don't have this field, they will be hidden.
-        const matchesClass = pdf.class === currentClass;
-
-        let matchesCategory = false;
+        // Category check
         if (currentCategory === 'favorites') {
-            matchesCategory = favorites.includes(pdf.id);
-        } else {
-            matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
+            if (!favorites.includes(pdf.id)) return false;
+        } else if (currentCategory !== 'all') {
+            if (pdf.category !== currentCategory) return false;
         }
 
-        const matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
-            pdf.description.toLowerCase().includes(searchTerm) ||
-            pdf.category.toLowerCase().includes(searchTerm) ||
-            pdf.author.toLowerCase().includes(searchTerm);
+        // Search check (most expensive) - uses pre-calculated index
+        if (searchTerm) {
+            if (pdf._searchStr) {
+                if (!pdf._searchStr.includes(searchTerm)) return false;
+            } else {
+                // Fallback for safety
+                const fallbackStr = ((pdf.title || '') + ' ' + (pdf.description || '') + ' ' + (pdf.category || '') + ' ' + (pdf.author || '')).toLowerCase();
+                if (!fallbackStr.includes(searchTerm)) return false;
+            }
+        }
 
-        // Update return statement to include matchesClass
-        return matchesSemester && matchesClass && matchesCategory && matchesSearch;
+        return true;
     });
 
     updatePDFCount(filteredPdfs.length);
