@@ -1,0 +1,3 @@
+## 2024-05-24 - Pre-calculate Derived Properties
+**Learning:** In `script.js`, filtering lists repeatedly (e.g., `renderPDFs` on each keystroke) can be expensive if we perform lowercasing, date parsing, and regex testing on the fly for every document. We can optimize this by doing an upfront calculation step `prepareSearchIndex` right after loading the database to append derived properties (`_searchStr`, `_isNew`, `_formattedDate`) directly to the documents.
+**Action:** When filtering objects, if you see properties being derived dynamically using methods like `String.toLowerCase()` or `Date.toLocaleDateString()` inside loops, precalculate them beforehand when the data is initialized.
