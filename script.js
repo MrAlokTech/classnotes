@@ -12,6 +12,7 @@ let searchTimeout;
 let adDatabase = {};
 let isModalHistoryPushed = false;
 let db; // Defined globally, initialized later
+let favoritesCache = null; // Cache for favorites
 
 let isGlobalMaintenance = false;
 let isUserVerified = false;
@@ -1363,8 +1364,13 @@ async function handleCommentSubmit(e) {
    10. EXTRAS (THEME, FAVORITES, EASTER EGGS)
    ========================================= */
 function getFavorites() {
+    // ⚡ Bolt: Use a global cache (favoritesCache) to avoid synchronous localStorage.getItem and JSON.parse on every call during high-frequency render loops (e.g. renderPDFs inside search inputs)
+    if (favoritesCache !== null) {
+        return favoritesCache;
+    }
     const stored = localStorage.getItem('classNotesFavorites');
-    return stored ? JSON.parse(stored) : [];
+    favoritesCache = stored ? JSON.parse(stored) : [];
+    return favoritesCache;
 }
 
 function toggleFavorite(event, pdfId) {
@@ -1383,6 +1389,8 @@ function toggleFavorite(event, pdfId) {
         favorites.push(pdfId);
         showToast('Added to saved notes');
     }
+    // ⚡ Bolt: Update the cache alongside localStorage to ensure the cache stays in sync
+    favoritesCache = favorites;
     localStorage.setItem('classNotesFavorites', JSON.stringify(favorites));
     renderPDFs();
 }
