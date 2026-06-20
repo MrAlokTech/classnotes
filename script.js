@@ -422,6 +422,18 @@ window.changeSemester = function (sem) {
     renderPDFs();
 };
 
+function prepareSearchIndex() {
+    // ⚡ Bolt: Optimize search by pre-calculating the search string.
+    // This avoids repeatedly calling toLowerCase() during search input events.
+    pdfDatabase.forEach(pdf => {
+        const t = pdf.title || '';
+        const d = pdf.description || '';
+        const c = pdf.category || '';
+        const a = pdf.author || '';
+        pdf._searchStr = (t + ' ' + d + ' ' + c + ' ' + a).toLowerCase();
+    });
+}
+
 async function syncClassSwitcher() {
     const classSelect = document.getElementById('classSelect');
     if (!classSelect) return;
@@ -491,6 +503,7 @@ async function loadPDFDatabase() {
 
         if (shouldUseCache) {
             pdfDatabase = cachedData;
+            prepareSearchIndex();
             // --- FIX: CALL THIS TO POPULATE UI ---
             syncClassSwitcher();
             renderSemesterTabs();
@@ -513,6 +526,8 @@ async function loadPDFDatabase() {
             timestamp: new Date().getTime(),
             data: pdfDatabase
         }));
+
+        prepareSearchIndex();
 
         // --- FIX: CALL THIS TO POPULATE UI ---
         syncClassSwitcher();
@@ -921,9 +936,17 @@ function showSkeletons() {
     grid.innerHTML = skeletonHTML;
 }
 
+const HTML_ESCAPE_MAP = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+};
+
 const escapeHtml = (text) => {
     if (!text) return '';
-    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    return text.replace(/[&<>"']/g, (m) => HTML_ESCAPE_MAP[m]);
 };
 
 function renderPDFs() {
@@ -962,10 +985,13 @@ function renderPDFs() {
             matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
         }
 
-        const matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
-            pdf.description.toLowerCase().includes(searchTerm) ||
-            pdf.category.toLowerCase().includes(searchTerm) ||
-            pdf.author.toLowerCase().includes(searchTerm);
+        // ⚡ Bolt: Use pre-calculated search string for performance
+        const matchesSearch = pdf._searchStr
+            ? pdf._searchStr.includes(searchTerm)
+            : (pdf.title || '').toLowerCase().includes(searchTerm) ||
+              (pdf.description || '').toLowerCase().includes(searchTerm) ||
+              (pdf.category || '').toLowerCase().includes(searchTerm) ||
+              (pdf.author || '').toLowerCase().includes(searchTerm);
 
         // Update return statement to include matchesClass
         return matchesSemester && matchesClass && matchesCategory && matchesSearch;
