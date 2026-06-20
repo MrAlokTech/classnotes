@@ -1,0 +1,3 @@
+## 2024-05-18 - [Optimize render loop by pre-calculating expensive values]
+**Learning:** Repetitive Date parsing (e.g., `new Date()`) and string concatenations for search filtering inside high-frequency render loops (like `renderPDFs` and `createPDFCard`) significantly block the main thread and impact frontend performance. Firestore Timestamp objects add an extra layer of complexity as they must be parsed differently (`.toDate()`) than cached JSON string dates.
+**Action:** Implement a `prepareSearchIndex` step that runs immediately after data load to pre-calculate these expensive values (`_searchStr`, `_formattedDate`, `_isNew`) onto the `pdfDatabase` objects. This dramatically speeds up subsequent array filtering and DOM generation.
