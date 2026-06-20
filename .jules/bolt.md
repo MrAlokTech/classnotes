@@ -1,0 +1,3 @@
+## 2025-02-17 - [Pre-Calculate Expensive Fields for Search/Filter]
+**Learning:** Performing multiple Date instantiation, toLowerCase conversions, and string formatting inside high-frequency UI render loops like `renderPDFs` creates significant CPU overhead, especially as the size of `pdfDatabase` grows.
+**Action:** Always map the dataset once during the initial data load (`loadPDFDatabase`) to pre-calculate and cache expensive derived strings/flags on the objects (e.g. `_searchStr`, `_formattedDate`, `_isNew`), then use simple accessors and fast equality checks in the filter array callbacks. Add these properties AFTER the raw JSON payload is cached to localStorage to prevent cache bloat.
