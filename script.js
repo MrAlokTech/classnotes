@@ -453,6 +453,23 @@ async function syncClassSwitcher() {
     renderSemesterTabs();
 }
 
+function prepareSearchIndex(pdfs) {
+    const now = new Date();
+    pdfs.forEach(pdf => {
+        // Pre-calculate lowercased search string to avoid per-render overhead
+        pdf._searchStr = `${pdf.title || ''} ${pdf.description || ''} ${pdf.category || ''} ${pdf.author || ''}`.toLowerCase();
+
+        // Handle Firestore Timestamps or ISO strings for caching
+        const uploadDateObj = pdf.uploadDate?.toDate ? pdf.uploadDate.toDate() : new Date(pdf.uploadDate);
+        pdf._formattedDate = uploadDateObj.toLocaleDateString('en-US', {
+            year: 'numeric', month: 'short', day: 'numeric'
+        });
+
+        const timeDiff = now - uploadDateObj;
+        pdf._isNew = timeDiff < (7 * 24 * 60 * 60 * 1000); // 7 days
+    });
+}
+
 async function loadPDFDatabase() {
     if (isMaintenanceActive) return;
 
@@ -490,6 +507,7 @@ async function loadPDFDatabase() {
         }
 
         if (shouldUseCache) {
+            prepareSearchIndex(cachedData);
             pdfDatabase = cachedData;
             // --- FIX: CALL THIS TO POPULATE UI ---
             syncClassSwitcher();
@@ -513,6 +531,8 @@ async function loadPDFDatabase() {
             timestamp: new Date().getTime(),
             data: pdfDatabase
         }));
+
+        prepareSearchIndex(pdfDatabase);
 
         // --- FIX: CALL THIS TO POPULATE UI ---
         syncClassSwitcher();
@@ -962,10 +982,7 @@ function renderPDFs() {
             matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
         }
 
-        const matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
-            pdf.description.toLowerCase().includes(searchTerm) ||
-            pdf.category.toLowerCase().includes(searchTerm) ||
-            pdf.author.toLowerCase().includes(searchTerm);
+        const matchesSearch = pdf._searchStr ? pdf._searchStr.includes(searchTerm) : false;
 
         // Update return statement to include matchesClass
         return matchesSemester && matchesClass && matchesCategory && matchesSearch;
@@ -1038,11 +1055,7 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
     const heartIconClass = isFav ? 'fas' : 'far';
     const btnActiveClass = isFav ? 'active' : '';
 
-    const uploadDateObj = new Date(pdf.uploadDate);
-    const timeDiff = new Date() - uploadDateObj;
-    const isNew = timeDiff < (7 * 24 * 60 * 60 * 1000); // 7 days
-
-    const newBadgeHTML = isNew
+    const newBadgeHTML = pdf._isNew
         ? `<span style="background:var(--error-color); color:white; font-size:0.6rem; padding:2px 6px; border-radius:4px; margin-left:8px; vertical-align:middle;">NEW</span>`
         : '';
 
@@ -1055,9 +1068,7 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
     const categoryIcon = categoryIcons[pdf.category] || 'fa-file-pdf';
 
     // Formatting Date
-    const formattedDate = new Date(pdf.uploadDate).toLocaleDateString('en-US', {
-        year: 'numeric', month: 'short', day: 'numeric'
-    });
+    const formattedDate = pdf._formattedDate;
 
     // Uses global escapeHtml() now
 
