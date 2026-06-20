@@ -453,6 +453,27 @@ async function syncClassSwitcher() {
     renderSemesterTabs();
 }
 
+function prepareSearchIndex() {
+    if (!pdfDatabase || !Array.isArray(pdfDatabase)) return;
+
+    pdfDatabase.forEach(pdf => {
+        // Optimization: Pre-compute search string to avoid repetitive toLowerCase() calls in render loop
+        // We use a non-enumerable property so it doesn't get serialized to localStorage
+        const searchStr = [
+            pdf.title,
+            pdf.description,
+            pdf.category,
+            pdf.author
+        ].map(s => (s || '').toLowerCase()).join(' ');
+
+        Object.defineProperty(pdf, '_searchStr', {
+            value: searchStr,
+            enumerable: false,
+            writable: true
+        });
+    });
+}
+
 async function loadPDFDatabase() {
     if (isMaintenanceActive) return;
 
@@ -491,6 +512,7 @@ async function loadPDFDatabase() {
 
         if (shouldUseCache) {
             pdfDatabase = cachedData;
+            prepareSearchIndex();
             // --- FIX: CALL THIS TO POPULATE UI ---
             syncClassSwitcher();
             renderSemesterTabs();
@@ -513,6 +535,8 @@ async function loadPDFDatabase() {
             timestamp: new Date().getTime(),
             data: pdfDatabase
         }));
+
+        prepareSearchIndex();
 
         // --- FIX: CALL THIS TO POPULATE UI ---
         syncClassSwitcher();
@@ -949,26 +973,24 @@ function renderPDFs() {
 
     // Locate renderPDFs() in script.js and update the filter section
     const filteredPdfs = pdfDatabase.filter(pdf => {
-        const matchesSemester = pdf.semester === currentSemester;
+        // Optimization: Early returns to skip expensive checks
+        if (pdf.class !== currentClass) return false;
+        if (pdf.semester !== currentSemester) return false;
 
-        // NEW: Check if the PDF class matches the UI's current class selection
-        // Note: If old documents don't have this field, they will be hidden.
-        const matchesClass = pdf.class === currentClass;
-
-        let matchesCategory = false;
         if (currentCategory === 'favorites') {
-            matchesCategory = favorites.includes(pdf.id);
-        } else {
-            matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
+            if (!favorites.includes(pdf.id)) return false;
+        } else if (currentCategory !== 'all' && pdf.category !== currentCategory) {
+            return false;
         }
 
-        const matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
-            pdf.description.toLowerCase().includes(searchTerm) ||
-            pdf.category.toLowerCase().includes(searchTerm) ||
-            pdf.author.toLowerCase().includes(searchTerm);
+        // Use pre-computed search string
+        if (pdf._searchStr) {
+            return pdf._searchStr.includes(searchTerm);
+        }
 
-        // Update return statement to include matchesClass
-        return matchesSemester && matchesClass && matchesCategory && matchesSearch;
+        // Fallback for safety (should rarely happen if prepareSearchIndex ran)
+        const rawSearch = (pdf.title || '') + " " + (pdf.description || '') + " " + (pdf.category || '') + " " + (pdf.author || '');
+        return rawSearch.toLowerCase().includes(searchTerm);
     });
 
     updatePDFCount(filteredPdfs.length);
