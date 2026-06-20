@@ -287,6 +287,15 @@ function getSimpleDeviceName() {
 /* =========================================
    4. UI HELPERS & ADS
    ========================================= */
+function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+        const context = this;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(context, args), wait);
+    };
+}
+
 function handleGoToTopVisibility() {
     if (window.scrollY > 400) {
         goToTopBtn.classList.add('show');
@@ -422,6 +431,36 @@ window.changeSemester = function (sem) {
     renderPDFs();
 };
 
+function prepareSearchIndex(pdfs) {
+    const now = new Date();
+    pdfs.forEach(pdf => {
+        // Optimization: Pre-calculate search string
+        pdf._searchStr = (
+            (pdf.title || '') + ' ' +
+            (pdf.description || '') + ' ' +
+            (pdf.category || '') + ' ' +
+            (pdf.author || '')
+        ).toLowerCase();
+
+        // Optimization: Pre-calculate date values
+        let dateObj;
+        // Handle Firestore Timestamp or String
+        if (pdf.uploadDate && typeof pdf.uploadDate.toDate === 'function') {
+            dateObj = pdf.uploadDate.toDate();
+        } else {
+            dateObj = new Date(pdf.uploadDate);
+        }
+
+        // Optimization: Cache formatted date string
+        pdf._formattedDate = dateObj.toLocaleDateString('en-US', {
+            year: 'numeric', month: 'short', day: 'numeric'
+        });
+
+        const timeDiff = now - dateObj;
+        pdf._isNew = timeDiff < (7 * 24 * 60 * 60 * 1000); // 7 days
+    });
+}
+
 async function syncClassSwitcher() {
     const classSelect = document.getElementById('classSelect');
     if (!classSelect) return;
@@ -491,6 +530,7 @@ async function loadPDFDatabase() {
 
         if (shouldUseCache) {
             pdfDatabase = cachedData;
+            prepareSearchIndex(pdfDatabase);
             // --- FIX: CALL THIS TO POPULATE UI ---
             syncClassSwitcher();
             renderSemesterTabs();
@@ -513,6 +553,8 @@ async function loadPDFDatabase() {
             timestamp: new Date().getTime(),
             data: pdfDatabase
         }));
+
+        prepareSearchIndex(pdfDatabase);
 
         // --- FIX: CALL THIS TO POPULATE UI ---
         syncClassSwitcher();
@@ -703,7 +745,7 @@ function activateHoliday(overlay) {
    7. EVENT LISTENERS
    ========================================= */
 function setupEventListeners() {
-    searchInput.addEventListener('input', renderPDFs);
+    searchInput.addEventListener('input', debounce(renderPDFs, 300));
 
     tabBtns.forEach(btn => {
         btn.addEventListener('click', handleSemesterChange);
@@ -962,10 +1004,14 @@ function renderPDFs() {
             matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
         }
 
-        const matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
+        // Optimization: Use pre-calculated search string
+        const matchesSearch = pdf._searchStr ? pdf._searchStr.includes(searchTerm) : (
+            // Fallback for safety
+            pdf.title.toLowerCase().includes(searchTerm) ||
             pdf.description.toLowerCase().includes(searchTerm) ||
             pdf.category.toLowerCase().includes(searchTerm) ||
-            pdf.author.toLowerCase().includes(searchTerm);
+            pdf.author.toLowerCase().includes(searchTerm)
+        );
 
         // Update return statement to include matchesClass
         return matchesSemester && matchesClass && matchesCategory && matchesSearch;
@@ -1038,9 +1084,8 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
     const heartIconClass = isFav ? 'fas' : 'far';
     const btnActiveClass = isFav ? 'active' : '';
 
-    const uploadDateObj = new Date(pdf.uploadDate);
-    const timeDiff = new Date() - uploadDateObj;
-    const isNew = timeDiff < (7 * 24 * 60 * 60 * 1000); // 7 days
+    // Optimization: Use pre-calculated isNew flag
+    const isNew = pdf._isNew !== undefined ? pdf._isNew : (new Date() - new Date(pdf.uploadDate) < (7 * 24 * 60 * 60 * 1000));
 
     const newBadgeHTML = isNew
         ? `<span style="background:var(--error-color); color:white; font-size:0.6rem; padding:2px 6px; border-radius:4px; margin-left:8px; vertical-align:middle;">NEW</span>`
@@ -1055,7 +1100,8 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
     const categoryIcon = categoryIcons[pdf.category] || 'fa-file-pdf';
 
     // Formatting Date
-    const formattedDate = new Date(pdf.uploadDate).toLocaleDateString('en-US', {
+    // Optimization: Use pre-formatted date string
+    const formattedDate = pdf._formattedDate || new Date(pdf.uploadDate).toLocaleDateString('en-US', {
         year: 'numeric', month: 'short', day: 'numeric'
     });
 
