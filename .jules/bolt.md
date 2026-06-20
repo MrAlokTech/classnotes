@@ -1,0 +1,3 @@
+## 2024-05-24 - Pre-calculate Derived Data to Optimize List Rendering
+**Learning:** Instantiating `Date` objects and repeatedly lowercasing strings per item on every render loop causes significant and observable UI slowdowns in apps dealing with thousands of objects.
+**Action:** When filtering or mapping data items, calculate derived variables (e.g., lowercased text (`_searchStr`), boolean checks (`_isNew`), preformatted dates (`_formattedDate`)) once during initialization/cache-load via a centralized `prepareSearchIndex` utility instead of recalcuating per-render. Additionally, skip redundant computations by utilizing early returns (`if (!condition) return false;`) within filter methods instead of combined boolean returns.
