@@ -1,0 +1,3 @@
+## 2024-05-24 - Search Input Render Bottleneck
+**Learning:** The application synchronously recalculates filters, parses `localStorage` for favorites, parses dates, and rebuilds the entire DOM grid on every single keystroke in the search input (`renderPDFs` is called directly on `input` events). This is a severe anti-pattern for this SPA that causes significant main thread blocking and UI jitter as the `pdfDatabase` grows.
+**Action:** Always debounce frequent DOM-rebuilding event listeners like search inputs (e.g., 300ms delay) to batch keystrokes and reduce layout thrashing.
