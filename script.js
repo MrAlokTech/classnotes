@@ -491,6 +491,7 @@ async function loadPDFDatabase() {
 
         if (shouldUseCache) {
             pdfDatabase = cachedData;
+            prepareSearchIndex(pdfDatabase);
             // --- FIX: CALL THIS TO POPULATE UI ---
             syncClassSwitcher();
             renderSemesterTabs();
@@ -514,6 +515,8 @@ async function loadPDFDatabase() {
             data: pdfDatabase
         }));
 
+        prepareSearchIndex(pdfDatabase);
+
         // --- FIX: CALL THIS TO POPULATE UI ---
         syncClassSwitcher();
         renderPDFs();
@@ -523,6 +526,26 @@ async function loadPDFDatabase() {
         console.error('Error loading PDFs:', error);
         hidePreloader();
     }
+}
+
+function prepareSearchIndex(pdfs) {
+    if (!pdfs) return;
+    pdfs.forEach(pdf => {
+        // Concatenate fields for search optimization
+        // Use || "" to handle potential undefined fields gracefully
+        const searchStr = (
+            (pdf.title || "") + " " +
+            (pdf.description || "") + " " +
+            (pdf.category || "") + " " +
+            (pdf.author || "")
+        ).toLowerCase();
+
+        Object.defineProperty(pdf, '_searchStr', {
+            value: searchStr,
+            enumerable: false, // Don't show in loops or JSON.stringify
+            writable: true
+        });
+    });
 }
 
 function hidePreloader() {
@@ -962,10 +985,8 @@ function renderPDFs() {
             matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
         }
 
-        const matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
-            pdf.description.toLowerCase().includes(searchTerm) ||
-            pdf.category.toLowerCase().includes(searchTerm) ||
-            pdf.author.toLowerCase().includes(searchTerm);
+        // OPTIMIZED: Use pre-computed search string
+        const matchesSearch = (pdf._searchStr || "").includes(searchTerm);
 
         // Update return statement to include matchesClass
         return matchesSemester && matchesClass && matchesCategory && matchesSearch;
