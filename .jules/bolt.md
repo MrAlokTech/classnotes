@@ -1,0 +1,3 @@
+## 2024-04-04 - Search performance optimization is missing in memory notes
+**Learning:** Found that `script.js` has not implemented `prepareSearchIndex` that is heavily discussed in the memory file. The filtering logic in `renderPDFs` evaluates `toLowerCase()` on multiple fields (title, description, category, author) dynamically during list rendering, missing the early returns and pre-indexed `_searchStr`.
+**Action:** Implementing `prepareSearchIndex` into `loadPDFDatabase` will improve list rendering significantly when large arrays are queried dynamically, reducing DOM re-renders and logic calculations dynamically.
