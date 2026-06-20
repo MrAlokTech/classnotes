@@ -60,6 +60,50 @@ const categoryIcons = {
     'Syllabus': 'fa-list-alt'
 };
 
+/**
+ * ⚡ OPTIMIZATION: Pre-calculate search strings and dates.
+ * This avoids expensive .toLowerCase() and new Date() calls inside the render loop.
+ * Properties are non-enumerable to prevent localStorage bloat.
+ */
+function prepareSearchIndex() {
+    const now = new Date();
+    const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
+
+    pdfDatabase.forEach(pdf => {
+        // Skip if already prepared (optional check)
+        if (pdf._searchStr) return;
+
+        // Pre-calculate Search String
+        const searchStr = (
+            (pdf.title || "") + " " +
+            (pdf.description || "") + " " +
+            (pdf.category || "") + " " +
+            (pdf.author || "")
+        ).toLowerCase();
+
+        // Pre-calculate Date
+        let formattedDate = "";
+        let isNew = false;
+
+        try {
+            const uploadDateObj = new Date(pdf.uploadDate);
+            formattedDate = uploadDateObj.toLocaleDateString('en-US', {
+                year: 'numeric', month: 'short', day: 'numeric'
+            });
+            isNew = (now - uploadDateObj) < oneWeekMs;
+        } catch (e) {
+            console.warn("Date parse error for PDF", pdf.id);
+        }
+
+        // Use defineProperty to keep them out of localStorage serialization
+        Object.defineProperties(pdf, {
+            _searchStr: { value: searchStr, writable: true, configurable: true, enumerable: false },
+            _formattedDate: { value: formattedDate, writable: true, configurable: true, enumerable: false },
+            _isNew: { value: isNew, writable: true, configurable: true, enumerable: false }
+        });
+    });
+}
+
 function renderCategoryFilters() {
     const container = document.getElementById('categoryFilters');
     if (!container) return;
@@ -491,6 +535,7 @@ async function loadPDFDatabase() {
 
         if (shouldUseCache) {
             pdfDatabase = cachedData;
+            prepareSearchIndex(); // ⚡ Optimize after cache load
             // --- FIX: CALL THIS TO POPULATE UI ---
             syncClassSwitcher();
             renderSemesterTabs();
@@ -514,6 +559,7 @@ async function loadPDFDatabase() {
             data: pdfDatabase
         }));
 
+        prepareSearchIndex(); // ⚡ Optimize after fresh fetch
         // --- FIX: CALL THIS TO POPULATE UI ---
         syncClassSwitcher();
         renderPDFs();
@@ -962,10 +1008,15 @@ function renderPDFs() {
             matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
         }
 
-        const matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
-            pdf.description.toLowerCase().includes(searchTerm) ||
-            pdf.category.toLowerCase().includes(searchTerm) ||
-            pdf.author.toLowerCase().includes(searchTerm);
+        // ⚡ OPTIMIZED SEARCH: Use pre-calculated _searchStr
+        const matchesSearch = pdf._searchStr
+            ? pdf._searchStr.includes(searchTerm)
+            : (
+                (pdf.title || "").toLowerCase().includes(searchTerm) ||
+                (pdf.description || "").toLowerCase().includes(searchTerm) ||
+                (pdf.category || "").toLowerCase().includes(searchTerm) ||
+                (pdf.author || "").toLowerCase().includes(searchTerm)
+            );
 
         // Update return statement to include matchesClass
         return matchesSemester && matchesClass && matchesCategory && matchesSearch;
@@ -1038,9 +1089,20 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
     const heartIconClass = isFav ? 'fas' : 'far';
     const btnActiveClass = isFav ? 'active' : '';
 
-    const uploadDateObj = new Date(pdf.uploadDate);
-    const timeDiff = new Date() - uploadDateObj;
-    const isNew = timeDiff < (7 * 24 * 60 * 60 * 1000); // 7 days
+    // ⚡ OPTIMIZED: Use pre-calculated values
+    let isNew, formattedDate;
+
+    if (typeof pdf._isNew !== 'undefined') {
+        isNew = pdf._isNew;
+        formattedDate = pdf._formattedDate;
+    } else {
+        const uploadDateObj = new Date(pdf.uploadDate);
+        const timeDiff = new Date() - uploadDateObj;
+        isNew = timeDiff < (7 * 24 * 60 * 60 * 1000); // 7 days
+        formattedDate = uploadDateObj.toLocaleDateString('en-US', {
+            year: 'numeric', month: 'short', day: 'numeric'
+        });
+    }
 
     const newBadgeHTML = isNew
         ? `<span style="background:var(--error-color); color:white; font-size:0.6rem; padding:2px 6px; border-radius:4px; margin-left:8px; vertical-align:middle;">NEW</span>`
@@ -1053,11 +1115,6 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
         'Physics': 'fa-infinity' // Ensure Physics icon is mapped if used
     };
     const categoryIcon = categoryIcons[pdf.category] || 'fa-file-pdf';
-
-    // Formatting Date
-    const formattedDate = new Date(pdf.uploadDate).toLocaleDateString('en-US', {
-        year: 'numeric', month: 'short', day: 'numeric'
-    });
 
     // Uses global escapeHtml() now
 
