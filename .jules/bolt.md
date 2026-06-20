@@ -1,0 +1,3 @@
+## 2024-05-24 - Pre-calculate properties in list rendering
+**Learning:** Moving string concatenation for search matching and Date parsing/formatting out of the array filter and map render loops significantly improves list rendering speed for large datasets. Re-evaluating dates and string concatenations on every `renderPDFs` invocation blocked the main thread.
+**Action:** Created `prepareSearchIndex` to pre-calculate `_searchStr`, `_isNew`, and `_formattedDate` for all PDF items immediately after data load. This reduces CPU overhead during the frequently triggered `renderPDFs` loop (e.g., when the user types in the search input).
