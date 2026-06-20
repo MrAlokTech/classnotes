@@ -1,0 +1,3 @@
+## 2023-10-27 - [Pre-calculate Derived Properties Outside Render Loops]
+**Learning:** In highly interactive frontends without Virtual DOMs (like this vanilla JS project), repetitive calculations inside rendering or filtering loops (such as lowercasing strings for search, parsing Dates, or computing time diffs) cause significant CPU overhead and layout thrashing, especially during typing (e.g., in a search bar).
+**Action:** When working with raw data that will be filtered or rendered frequently, iterate over the dataset once upon loading to attach derived properties (e.g., `_searchStr`, `_isNew`, `_formattedDate`). Use these pre-calculated properties inside the render/filter loops to minimize allocations and operations on the main thread.
