@@ -1362,9 +1362,14 @@ async function handleCommentSubmit(e) {
 /* =========================================
    10. EXTRAS (THEME, FAVORITES, EASTER EGGS)
    ========================================= */
+// ⚡ Bolt Optimization: Cache favorites to avoid synchronous localStorage reads and JSON.parse on every render
+let favoritesCache = null;
+
 function getFavorites() {
+    if (favoritesCache !== null) return favoritesCache;
     const stored = localStorage.getItem('classNotesFavorites');
-    return stored ? JSON.parse(stored) : [];
+    favoritesCache = stored ? JSON.parse(stored) : [];
+    return favoritesCache;
 }
 
 function toggleFavorite(event, pdfId) {
@@ -1383,6 +1388,9 @@ function toggleFavorite(event, pdfId) {
         favorites.push(pdfId);
         showToast('Added to saved notes');
     }
+
+    // Update cache before saving
+    favoritesCache = favorites;
     localStorage.setItem('classNotesFavorites', JSON.stringify(favorites));
     renderPDFs();
 }
