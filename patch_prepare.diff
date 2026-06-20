@@ -1,0 +1,35 @@
+<<<<<<< SEARCH
+async function loadPDFDatabase() {
+=======
+function prepareSearchIndex(data) {
+    const dateFormatter = new Intl.DateTimeFormat('en-US', {
+        year: 'numeric', month: 'short', day: 'numeric'
+    });
+    const now = new Date().getTime();
+    const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
+
+    for (let i = 0; i < data.length; i++) {
+        const pdf = data[i];
+
+        // 1. Precalculate search string
+        pdf._searchStr = (
+            (pdf.title || '') + ' ' +
+            (pdf.description || '') + ' ' +
+            (pdf.category || '') + ' ' +
+            (pdf.author || '')
+        ).toLowerCase();
+
+        // 2. Precalculate date logic
+        const uploadDateObj = new Date(pdf.uploadDate);
+        if (!isNaN(uploadDateObj)) {
+            pdf._formattedDate = dateFormatter.format(uploadDateObj);
+            pdf._isNew = (now - uploadDateObj.getTime()) < SEVEN_DAYS;
+        } else {
+            pdf._formattedDate = 'Unknown Date';
+            pdf._isNew = false;
+        }
+    }
+}
+
+async function loadPDFDatabase() {
+>>>>>>> REPLACE

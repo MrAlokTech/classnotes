@@ -1,0 +1,6 @@
+1. **Add `prepareSearchIndex` function in `script.js`**: Create a helper function to precalculate `_searchStr`, `_isNew`, and `_formattedDate` for all PDF objects. This will use an `Intl.DateTimeFormat` instance for optimal date formatting performance and validate timestamps using `!isNaN()`.
+2. **Call `prepareSearchIndex` after data load**: Update `loadPDFDatabase` to call `prepareSearchIndex(pdfDatabase)` immediately after loading from cache or fetching from Firebase (after `localStorage.setItem` to avoid bloating the cache).
+3. **Optimize `renderPDFs` filter**: Update the filter logic in `renderPDFs` to use early returns (`if (!condition) return false;`) and use the pre-calculated `_searchStr` with a truthiness guard instead of rebuilding the search string on every keypress.
+4. **Update `createPDFCard`**: Update `createPDFCard` to use the pre-calculated `_isNew` and `_formattedDate` values, keeping inline calculation fallbacks for unindexed data (e.g. `if (isNew === undefined) { ... }`).
+5. **Complete pre commit steps**: Ensure proper testing, verification, review, and reflection are done.
+6. **Submit PR**: Commit and submit the code with a "⚡ Bolt: [performance improvement]" PR title and detailed description.
