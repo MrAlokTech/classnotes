@@ -422,6 +422,34 @@ window.changeSemester = function (sem) {
     renderPDFs();
 };
 
+
+/**
+ * ⚡ Bolt: Performance Optimization
+ * Pre-calculates expensive derived properties (search string, formatted date, new status)
+ * to avoid computing them repeatedly inside the render loop and filtering logic.
+ * This significantly improves search and typing responsiveness.
+ */
+function prepareSearchIndex(pdfs) {
+    const now = new Date();
+    pdfs.forEach(pdf => {
+        let uploadDateObj;
+        if (pdf.uploadDate && typeof pdf.uploadDate.toDate === 'function') {
+            uploadDateObj = pdf.uploadDate.toDate();
+        } else if (pdf.uploadDate) {
+            uploadDateObj = new Date(pdf.uploadDate);
+        } else {
+            uploadDateObj = new Date();
+        }
+
+        pdf._searchStr = `${pdf.title || ''} ${pdf.description || ''} ${pdf.category || ''} ${pdf.author || ''}`.toLowerCase();
+        pdf._formattedDate = uploadDateObj.toLocaleDateString('en-US', {
+            year: 'numeric', month: 'short', day: 'numeric'
+        });
+        pdf._isNew = (now - uploadDateObj) < (7 * 24 * 60 * 60 * 1000);
+    });
+    return pdfs;
+}
+
 async function syncClassSwitcher() {
     const classSelect = document.getElementById('classSelect');
     if (!classSelect) return;
@@ -490,7 +518,7 @@ async function loadPDFDatabase() {
         }
 
         if (shouldUseCache) {
-            pdfDatabase = cachedData;
+            pdfDatabase = prepareSearchIndex(cachedData);
             // --- FIX: CALL THIS TO POPULATE UI ---
             syncClassSwitcher();
             renderSemesterTabs();
@@ -508,6 +536,7 @@ async function loadPDFDatabase() {
         snapshot.forEach(doc => {
             pdfDatabase.push({ id: doc.id, ...doc.data() });
         });
+        prepareSearchIndex(pdfDatabase);
 
         localStorage.setItem(CACHE_KEY, JSON.stringify({
             timestamp: new Date().getTime(),
@@ -949,26 +978,19 @@ function renderPDFs() {
 
     // Locate renderPDFs() in script.js and update the filter section
     const filteredPdfs = pdfDatabase.filter(pdf => {
-        const matchesSemester = pdf.semester === currentSemester;
+        // ⚡ Bolt: Early returns for cheap equality checks
+        if (pdf.class !== currentClass || pdf.semester !== currentSemester) return false;
 
-        // NEW: Check if the PDF class matches the UI's current class selection
-        // Note: If old documents don't have this field, they will be hidden.
-        const matchesClass = pdf.class === currentClass;
-
-        let matchesCategory = false;
         if (currentCategory === 'favorites') {
-            matchesCategory = favorites.includes(pdf.id);
-        } else {
-            matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
+            if (!favorites.includes(pdf.id)) return false;
+        } else if (currentCategory !== 'all') {
+            if (pdf.category !== currentCategory) return false;
         }
 
-        const matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
-            pdf.description.toLowerCase().includes(searchTerm) ||
-            pdf.category.toLowerCase().includes(searchTerm) ||
-            pdf.author.toLowerCase().includes(searchTerm);
+        // ⚡ Bolt: Use pre-calculated search string
+        if (searchTerm && !pdf._searchStr.includes(searchTerm)) return false;
 
-        // Update return statement to include matchesClass
-        return matchesSemester && matchesClass && matchesCategory && matchesSearch;
+        return true;
     });
 
     updatePDFCount(filteredPdfs.length);
@@ -1038,11 +1060,8 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
     const heartIconClass = isFav ? 'fas' : 'far';
     const btnActiveClass = isFav ? 'active' : '';
 
-    const uploadDateObj = new Date(pdf.uploadDate);
-    const timeDiff = new Date() - uploadDateObj;
-    const isNew = timeDiff < (7 * 24 * 60 * 60 * 1000); // 7 days
-
-    const newBadgeHTML = isNew
+    // ⚡ Bolt: Use pre-calculated properties instead of recomputing on every render
+    const newBadgeHTML = pdf._isNew
         ? `<span style="background:var(--error-color); color:white; font-size:0.6rem; padding:2px 6px; border-radius:4px; margin-left:8px; vertical-align:middle;">NEW</span>`
         : '';
 
@@ -1054,10 +1073,7 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
     };
     const categoryIcon = categoryIcons[pdf.category] || 'fa-file-pdf';
 
-    // Formatting Date
-    const formattedDate = new Date(pdf.uploadDate).toLocaleDateString('en-US', {
-        year: 'numeric', month: 'short', day: 'numeric'
-    });
+    const formattedDate = pdf._formattedDate;
 
     // Uses global escapeHtml() now
 
