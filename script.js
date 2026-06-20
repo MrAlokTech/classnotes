@@ -491,6 +491,7 @@ async function loadPDFDatabase() {
 
         if (shouldUseCache) {
             pdfDatabase = cachedData;
+            prepareSearchIndex();
             // --- FIX: CALL THIS TO POPULATE UI ---
             syncClassSwitcher();
             renderSemesterTabs();
@@ -514,6 +515,8 @@ async function loadPDFDatabase() {
             data: pdfDatabase
         }));
 
+        prepareSearchIndex();
+
         // --- FIX: CALL THIS TO POPULATE UI ---
         syncClassSwitcher();
         renderPDFs();
@@ -523,6 +526,47 @@ async function loadPDFDatabase() {
         console.error('Error loading PDFs:', error);
         hidePreloader();
     }
+}
+
+function prepareSearchIndex() {
+    // Optimization: Pre-calculate values to avoid doing it in the render loop
+    // Runs once on load, making renderPDFs O(N) instead of O(N * M)
+    const now = new Date();
+    const oneWeekAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+
+    pdfDatabase.forEach(pdf => {
+        // 1. Search String (avoid toLowerCase() in loop)
+        const searchStr = (
+            (pdf.title || '') + ' ' +
+            (pdf.description || '') + ' ' +
+            (pdf.category || '') + ' ' +
+            (pdf.author || '')
+        ).toLowerCase();
+
+        // 2. Formatted Date (avoid new Date() and toLocaleDateString in loop)
+        // Check if uploadDate is a valid date string or timestamp
+        let uploadDateStr = pdf.uploadDate;
+        // If it's a Firestore timestamp (object with seconds), convert to Date
+        if (uploadDateStr && typeof uploadDateStr === 'object' && uploadDateStr.toDate) {
+             uploadDateStr = uploadDateStr.toDate();
+        }
+
+        const uploadDate = new Date(uploadDateStr);
+        const formattedDate = !isNaN(uploadDate) ? uploadDate.toLocaleDateString('en-US', {
+            year: 'numeric', month: 'short', day: 'numeric'
+        }) : 'Unknown Date';
+
+        // 3. Is New (avoid Date math in loop)
+        const isNew = !isNaN(uploadDate) && uploadDate > oneWeekAgo;
+
+        // Add properties using defineProperties to keep them non-enumerable
+        // (so they don't get saved to localStorage cache)
+        Object.defineProperties(pdf, {
+            _searchStr: { value: searchStr, writable: true, enumerable: false },
+            _formattedDate: { value: formattedDate, writable: true, enumerable: false },
+            _isNew: { value: isNew, writable: true, enumerable: false }
+        });
+    });
 }
 
 function hidePreloader() {
@@ -962,10 +1006,13 @@ function renderPDFs() {
             matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
         }
 
-        const matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
+        // Optimization: Use pre-calculated search string
+        const matchesSearch = pdf._searchStr ? pdf._searchStr.includes(searchTerm) : (
+            pdf.title.toLowerCase().includes(searchTerm) ||
             pdf.description.toLowerCase().includes(searchTerm) ||
             pdf.category.toLowerCase().includes(searchTerm) ||
-            pdf.author.toLowerCase().includes(searchTerm);
+            pdf.author.toLowerCase().includes(searchTerm)
+        );
 
         // Update return statement to include matchesClass
         return matchesSemester && matchesClass && matchesCategory && matchesSearch;
@@ -1038,9 +1085,8 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
     const heartIconClass = isFav ? 'fas' : 'far';
     const btnActiveClass = isFav ? 'active' : '';
 
-    const uploadDateObj = new Date(pdf.uploadDate);
-    const timeDiff = new Date() - uploadDateObj;
-    const isNew = timeDiff < (7 * 24 * 60 * 60 * 1000); // 7 days
+    // Optimization: Use pre-calculated date values
+    const isNew = pdf._isNew !== undefined ? pdf._isNew : (new Date() - new Date(pdf.uploadDate) < (7 * 24 * 60 * 60 * 1000));
 
     const newBadgeHTML = isNew
         ? `<span style="background:var(--error-color); color:white; font-size:0.6rem; padding:2px 6px; border-radius:4px; margin-left:8px; vertical-align:middle;">NEW</span>`
@@ -1055,7 +1101,7 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
     const categoryIcon = categoryIcons[pdf.category] || 'fa-file-pdf';
 
     // Formatting Date
-    const formattedDate = new Date(pdf.uploadDate).toLocaleDateString('en-US', {
+    const formattedDate = pdf._formattedDate || new Date(pdf.uploadDate).toLocaleDateString('en-US', {
         year: 'numeric', month: 'short', day: 'numeric'
     });
 
