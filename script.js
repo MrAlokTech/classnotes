@@ -453,6 +453,26 @@ async function syncClassSwitcher() {
     renderSemesterTabs();
 }
 
+function prepareSearchIndex() {
+    const dateFormatter = new Intl.DateTimeFormat('en-US', {
+        year: 'numeric', month: 'short', day: 'numeric'
+    });
+    const now = new Date();
+
+    pdfDatabase.forEach(pdf => {
+        pdf._searchStr = `${pdf.title || ''} ${pdf.description || ''} ${pdf.category || ''} ${pdf.author || ''}`.toLowerCase();
+
+        if (pdf.uploadDate) {
+            const uploadDateObj = new Date(pdf.uploadDate);
+            if (!isNaN(uploadDateObj)) {
+                pdf._formattedDate = dateFormatter.format(uploadDateObj);
+                const timeDiff = now - uploadDateObj;
+                pdf._isNew = timeDiff < (7 * 24 * 60 * 60 * 1000);
+            }
+        }
+    });
+}
+
 async function loadPDFDatabase() {
     if (isMaintenanceActive) return;
 
@@ -491,6 +511,7 @@ async function loadPDFDatabase() {
 
         if (shouldUseCache) {
             pdfDatabase = cachedData;
+            prepareSearchIndex(); // NEW: Calculate derived runtime properties
             // --- FIX: CALL THIS TO POPULATE UI ---
             syncClassSwitcher();
             renderSemesterTabs();
@@ -513,6 +534,8 @@ async function loadPDFDatabase() {
             timestamp: new Date().getTime(),
             data: pdfDatabase
         }));
+
+        prepareSearchIndex(); // NEW: Calculate derived runtime properties after caching
 
         // --- FIX: CALL THIS TO POPULATE UI ---
         syncClassSwitcher();
@@ -962,10 +985,10 @@ function renderPDFs() {
             matchesCategory = currentCategory === 'all' || pdf.category === currentCategory;
         }
 
-        const matchesSearch = pdf.title.toLowerCase().includes(searchTerm) ||
-            pdf.description.toLowerCase().includes(searchTerm) ||
-            pdf.category.toLowerCase().includes(searchTerm) ||
-            pdf.author.toLowerCase().includes(searchTerm);
+        let matchesSearch = true;
+        if (searchTerm) {
+             matchesSearch = pdf._searchStr ? pdf._searchStr.includes(searchTerm) : false;
+        }
 
         // Update return statement to include matchesClass
         return matchesSemester && matchesClass && matchesCategory && matchesSearch;
@@ -1038,9 +1061,28 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
     const heartIconClass = isFav ? 'fas' : 'far';
     const btnActiveClass = isFav ? 'active' : '';
 
-    const uploadDateObj = new Date(pdf.uploadDate);
-    const timeDiff = new Date() - uploadDateObj;
-    const isNew = timeDiff < (7 * 24 * 60 * 60 * 1000); // 7 days
+    let isNew = pdf._isNew;
+    let formattedDate = pdf._formattedDate;
+
+    // Fallback if index wasn't prepared (e.g. unindexed or legacy cached data)
+    if (isNew === undefined || !formattedDate) {
+         if (pdf.uploadDate) {
+              const uploadDateObj = new Date(pdf.uploadDate);
+              if (!isNaN(uploadDateObj)) {
+                   const timeDiff = new Date() - uploadDateObj;
+                   isNew = timeDiff < (7 * 24 * 60 * 60 * 1000); // 7 days
+                   formattedDate = uploadDateObj.toLocaleDateString('en-US', {
+                       year: 'numeric', month: 'short', day: 'numeric'
+                   });
+              } else {
+                  isNew = false;
+                  formattedDate = "Unknown Date";
+              }
+         } else {
+              isNew = false;
+              formattedDate = "Unknown Date";
+         }
+    }
 
     const newBadgeHTML = isNew
         ? `<span style="background:var(--error-color); color:white; font-size:0.6rem; padding:2px 6px; border-radius:4px; margin-left:8px; vertical-align:middle;">NEW</span>`
@@ -1053,11 +1095,6 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
         'Physics': 'fa-infinity' // Ensure Physics icon is mapped if used
     };
     const categoryIcon = categoryIcons[pdf.category] || 'fa-file-pdf';
-
-    // Formatting Date
-    const formattedDate = new Date(pdf.uploadDate).toLocaleDateString('en-US', {
-        year: 'numeric', month: 'short', day: 'numeric'
-    });
 
     // Uses global escapeHtml() now
 
