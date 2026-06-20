@@ -835,7 +835,18 @@ function getEmbeddableUrl(url) {
     return `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(url)}`;
 }
 
-async function viewPDF(pdf, pushToHistory = true) {
+async function viewPDF(pdfOrId, pushToHistory = true) {
+    // Optimization: Support passing ID string to avoid large HTML payload
+    const pdf = (typeof pdfOrId === 'string')
+        ? pdfDatabase.find(p => p.id === pdfOrId)
+        : pdfOrId;
+
+    if (!pdf) {
+        console.error('PDF not found:', pdfOrId);
+        showToast('Error: PDF data not found.', 'error');
+        return;
+    }
+
     const originalPdfPath = pdf.pdfUrl;
     logInteraction('view_pdf', pdf.title, pdf.id);
 
@@ -1067,7 +1078,8 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
         return safeText.replace(highlightRegex, '<span class="highlight">$1</span>');
     };
 
-    const safePdfString = JSON.stringify(pdf).replace(/"/g, '&quot;');
+    // Optimization: Removed expensive JSON.stringify(pdf) here.
+    // Instead, we pass the ID to viewPDF() which looks it up in O(1) or O(n).
 
     // --- NEW: Calculate Stagger Delay ---
     // Cap at 1s (20 items) so the list doesn't feel unresponsive
@@ -1084,7 +1096,7 @@ function createPDFCard(pdf, favoritesList, index = 0, highlightRegex = null) {
             </div>
             <p class="pdf-description">${highlightText(pdf.description)}</p>
             <div class="pdf-actions">
-                <button class="btn btn-primary" onclick="viewPDF(${safePdfString})">
+                <button class="btn btn-primary" onclick="viewPDF(this.dataset.id)" data-id="${escapeHtml(pdf.id)}">
                     <i class="fas fa-eye"></i> View
                 </button>
                 <button class="btn btn-favorite ${btnActiveClass}" onclick="toggleFavorite(event, '${pdf.id}')" title="Save Note">
