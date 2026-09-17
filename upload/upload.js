@@ -663,7 +663,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 2. Check File Size
         if (file.size > CONFIG.maxFileSize) {
-            showToast("File too large (Max 25MB)", "error");
+            showToast("File too large (Max 25MB)\nNeed Compression?\nhttps://alokdasofficial.in/tools/pdf/compress", "error");
             UI.inputs.file.value = "";
             UI.inputs.fileName.style.display = 'none';
             return;
